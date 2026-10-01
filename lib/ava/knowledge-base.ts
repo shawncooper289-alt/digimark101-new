@@ -112,6 +112,10 @@ export const AVA_MARKETER_FRAMEWORKS: MarketerFramework[] = [
 /**
  * The system prompt sent to Ava's underlying model. Built from the
  * structured knowledge above so it stays in sync by construction.
+ *
+ * Server-side use only: this string (and `AVA_SYSTEM_PROMPT` below) must
+ * never be forwarded verbatim in a response to the client — it embeds
+ * internal knowledge-base/version and capability details.
  */
 export function buildAvaSystemPrompt(): string {
   const frameworks = AVA_MARKETER_FRAMEWORKS.map((m) => `- ${m.name}: ${m.framework}`).join('\n')
