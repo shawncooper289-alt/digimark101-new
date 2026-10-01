@@ -65,9 +65,19 @@ export function isAvaActionAutonomous(id: string): boolean {
   return getAvaCapability(id)?.tier === 'autonomous'
 }
 
+/** Whether an action must never be performed, regardless of approval. */
+export function isAvaActionForbidden(id: string): boolean {
+  return getAvaCapability(id)?.tier === 'never_allowed'
+}
+
 /**
  * Whether an action requires explicit human sign-off before Ava (or a bot/
  * agent she has delegated it to) may perform it.
+ *
+ * Returns `true` for both `approval_required` and `never_allowed` tiers, so
+ * callers that only check this function never mistake a forbidden action
+ * for one that's merely gated behind approval. Use `isAvaActionForbidden`
+ * to distinguish "needs a human to confirm" from "must never happen."
  *
  * An unregistered capability id is treated as approval-required as a
  * fail-safe default (never silently autonomous), but is logged as a
@@ -82,5 +92,5 @@ export function requiresHumanApproval(id: string): boolean {
     return true
   }
 
-  return capability.tier === 'approval_required'
+  return capability.tier === 'approval_required' || capability.tier === 'never_allowed'
 }
