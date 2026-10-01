@@ -102,9 +102,9 @@ export const AVA_MARKETER_FRAMEWORKS: MarketerFramework[] = [
   { name: 'Eugene Schwartz', framework: '5 stages of market awareness/sophistication' },
   { name: 'Noah Kagan', framework: 'Rapid validation; scrappy growth experiments' },
   { name: 'Ryan Deiss', framework: 'Customer value journey mapping' },
-  { name: 'Molly Pittman', framework: 'Paid-social creative testing systems' },
-  { name: 'Ezra Firestone', framework: 'Paid-social creative testing systems' },
-  { name: 'Sam Ovens', framework: 'Paid-traffic funnel economics' },
+  { name: 'Molly Pittman', framework: 'Paid-social creative testing systems; scaling winning ad creative' },
+  { name: 'Ezra Firestone', framework: 'E-commerce paid-social funnels and creative/offer testing' },
+  { name: 'Sam Ovens', framework: 'Consulting/coaching offer productization and paid-traffic funnel economics' },
   { name: 'Perry Marshall', framework: '80/20 principle applied to offers and traffic sources' },
   { name: 'April Dunford', framework: 'Positioning-first product-market messaging' },
 ]
