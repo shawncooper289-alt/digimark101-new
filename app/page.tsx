@@ -1,16 +1,18 @@
-import { AvaVoiceWidget } from '@/components/ava/voice-widget'
+import { Workspace } from '@/components/platform/workspace'
 
 export default function Home() {
-  return (
-    <main className="relative min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 p-10">
-      <section className="max-w-3xl">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">DigiMark101</h1>
-        <p className="text-lg text-gray-700">
-          Ava voice assistant scaffold is now assembled. Connect your Supabase and API keys to enable full production behavior.
-        </p>
-      </section>
-
-      <AvaVoiceWidget userId="demo-user" />
-    </main>
-  )
+  const checkout = process.env.PAYPAL_CHECKOUT_URL
+  const safeCheckout = checkout && /^https:\/\/(www\.)?(paypal\.com|paypal\.me)\//.test(checkout) ? checkout : null
+  const video = process.env.AVA_WALKTHROUGH_VIDEO_URL
+  const safeVideo = video?.startsWith('https://') ? video : null
+  return <main>
+    <nav className="nav"><a href="#" className="logo">DigiMark<span>101</span><small>THE AVA SKYE PLATFORM</small></a><div><a href="#experience">Experience</a><a href="#walkthrough">Walkthrough</a><a className="nav-cta" href="#workspace">Meet Ava ↗</a></div></nav>
+    <section className="hero"><div className="hero-copy"><div className="eyebrow"><span className="dot" /> YOUR NEXT CHAPTER STARTS HERE</div><h1>Big ambition.<br />Meet <em>Ava Skye.</em></h1><p>Your AI growth partner for sharper strategy, stronger content, and a brand that moves forward. Built around your business—not another blank prompt.</p><div className="actions"><a className="primary" href="#workspace">Step inside with Ava ↗</a><a className="secondary" href="#walkthrough">Explore the platform ▶</a></div><div className="hero-meta">STRATEGY · KNOWLEDGE · SOCIAL INTELLIGENCE</div></div><div className="ava-art" aria-label="Abstract Ava Skye visual"><div className="orb" /><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="ava-wordmark">AVA<small>SKYE</small></div><div className="floating-note">A clearer path.<br /><strong>A smarter next move.</strong></div><span className="art-caption">HUMAN AMBITION. AI POSSIBILITY.</span></div></section>
+    <div className="stack-strip"><span>YOUR CONNECTED FOUNDATION</span><b>Vercel AI Gateway</b><b>OpenAI</b><b>Supabase</b><b>Pinecone</b><b>X API</b></div>
+    <section id="experience" className="section"><div className="eyebrow">LESS FRICTION. MORE DIRECTION.</div><h2>One partner. Your whole growth picture.</h2><div className="cards">{[['01', 'Strategy with substance', 'Turn your goals into focused campaigns, clear positioning, and actionable next steps.'], ['02', 'Knowledge that stays yours', 'Give Ava your brand context. Supabase keeps the source of truth; Pinecone helps find what matters.'], ['03', 'A pulse on the conversation', 'Research recent conversations on X, then bring those insights into your next marketing decision.']].map(([n,t,d]) => <article key={n}><span>{n} / AVA SKYE</span><h3>{t}</h3><p>{d}</p></article>)}</div></section>
+    <section id="walkthrough" className="section walkthrough"><div><div className="eyebrow">THE PLATFORM, AT A GLANCE</div><h2>From first hello<br />to your next big idea.</h2><p className="muted">A practical tour of your Ava workspace.</p><ol><li>Sign in securely with your email.</li><li>Add your brand knowledge to Supabase.</li><li>Ask Ava for strategy grounded in your documents.</li><li>Explore X research and refine your plan.</li></ol><a className="secondary" href="#workspace">Try the guided experience ↗</a></div><div className="video-panel">{safeVideo ? <video controls preload="metadata" aria-label="Ava Skye platform walkthrough"><source src={safeVideo} /><track kind="captions" src="/walkthrough.vtt" srcLang="en" label="English" />Your browser does not support video.</video> : <><span className="play-symbol">▷</span><h3>Ava Skye platform walkthrough</h3><p>Video awaiting upload.<br />The guided steps and workspace are available below.</p><small>Set AVA_WALKTHROUGH_VIDEO_URL to your approved video.</small></>}</div></section>
+    <Workspace />
+    <section className="section offer"><div className="eyebrow">BUILD YOUR NEXT CHAPTER</div><h2>Ready to grow with Ava?</h2><p>Explore the workspace first. Checkout opens your configured PayPal offer.</p>{safeCheckout ? <a className="primary" href={safeCheckout} target="_blank" rel="noopener noreferrer">Continue with PayPal ↗</a> : <><button className="primary" disabled>PayPal checkout · setup pending</button><p className="fine">The owner must configure the approved PayPal checkout link before accepting payments.</p></>}<p className="fine">No subscription or access is provisioned automatically by this checkout link.</p></section>
+    <footer><a className="logo" href="#">DigiMark<span>101</span></a><p>Built for human ambition. Guided by Ava Skye.</p><small>© {new Date().getFullYear()} DigiMark101</small></footer>
+  </main>
 }
