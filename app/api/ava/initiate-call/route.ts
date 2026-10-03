@@ -1,5 +1,3 @@
-import { NextResponse } from 'next/server'
-
 export async function POST() {
-  return NextResponse.json({ success: true })
+  return Response.json({ error: 'Phone calling is not configured. Use Ava text chat in your workspace.' }, { status: 503 })
 }

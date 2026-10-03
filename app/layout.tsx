@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'DigiMark101',
-  description: 'DigiMark101 voice assistant web app scaffold',
+  description: 'Meet Ava Skye, your AI growth partner. Strategy, private brand knowledge, and social intelligence in one connected workspace.',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

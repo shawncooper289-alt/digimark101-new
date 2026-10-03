@@ -12,6 +12,8 @@
     "@radix-ui/react-avatar": "^1.2.6",
     "@radix-ui/react-scroll-area": "^1.2.18",
     "@radix-ui/react-toast": "^1.2.23",
+    "@supabase/supabase-js": "^2.117.2",
+    "ai": "^7.0.127",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^13.4.4",
@@ -19,6 +21,7 @@
     "next": "16.3.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {

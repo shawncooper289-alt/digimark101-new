@@ -13,3 +13,4 @@ npm run dev
 
 - Vercel deployment guide: `/docs/DEPLOY.md`
 - Supabase setup guide: `/docs/QUICK_START.md`
+- Ava Skye knowledge base & capability model: `/docs/AVA_KNOWLEDGE_BASE.md`
