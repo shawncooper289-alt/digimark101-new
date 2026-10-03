@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'DigiMark101',
+  title: 'Ava Skye | DigiMark101',
   description: 'Meet Ava Skye, your AI growth partner. Strategy, private brand knowledge, and social intelligence in one connected workspace.',
 }
 
