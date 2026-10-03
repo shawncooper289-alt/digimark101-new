@@ -10,7 +10,7 @@ export function required(name: string) {
 export async function session(req: Request) {
   const token = req.headers.get('authorization')?.replace(/^Bearer /, '')
   if (!token) throw new SetupError('Sign in to use your private Ava workspace.')
-  const db = createClient(required('NEXT_PUBLIC_SUPABASE_URL'), required('NEXT_PUBLIC_SUPABASE_ANON_KEY'), {
+  const db = createClient(process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_URL || required('NEXT_PUBLIC_SUPABASE_URL'), process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_ANON_KEY || required('NEXT_PUBLIC_SUPABASE_ANON_KEY'), {
     global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false },
   })
   const { data, error } = await db.auth.getUser(token)

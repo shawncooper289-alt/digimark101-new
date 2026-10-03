@@ -26,3 +26,7 @@ This build uses the `digimark101-new` repository. It preserves Ava's knowledge b
 `npm run build`, `npx tsc --noEmit`, `npm run lint`, `npm audit --omit=dev`.
 
 AI Gateway documentation: https://vercel.com/docs/ai-gateway/authentication-and-byok/oidc
+
+## Consolidated resource connection
+
+The available `supabase-dashboard-digimark101.com` resource is now connected to **digimark101 Preview** with provider-managed `DIGIMARK` variables. The app prefers `NEXT_PUBLIC_DIGIMARK_SUPABASE_URL` and `NEXT_PUBLIC_DIGIMARK_SUPABASE_ANON_KEY`, falling back to the unprefixed variables. Production still uses the old configuration until an explicitly approved rollout. The older frontend projects reference a different resource reported as suspended. Credentials were provisioned by the integration, not copied through chat or source files.
