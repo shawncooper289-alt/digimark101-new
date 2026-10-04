@@ -1,6 +1,8 @@
+import { Studio } from '@/components/platform/studio'
 import { Workspace } from '@/components/platform/workspace'
 
 export default function Home() {
+  if (process.env.NEXT_PUBLIC_AVA_SITE === 'studio') return <Studio />
   const checkout = process.env.PAYPAL_CHECKOUT_URL
   const safeCheckout = checkout && /^https:\/\/(www\.)?(paypal\.com|paypal\.me)\//.test(checkout) ? checkout : null
   const video = process.env.AVA_WALKTHROUGH_VIDEO_URL
