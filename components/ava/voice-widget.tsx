@@ -53,6 +53,7 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
           >
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
               <Button
+                aria-label="Open Ava voice demo"
                 onClick={() => setIsExpanded(true)}
                 className="w-20 h-20 rounded-full shadow-2xl relative overflow-hidden border-4 border-white p-0"
                 style={{ background: DIGIMARK_BRANDING.colors.gradient }}
@@ -111,7 +112,7 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
               height: isMinimized ? '100px' : '680px',
             }}
             exit={{ scale: 0.8, opacity: 0, y: 20 }}
-            className={`fixed ${positionClasses} z-[9999] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border-4 border-purple-200`}
+            className={`fixed ${positionClasses} z-[9999] max-w-[calc(100vw-3rem)] max-h-[calc(100dvh-3rem)] bg-[#15101e] rounded-3xl shadow-2xl overflow-hidden flex flex-col border-4 border-purple-400/30`}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
             <div className="p-5 flex items-center justify-between text-white relative overflow-hidden" style={{ background: DIGIMARK_BRANDING.colors.gradient }}>
@@ -176,11 +177,11 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
 
             {!isMinimized && (
               <>
-                <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-purple-50 to-pink-50">
+                <ScrollArea className="flex-1 p-4 bg-[#110d19]">
                   <div className="space-y-4">
                     {messages.length === 0 ? (
                       <div className="text-center py-8">
-                        <p className="text-gray-500 text-sm">👋 Hi! I&apos;m Ava. Start talking to me!</p>
+                        <p className="text-purple-200 text-sm">👋 Hi! I&apos;m Ava. Start talking to me!</p>
                       </div>
                     ) : (
                       messages.map((message, index) => (
@@ -189,7 +190,7 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
                             className={`max-w-[80%] p-3 rounded-2xl ${
                               message.role === 'user'
                                 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                                : 'bg-white border border-purple-200 text-gray-800 shadow-sm'
+                                : 'bg-[#261b33] border border-purple-400/30 text-purple-50 shadow-sm'
                             }`}
                           >
                             <p className="text-sm">{message.content}</p>
@@ -207,7 +208,7 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
                   </div>
                 </ScrollArea>
 
-                <div className="p-4 bg-white border-t border-purple-100">
+                <div className="p-4 bg-[#261b33] border-t border-purple-100">
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       onClick={isListening ? stopListening : startListening}
