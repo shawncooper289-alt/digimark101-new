@@ -1,48 +1,17 @@
 export const SITE = {
   name: "Ava Skye",
   host: "https://avaskye.online",
-  agency: "https://www.digimark101.com",
-  agencyPricing: "https://www.digimark101.com/pricing",
-  agencyApp: "https://www.digimark101.com/app",
+  agency: "https://digimark101-new-umber.vercel.app",
+  agencyPricing: "https://digimark101-new-umber.vercel.app",
+  agencyApp: "https://digimark101-new-umber.vercel.app",
 };
 
 export const PLANS = [
-  {
-    id: "starter",
-    name: "Starter Ava",
-    price: 49,
-    prompts: 40,
-    who: "One brand, content only",
-    gets: [
-      "Posts, emails, pages, and offer lines",
-      "40 prompts each month",
-      "One brand voice",
-      "Drafts you approve before anything sends",
-    ],
-  },
-  {
-    id: "pro",
-    name: "Pro Ava",
-    price: 149,
-    prompts: 200,
-    who: "Content plus automation drafts",
-    gets: [
-      "Everything in Starter",
-      "200 prompts each month",
-      "Follow-up sequences and workflow drafts",
-      "Three brand voices",
-      "Prompt packs stack on top",
-    ],
-  },
+  { id: "starter", name: "Starter", price: 27, credits: 500, who: "Per licensed person", gets: ["500 monthly credits", "Full Ava knowledge and creative skills", "Emails, social posts, writing, ideas and next actions", "Copy and paste outputs manually"] },
+  { id: "creator", name: "Creator", price: 50, credits: 1500, who: "Per licensed person", gets: ["1,500 monthly credits", "Same full Ava knowledge and skills", "More capacity for regular content creation", "Copy and paste outputs manually"] },
+  { id: "power", name: "Power", price: 89, credits: 4000, who: "Per licensed person", gets: ["4,000 monthly credits", "Same full Ava knowledge and skills", "More capacity for intensive creative work", "Copy and paste outputs manually"] },
 ] as const;
-
-export const PACK = { id: "pack-50", name: "50 extra prompts", price: 29, prompts: 50 };
-
-export const SEATS = [
-  { id: "starter", name: "Starter", price: 97, who: "One founder", gets: "Full Starter belt on DigiMark101. Ava guides and carries the next move." },
-  { id: "growth", name: "Growth Team", price: 297, who: "Weekly publisher", gets: "Starter tools plus phone, webinars, reputation, portal, video-ad prep, affiliates." },
-  { id: "agency", name: "Agency Command", price: 997, who: "Agency or multi-client", gets: "Growth tools plus client workspaces, snapshots, white-label, platform command." },
-];
+export const PACKS = [{price:10, credits:300}, {price:25, credits:900}, {price:50, credits:2000}] as const;
 
 export function draftFor(kind: string, brief: string) {
   const topic = brief.trim() || "the offer";
