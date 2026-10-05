@@ -14,26 +14,6 @@ interface UseVoiceChatProps {
   userId: string
 }
 
-type SpeechRecognitionAlternativeLike = { transcript: string }
-type SpeechRecognitionResultLike = { 0: SpeechRecognitionAlternativeLike; isFinal: boolean }
-type SpeechRecognitionEventLike = { resultIndex: number; results: SpeechRecognitionResultLike[] }
-type SpeechRecognitionErrorEventLike = { error: string }
-
-type RecognitionLike = {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null
-  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null
-  onend: (() => void) | null
-  start: () => void
-  stop: () => void
-}
-
-type BrowserWindow = Window & {
-  webkitSpeechRecognition?: new () => RecognitionLike
-}
-
 export function useVoiceChat({ userId }: UseVoiceChatProps) {
   const [isListening, setIsListening] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -42,81 +22,20 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
   const [isCallActive, setIsCallActive] = useState(false)
   const [callDuration, setCallDuration] = useState(0)
 
-  const recognitionRef = useRef<RecognitionLike | null>(null)
+  const recognitionRef = useRef<any>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const callIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const callIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
 
-  const playAvaVoice = useCallback(
-    async (audioUrl: string) => {
-      setIsSpeaking(true)
-
-      audioRef.current?.pause()
-      audioRef.current = new Audio(audioUrl)
-
-      audioRef.current.onended = () => setIsSpeaking(false)
-      audioRef.current.onerror = () => {
-        setIsSpeaking(false)
-        toast({
-          title: 'Audio Error',
-          description: "Could not play Ava's response.",
-          variant: 'destructive',
-        })
-      }
-
-      try {
-        await audioRef.current.play()
-      } catch {
-        setIsSpeaking(false)
-      }
-    },
-    [toast]
-  )
-
-  const handleUserSpeech = useCallback(
-    async (text: string) => {
-      setMessages((prev) => [...prev, { role: 'user', content: text, timestamp: new Date() }])
-      setTranscript('')
-
-      try {
-        const response = await fetch('/api/ava/voice-chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, message: text, useVoice: true }),
-        })
-
-        const data = await response.json()
-
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: data.text, timestamp: new Date(), audioUrl: data.audioUrl || undefined },
-        ])
-
-        if (data.audioUrl) {
-          await playAvaVoice(data.audioUrl)
-        }
-      } catch {
-        toast({
-          title: 'Connection Error',
-          description: 'Could not reach Ava. Please try again.',
-          variant: 'destructive',
-        })
-      }
-    },
-    [playAvaVoice, toast, userId]
-  )
-
   useEffect(() => {
-    const browserWindow = window as BrowserWindow
-
-    if (browserWindow.webkitSpeechRecognition) {
-      const SpeechRecognition = browserWindow.webkitSpeechRecognition
+    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition
       recognitionRef.current = new SpeechRecognition()
       recognitionRef.current.continuous = false
       recognitionRef.current.interimResults = true
       recognitionRef.current.lang = 'en-US'
 
-      recognitionRef.current.onresult = (event) => {
+      recognitionRef.current.onresult = (event: any) => {
         const current = event.resultIndex
         const transcriptText = event.results[current][0].transcript
         setTranscript(transcriptText)
@@ -126,7 +45,8 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
         }
       }
 
-      recognitionRef.current.onerror = () => {
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error)
         setIsListening(false)
         toast({
           title: 'Voice Error',
@@ -135,20 +55,102 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
         })
       }
 
-      recognitionRef.current.onend = () => setIsListening(false)
+      recognitionRef.current.onend = () => {
+        setIsListening(false)
+      }
     }
 
     return () => {
-      recognitionRef.current?.stop()
-      if (callIntervalRef.current) clearInterval(callIntervalRef.current)
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
     }
-  }, [handleUserSpeech, toast])
+  }, [])
+
+  const handleUserSpeech = async (text: string) => {
+    const userMessage: Message = {
+      role: 'user',
+      content: text,
+      timestamp: new Date(),
+    }
+    setMessages(prev => [...prev, userMessage])
+    setTranscript('')
+
+    try {
+      const response = await fetch('/api/ava/voice-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          message: text,
+          useVoice: true,
+        }),
+      })
+
+      const data = await response.json()
+
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.text,
+        timestamp: new Date(),
+        audioUrl: data.audioUrl,
+      }
+
+      setMessages(prev => [...prev, assistantMessage])
+
+      if (data.audioUrl) {
+        await playAvaVoice(data.audioUrl)
+      }
+    } catch (error) {
+      console.error('Error communicating with Ava:', error)
+      toast({
+        title: 'Connection Error',
+        description: 'Could not reach Ava. Please try again.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const playAvaVoice = async (audioUrl: string) => {
+    setIsSpeaking(true)
+    
+    if (audioRef.current) {
+      audioRef.current.pause()
+    }
+
+    audioRef.current = new Audio(audioUrl)
+    audioRef.current.onended = () => {
+      setIsSpeaking(false)
+    }
+    audioRef.current.onerror = () => {
+      setIsSpeaking(false)
+      toast({
+        title: 'Audio Error',
+        description: 'Could not play Ava\'s response.',
+        variant: 'destructive',
+      })
+    }
+
+    try {
+      await audioRef.current.play()
+    } catch (error) {
+      console.error('Error playing audio:', error)
+      setIsSpeaking(false)
+    }
+  }
 
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListening) {
-      recognitionRef.current.start()
-      setIsListening(true)
-      toast({ title: '🎤 Listening', description: 'Speak now...' })
+      try {
+        recognitionRef.current.start()
+        setIsListening(true)
+        toast({
+          title: '🎤 Listening',
+          description: 'Speak now...',
+        })
+      } catch (error) {
+        console.error('Error starting recognition:', error)
+      }
     }
   }, [isListening, toast])
 
@@ -172,10 +174,18 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
       if (data.success) {
         setIsCallActive(true)
         setCallDuration(0)
-        callIntervalRef.current = setInterval(() => setCallDuration((prev) => prev + 1), 1000)
-        toast({ title: '📞 Call Connected', description: 'You are now connected with Ava' })
+        
+        callIntervalRef.current = setInterval(() => {
+          setCallDuration(prev => prev + 1)
+        }, 1000)
+
+        toast({
+          title: '📞 Call Connected',
+          description: 'You are now connected with Ava',
+        })
       }
-    } catch {
+    } catch (error) {
+      console.error('Error initiating call:', error)
       toast({
         title: 'Call Failed',
         description: 'Could not connect to Ava. Please try again.',
@@ -192,7 +202,10 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
         body: JSON.stringify({ userId }),
       })
 
-      if (callIntervalRef.current) clearInterval(callIntervalRef.current)
+      if (callIntervalRef.current) {
+        clearInterval(callIntervalRef.current)
+      }
+
       setIsCallActive(false)
       setCallDuration(0)
 
@@ -200,8 +213,8 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
         title: 'Call Ended',
         description: `Call duration: ${Math.floor(callDuration / 60)}:${(callDuration % 60).toString().padStart(2, '0')}`,
       })
-    } catch {
-      // no-op
+    } catch (error) {
+      console.error('Error ending call:', error)
     }
   }
 

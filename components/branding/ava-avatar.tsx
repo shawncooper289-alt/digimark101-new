@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 interface AvaAvatarProps {
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
   showOnlineIndicator?: boolean
   isAnimated?: boolean
@@ -11,6 +11,7 @@ const SIZE_MAP = {
   sm: 'w-8 h-8 text-sm',
   md: 'w-10 h-10 text-base',
   lg: 'w-14 h-14 text-lg',
+  xl: 'w-20 h-20 text-2xl',
 }
 
 export function AvaAvatar({

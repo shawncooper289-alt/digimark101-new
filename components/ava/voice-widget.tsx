@@ -16,7 +16,10 @@ interface AvaVoiceWidgetProps {
   position?: 'bottom-right' | 'bottom-left'
 }
 
-export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWidgetProps) {
+export function AvaVoiceWidget({ 
+  userId, 
+  position = 'bottom-right' 
+}: AvaVoiceWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
 
@@ -33,7 +36,9 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
     callDuration,
   } = useVoiceChat({ userId })
 
-  const positionClasses = position === 'bottom-right' ? 'bottom-6 right-6' : 'bottom-6 left-6'
+  const positionClasses = position === 'bottom-right' 
+    ? 'bottom-6 right-6' 
+    : 'bottom-6 left-6'
 
   const formatCallDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -43,6 +48,7 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
 
   return (
     <>
+      {/* Floating Button */}
       <AnimatePresence>
         {!isExpanded && (
           <motion.div
@@ -61,18 +67,29 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
                   <>
                     <motion.div
                       className="absolute inset-0 bg-white rounded-full"
-                      animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
+                      animate={{ 
+                        scale: [1, 1.4, 1],
+                        opacity: [0.5, 0, 0.5]
+                      }}
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                     <motion.div
                       className="absolute inset-0 bg-white rounded-full"
-                      animate={{ scale: [1, 1.6, 1], opacity: [0.3, 0, 0.3] }}
+                      animate={{ 
+                        scale: [1, 1.6, 1],
+                        opacity: [0.3, 0, 0.3]
+                      }}
                       transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
                     />
                   </>
                 )}
-
-                <AvaAvatar size="lg" className="relative z-10" showOnlineIndicator isAnimated={isSpeaking} />
+                
+                <AvaAvatar 
+                  size="lg" 
+                  className="relative z-10"
+                  showOnlineIndicator={true}
+                  isAnimated={isSpeaking}
+                />
 
                 {isListening && (
                   <motion.div
@@ -95,17 +112,27 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
                 )}
               </Button>
             </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="absolute -top-12 right-0 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg"
+            >
+              Click to talk with Ava
+              <div className="absolute bottom-0 right-6 w-3 h-3 bg-gray-900 transform rotate-45 translate-y-1/2" />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* Expanded Widget */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 20 }}
-            animate={{
-              scale: 1,
-              opacity: 1,
+            animate={{ 
+              scale: 1, 
+              opacity: 1, 
               y: 0,
               width: isMinimized ? '100px' : '440px',
               height: isMinimized ? '100px' : '680px',
@@ -114,7 +141,21 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
             className={`fixed ${positionClasses} z-[9999] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border-4 border-purple-200`}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
-            <div className="p-5 flex items-center justify-between text-white relative overflow-hidden" style={{ background: DIGIMARK_BRANDING.colors.gradient }}>
+            {/* Header */}
+            <div 
+              className="p-5 flex items-center justify-between text-white relative overflow-hidden"
+              style={{ background: DIGIMARK_BRANDING.colors.gradient }}
+            >
+              <motion.div
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+                  backgroundSize: '20px 20px',
+                }}
+                animate={{ backgroundPosition: ['0px 0px', '20px 20px'] }}
+                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+              />
+
               <div className="absolute top-3 right-3 opacity-20">
                 <DigiMarkLogo width={100} height={30} variant="white" />
               </div>
@@ -122,7 +163,11 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
               {!isMinimized ? (
                 <>
                   <div className="flex items-center gap-4 z-10">
-                    <AvaAvatar size="lg" showOnlineIndicator isAnimated={isSpeaking} />
+                    <AvaAvatar 
+                      size="lg" 
+                      showOnlineIndicator={true}
+                      isAnimated={isSpeaking}
+                    />
                     <div>
                       <h3 className="font-bold text-xl">Ava Skye</h3>
                       <div className="flex items-center gap-2 mt-1">
@@ -151,98 +196,214 @@ export function AvaVoiceWidget({ userId, position = 'bottom-right' }: AvaVoiceWi
                   </div>
 
                   <div className="flex gap-2 z-10">
-                    <Button variant="ghost" size="icon" onClick={() => setIsMinimized(true)} className="text-white hover:bg-white/20 rounded-full">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsMinimized(true)}
+                      className="text-white hover:bg-white/20 rounded-full"
+                    >
                       <Minimize2 className="w-5 h-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setIsExpanded(false)} className="text-white hover:bg-white/20 rounded-full">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsExpanded(false)}
+                      className="text-white hover:bg-white/20 rounded-full"
+                    >
                       <X className="w-5 h-5" />
                     </Button>
                   </div>
                 </>
               ) : (
-                <div className="w-full flex items-center justify-between z-10">
-                  <AvaAvatar size="md" showOnlineIndicator isAnimated={isSpeaking} />
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => setIsMinimized(false)} className="text-white hover:bg-white/20 rounded-full w-8 h-8">
-                      <Maximize2 className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setIsExpanded(false)} className="text-white hover:bg-white/20 rounded-full w-8 h-8">
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsMinimized(false)}
+                  className="text-white hover:bg-white/20 mx-auto rounded-full"
+                >
+                  <Maximize2 className="w-5 h-5" />
+                </Button>
               )}
             </div>
 
             {!isMinimized && (
               <>
-                <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-purple-50 to-pink-50">
-                  <div className="space-y-4">
-                    {messages.length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="text-gray-500 text-sm">👋 Hi! I&apos;m Ava. Start talking to me!</p>
+                {/* Messages Area */}
+                <ScrollArea className="flex-1 p-6 bg-gradient-to-b from-gray-50 to-white">
+                  {messages.length === 0 ? (
+                    <div className="text-center py-12">
+                      <motion.div
+                        animate={{ y: [0, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="mb-6"
+                      >
+                        <AvaAvatar size="xl" isAnimated={false} />
+                      </motion.div>
+                      
+                      <h4 className="text-2xl font-bold text-gray-800 mb-2">
+                        Hi! I'm Ava Skye 👋
+                      </h4>
+                      <p className="text-gray-600 mb-6 max-w-sm mx-auto">
+                        Your personal AI assistant for DigiMark101. 
+                        I can help you with anything!
+                      </p>
+                      
+                      <div className="space-y-3 max-w-xs mx-auto">
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start gap-3 h-auto py-3"
+                            onClick={startListening}
+                          >
+                            <span className="text-2xl">🎥</span>
+                            <span className="text-left">
+                              <div className="font-semibold">Create a Video</div>
+                              <div className="text-xs text-gray-500">AI-powered video creation</div>
+                            </span>
+                          </Button>
+                        </motion.div>
+
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start gap-3 h-auto py-3"
+                            onClick={startListening}
+                          >
+                            <span className="text-2xl">🌐</span>
+                            <span className="text-left">
+                              <div className="font-semibold">Build a Website</div>
+                              <div className="text-xs text-gray-500">Launch your site today</div>
+                            </span>
+                          </Button>
+                        </motion.div>
+
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start gap-3 h-auto py-3"
+                            onClick={startListening}
+                          >
+                            <span className="text-2xl">📧</span>
+                            <span className="text-left">
+                              <div className="font-semibold">Email Campaign</div>
+                              <div className="text-xs text-gray-500">Reach your audience</div>
+                            </span>
+                          </Button>
+                        </motion.div>
                       </div>
-                    ) : (
-                      messages.map((message, index) => (
-                        <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {messages.map((message, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          {message.role === 'assistant' && (
+                            <AvaAvatar size="sm" className="mr-2 mt-1" showOnlineIndicator={false} />
+                          )}
+                          
                           <div
-                            className={`max-w-[80%] p-3 rounded-2xl ${
+                            className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                               message.role === 'user'
                                 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                                : 'bg-white border border-purple-200 text-gray-800 shadow-sm'
+                                : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            <p className="text-sm">{message.content}</p>
+                            <p className="text-sm leading-relaxed">{message.content}</p>
+                            <span className="text-xs opacity-70 mt-1 block">
+                              {new Date(message.timestamp).toLocaleTimeString([], { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </span>
                           </div>
-                        </div>
-                      ))
-                    )}
-                    {transcript && (
-                      <div className="text-center">
-                        <Badge variant="outline" className="animate-pulse">
-                          {transcript}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
+
+                          {message.role === 'user' && (
+                            <div className="w-8 h-8 rounded-full bg-gray-300 ml-2 mt-1 flex items-center justify-center text-sm font-bold">
+                              U
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+
+                      {isSpeaking && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex justify-start"
+                        >
+                          <AvaAvatar size="sm" className="mr-2" showOnlineIndicator={false} />
+                          <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                            <div className="flex gap-1">
+                              {[0, 1, 2].map((i) => (
+                                <motion.div
+                                  key={i}
+                                  className="w-2 h-2 bg-gray-400 rounded-full"
+                                  animate={{ y: [0, -8, 0] }}
+                                  transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.2 }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
                 </ScrollArea>
 
-                <div className="p-4 bg-white border-t border-purple-100">
+                {/* Controls */}
+                <div className="p-5 bg-white border-t-2 border-purple-100">
+                  {transcript && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mb-4 p-3 bg-purple-50 rounded-xl"
+                    >
+                      <p className="text-sm text-purple-900 font-medium mb-1">You said:</p>
+                      <p className="text-sm text-purple-700 italic">"{transcript}"</p>
+                    </motion.div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       onClick={isListening ? stopListening : startListening}
-                      className={`h-12 rounded-xl ${isListening ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                      className={`h-16 rounded-2xl font-semibold transition-all ${
+                        isListening
+                          ? 'bg-red-500 hover:bg-red-600 animate-pulse'
+                          : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+                      }`}
                     >
-                      {isListening ? (
-                        <>
-                          <MicOff className="w-5 h-5 mr-2" />
-                          Stop
-                        </>
-                      ) : (
-                        <>
-                          <Mic className="w-5 h-5 mr-2" />
-                          Talk
-                        </>
-                      )}
+                      <div className="flex flex-col items-center gap-1">
+                        {isListening ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                        <span className="text-xs">{isListening ? 'Stop' : 'Talk'}</span>
+                      </div>
                     </Button>
 
                     <Button
                       onClick={isCallActive ? endCall : initiateCall}
-                      className={`h-12 rounded-xl ${isCallActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
+                      className={`h-16 rounded-2xl font-semibold ${
+                        isCallActive
+                          ? 'bg-red-500 hover:bg-red-600'
+                          : 'bg-green-500 hover:bg-green-600'
+                      }`}
                     >
-                      {isCallActive ? (
-                        <>
-                          <PhoneOff className="w-5 h-5 mr-2" />
-                          End Call
-                        </>
-                      ) : (
-                        <>
-                          <Phone className="w-5 h-5 mr-2" />
-                          Call Ava
-                        </>
-                      )}
+                      <div className="flex flex-col items-center gap-1">
+                        {isCallActive ? <PhoneOff className="w-6 h-6" /> : <Phone className="w-6 h-6" />}
+                        <span className="text-xs">{isCallActive ? 'End' : 'Call'}</span>
+                      </div>
                     </Button>
                   </div>
+
+                  <p className="text-center text-xs text-gray-500 mt-4">
+                    {isListening 
+                      ? '🎤 Listening... Speak naturally' 
+                      : isCallActive
+                      ? '📞 Call in progress'
+                      : 'Click microphone or call button to start'}
+                  </p>
                 </div>
               </>
             )}

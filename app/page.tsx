@@ -8,6 +8,7 @@ export default function Home() {
         <p className="text-lg text-gray-700">
           Ava voice assistant scaffold is now assembled. Connect your Supabase and API keys to enable full production behavior.
         </p>
+        <a href="https://avaskye.online/studio" className="mt-6 inline-block rounded-full bg-purple-700 px-6 py-3 font-semibold text-white">Open AvaSkye creative studio ↗</a>
       </section>
 
       <AvaVoiceWidget userId="demo-user" />
