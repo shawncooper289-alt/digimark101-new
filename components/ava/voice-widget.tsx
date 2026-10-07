@@ -14,11 +14,13 @@ import { DIGIMARK_BRANDING } from '@/lib/constants/branding'
 interface AvaVoiceWidgetProps {
   userId: string
   position?: 'bottom-right' | 'bottom-left'
+  backendReady?: boolean
 }
 
 export function AvaVoiceWidget({ 
   userId, 
-  position = 'bottom-right' 
+  position = 'bottom-right',
+  backendReady = false
 }: AvaVoiceWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
@@ -59,6 +61,7 @@ export function AvaVoiceWidget({
           >
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
               <Button
+                aria-label="Open Ava preview"
                 onClick={() => setIsExpanded(true)}
                 className="w-20 h-20 rounded-full shadow-2xl relative overflow-hidden border-4 border-white p-0"
                 style={{ background: DIGIMARK_BRANDING.colors.gradient }}
@@ -87,7 +90,7 @@ export function AvaVoiceWidget({
                 <AvaAvatar 
                   size="lg" 
                   className="relative z-10"
-                  showOnlineIndicator={true}
+                  showOnlineIndicator={backendReady}
                   isAnimated={isSpeaking}
                 />
 
@@ -118,7 +121,7 @@ export function AvaVoiceWidget({
               animate={{ opacity: 1, y: 0 }}
               className="absolute -top-12 right-0 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg"
             >
-              Click to talk with Ava
+              Open Ava preview
               <div className="absolute bottom-0 right-6 w-3 h-3 bg-gray-900 transform rotate-45 translate-y-1/2" />
             </motion.div>
           </motion.div>
@@ -134,8 +137,8 @@ export function AvaVoiceWidget({
               scale: 1, 
               opacity: 1, 
               y: 0,
-              width: isMinimized ? '100px' : '440px',
-              height: isMinimized ? '100px' : '680px',
+              width: isMinimized ? '100px' : 'min(440px, calc(100vw - 48px))',
+              height: isMinimized ? '100px' : 'min(680px, calc(100dvh - 48px))',
             }}
             exit={{ scale: 0.8, opacity: 0, y: 20 }}
             className={`fixed ${positionClasses} z-[9999] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border-4 border-purple-200`}
@@ -165,7 +168,7 @@ export function AvaVoiceWidget({
                   <div className="flex items-center gap-4 z-10">
                     <AvaAvatar 
                       size="lg" 
-                      showOnlineIndicator={true}
+                      showOnlineIndicator={backendReady}
                       isAnimated={isSpeaking}
                     />
                     <div>
@@ -188,7 +191,7 @@ export function AvaVoiceWidget({
                         ) : (
                           <Badge variant="secondary" className="bg-green-500 text-white text-xs">
                             <span className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse" />
-                            Ready
+                            {backendReady ? 'Ready' : 'Setup pending'}
                           </Badge>
                         )}
                       </div>
@@ -199,6 +202,7 @@ export function AvaVoiceWidget({
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Minimize Ava preview"
                       onClick={() => setIsMinimized(true)}
                       className="text-white hover:bg-white/20 rounded-full"
                     >
@@ -207,6 +211,7 @@ export function AvaVoiceWidget({
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Close Ava preview"
                       onClick={() => setIsExpanded(false)}
                       className="text-white hover:bg-white/20 rounded-full"
                     >
@@ -218,6 +223,7 @@ export function AvaVoiceWidget({
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Expand Ava preview"
                   onClick={() => setIsMinimized(false)}
                   className="text-white hover:bg-white/20 mx-auto rounded-full"
                 >
@@ -241,11 +247,11 @@ export function AvaVoiceWidget({
                       </motion.div>
                       
                       <h4 className="text-2xl font-bold text-gray-800 mb-2">
-                        Hi! I'm Ava Skye 👋
+                        Hi! I&apos;m Ava Skye 👋
                       </h4>
                       <p className="text-gray-600 mb-6 max-w-sm mx-auto">
                         Your personal AI assistant for DigiMark101. 
-                        I can help you with anything!
+                        Voice and calls are not connected in this preview.
                       </p>
                       
                       <div className="space-y-3 max-w-xs mx-auto">
@@ -253,6 +259,7 @@ export function AvaVoiceWidget({
                           <Button 
                             variant="outline" 
                             className="w-full justify-start gap-3 h-auto py-3"
+                            disabled={!backendReady}
                             onClick={startListening}
                           >
                             <span className="text-2xl">🎥</span>
@@ -267,6 +274,7 @@ export function AvaVoiceWidget({
                           <Button 
                             variant="outline" 
                             className="w-full justify-start gap-3 h-auto py-3"
+                            disabled={!backendReady}
                             onClick={startListening}
                           >
                             <span className="text-2xl">🌐</span>
@@ -281,6 +289,7 @@ export function AvaVoiceWidget({
                           <Button 
                             variant="outline" 
                             className="w-full justify-start gap-3 h-auto py-3"
+                            disabled={!backendReady}
                             onClick={startListening}
                           >
                             <span className="text-2xl">📧</span>
@@ -363,12 +372,13 @@ export function AvaVoiceWidget({
                       className="mb-4 p-3 bg-purple-50 rounded-xl"
                     >
                       <p className="text-sm text-purple-900 font-medium mb-1">You said:</p>
-                      <p className="text-sm text-purple-700 italic">"{transcript}"</p>
+                      <p className="text-sm text-purple-700 italic">&quot;{transcript}&quot;</p>
                     </motion.div>
                   )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <Button
+                      disabled={!backendReady}
                       onClick={isListening ? stopListening : startListening}
                       className={`h-16 rounded-2xl font-semibold transition-all ${
                         isListening
@@ -383,6 +393,7 @@ export function AvaVoiceWidget({
                     </Button>
 
                     <Button
+                      disabled={!backendReady}
                       onClick={isCallActive ? endCall : initiateCall}
                       className={`h-16 rounded-2xl font-semibold ${
                         isCallActive
@@ -402,7 +413,7 @@ export function AvaVoiceWidget({
                       ? '🎤 Listening... Speak naturally' 
                       : isCallActive
                       ? '📞 Call in progress'
-                      : 'Click microphone or call button to start'}
+                      : backendReady ? 'Click microphone or call button to start' : 'Voice and calls pending backend setup'}
                   </p>
                 </div>
               </>
