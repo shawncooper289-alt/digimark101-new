@@ -1,0 +1,5 @@
+import Image from 'next/image'
+import {Workspace} from '@/components/site/workspace'
+import Link from 'next/link'
+const desks=['Contacts','Pipeline','Funnels','YouTube','Pages']
+export default async function Work({searchParams}:{searchParams:Promise<{desk?:string}>}){const params=await searchParams;const desk=desks.includes(params.desk||'')?params.desk!:'Contacts';return <main><section className="banner"><Image src="/media/work-desks.jpg" alt="Ava presenting Contacts, Pipeline, Funnels, YouTube and Pages work desks" width={1168} height={784}/><div><p className="eyebrow">Organize your next move</p><h1>Work Desks</h1></div></section><section className="section"><div className="desk-tabs">{desks.map(d=><Link key={d} aria-current={d===desk?'page':undefined} href={`/work?desk=${d}`}>{d}</Link>)}</div><p>Plan and organize your {desk.toLowerCase()} here. These are saved notes and drafts—not connected CRM automation, funnel hosting or YouTube publishing.</p><Workspace key={desk} kind={desk}/></section></main>}

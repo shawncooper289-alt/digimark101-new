@@ -1,18 +1,3 @@
-import { AvaVoiceWidget } from '@/components/ava/voice-widget'
-
-export default function Home() {
-  return (
-    <main className="relative min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 p-10">
-      <section className="max-w-3xl">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">DigiMark101</h1>
-        <p className="text-lg text-gray-700">
-          Ava voice assistant scaffold is now assembled. Connect your Supabase and API keys to enable full production behavior.
-        </p>
-        <a href="https://avaskye.online/studio" className="mt-6 inline-block rounded-full bg-purple-700 px-6 py-3 font-semibold text-white">Open AvaSkye creative studio ↗</a>
-      </section>
-
-      <section className="mt-12 max-w-4xl"><h2 className="text-2xl font-bold">Ava seat pricing</h2><p className="mt-4">Starter: $27/person/month · 500 credits. Creator: $50 · 1,500 credits. Power: $89 · 4,000 credits.</p><p className="mt-4">All seats include full Ava knowledge and creative skills: emails, social posts, writing, brainstorming and next actions. Copy/paste manually. Agency publishing, automations and API access are separate upgrades.</p><p className="mt-4">Extra usage: $10 / 300 credits, $25 / 900, $50 / 2,000. Included credits reset monthly; purchased credits remain while subscribed. No automatic overages. Allowances provisional pending cost testing. Payments and credit enforcement are not yet live.</p><a href="https://avaskye.online/pricing" className="mt-4 inline-block underline">View AvaSkye plans</a></section>
-      <AvaVoiceWidget userId="demo-user" />
-    </main>
-  )
-}
+import Image from 'next/image'
+import Link from 'next/link'
+export default function Home(){return <main><section className="hero"><div className="hero-copy"><p className="eyebrow">Ava Skye marketing OS</p><h1>Build your digital presence.<br/><em>Grow your edge.</em></h1><p>Strategy. Design. Execution.<br/>One clear next action. The asset you need to take it.</p><div className="actions"><Link className="button" href="/ava">Find your next action ↗</Link><Link className="outline" href="/studio">Enter Skye Studio</Link></div></div><Image src="/media/ava-city.jpg" alt="Ava Skye against the evening city skyline" width={1168} height={784} priority sizes="(max-width:800px) 100vw, 55vw"/></section><section className="section"><p className="eyebrow">Your daily direction</p><h2>Less overwhelm.<br/>More meaningful work.</h2><div className="cards">{[['01','Diagnose your stage','Start with the bottleneck, not another tool.','/ava'],['02','Create the right asset','Shape a brief, draft or campaign in your studio.','/studio'],['03','Move the work forward','Organize contacts, pipeline and publishing plans.','/work']].map(([n,t,d,u])=><Link className="card" key={n} href={u}><small>{n}</small><h3>{t}</h3><p>{d}</p><span>Open workspace ↗</span></Link>)}</div></section><section className="feature section"><Image src="/media/ava-brand.jpg" alt="Ava and the DigiMark101 campaign boards" width={1168} height={784}/><div><p className="eyebrow">Content. Strategy. Impact.</p><h2>A creative partner.<br/>A considered process.</h2><p>Diagnose your stage, choose one next action, and produce the asset that action needs.</p><Link className="outline" href="/pricing">Explore seats ↗</Link></div></section><section className="section reference"><h2>Designed around your vision.</h2><div className="cards"><Image src="/media/digimark-hero.jpg" alt="Original DigiMark101 visual direction reference" width={1200} height={630}/><Image src="/media/ava-digital-presence.jpg" alt="Ava presenting DigiMark101 digital presence" width={1168} height={784}/></div></section></main>}
