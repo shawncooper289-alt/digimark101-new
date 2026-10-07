@@ -1,0 +1,3 @@
+import Image from 'next/image'
+import {Workspace} from '@/components/site/workspace'
+export default function Studio(){return <main><section className="banner"><Image src="/media/skye-studio.jpg" alt="Skye Studio creative office overlooking the city" width={1568} height={882} priority/><div><p className="eyebrow">A space for your next idea</p><h1>Skye Studio</h1></div></section><section className="section"><p>Save projects, briefs and content drafts together. Add a type to each title, such as “Brief — Summer campaign”. Website imagery is bundled with this app; uploaded user media storage is not enabled yet.</p><Workspace kind="Studio"/></section></main>}
