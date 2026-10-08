@@ -1,8 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useEffectEvent } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 
+interface Recognition {
+ continuous: boolean; interimResults: boolean; lang: string
+ onresult: ((event: {resultIndex: number; results: {isFinal: boolean; [index: number]: {transcript: string}}[]}) => void) | null
+ onerror: ((event: {error: string}) => void) | null
+ onend: (() => void) | null
+ start(): void; stop(): void
+}
 interface Message {
   role: 'user' | 'assistant'
   content: string
@@ -22,50 +29,10 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
   const [isCallActive, setIsCallActive] = useState(false)
   const [callDuration, setCallDuration] = useState(0)
 
-  const recognitionRef = useRef<any>(null)
+  const recognitionRef = useRef<Recognition | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const callIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition
-      recognitionRef.current = new SpeechRecognition()
-      recognitionRef.current.continuous = false
-      recognitionRef.current.interimResults = true
-      recognitionRef.current.lang = 'en-US'
-
-      recognitionRef.current.onresult = (event: any) => {
-        const current = event.resultIndex
-        const transcriptText = event.results[current][0].transcript
-        setTranscript(transcriptText)
-
-        if (event.results[current].isFinal) {
-          handleUserSpeech(transcriptText)
-        }
-      }
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error)
-        setIsListening(false)
-        toast({
-          title: 'Voice Error',
-          description: 'Could not capture your voice. Please try again.',
-          variant: 'destructive',
-        })
-      }
-
-      recognitionRef.current.onend = () => {
-        setIsListening(false)
-      }
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop()
-      }
-    }
-  }, [])
 
   const handleUserSpeech = async (text: string) => {
     const userMessage: Message = {
@@ -87,6 +54,7 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
         }),
       })
 
+      if (!response.ok) throw new Error('Ava service unavailable')
       const data = await response.json()
 
       const assistantMessage: Message = {
@@ -139,6 +107,49 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
     }
   }
 
+  const onSpeech = useEffectEvent((text: string) => { void handleUserSpeech(text) })
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = (window as unknown as {webkitSpeechRecognition: new () => Recognition}).webkitSpeechRecognition
+      recognitionRef.current = new SpeechRecognition()
+      recognitionRef.current.continuous = false
+      recognitionRef.current.interimResults = true
+      recognitionRef.current.lang = 'en-US'
+
+      recognitionRef.current.onresult = (event) => {
+        const current = event.resultIndex
+        const transcriptText = event.results[current][0].transcript
+        setTranscript(transcriptText)
+
+        if (event.results[current].isFinal) {
+          onSpeech(transcriptText)
+        }
+      }
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error:', event.error)
+        setIsListening(false)
+        toast({
+          title: 'Voice Error',
+          description: 'Could not capture your voice. Please try again.',
+          variant: 'destructive',
+        })
+      }
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false)
+      }
+    }
+
+    return () => {
+      if (audioRef.current) audioRef.current.pause()
+      if (callIntervalRef.current) clearInterval(callIntervalRef.current)
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+    }
+  }, [toast])
+
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListening) {
       try {
@@ -169,6 +180,7 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
         body: JSON.stringify({ userId }),
       })
 
+      if (!response.ok) throw new Error('Ava service unavailable')
       const data = await response.json()
 
       if (data.success) {
