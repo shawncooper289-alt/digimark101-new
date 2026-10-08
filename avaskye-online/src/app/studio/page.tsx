@@ -15,7 +15,7 @@ export default function StudioPage() {
   const [brief, setBrief] = useState("");
   const [draft, setDraft] = useState("");
   const [note, setNote] = useState("");
-  const [left, setLeft] = useState(40);
+  const [, setLeft] = useState(40);
 
   async function run() {
     const res = await fetch("/api/ava/draft", {
