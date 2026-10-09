@@ -24,3 +24,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Ava private-workspace preview */
+.workspace { max-width: 960px; margin: 2rem auto; padding: 1.5rem; }
+.workspace .panel { border: 1px solid #625b73; border-radius: 16px; padding: 1.5rem; }
+.workspace .tabs { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem; }
+.workspace button { padding: .65rem 1rem; border: 1px solid #82738e; border-radius: 8px; cursor: pointer; }
+.workspace button:disabled { opacity: .5; cursor: wait; }
+.workspace .selected, .workspace .primary { background: #6847aa; color: white; }
+.workspace label { display: block; margin: 1rem 0; }
+.workspace input, .workspace textarea, .workspace select { display: block; width: 100%; margin-top: .4rem; border: 1px solid #82738e; border-radius: 8px; padding: .7rem; background: #191321; color: white; }
+.workspace textarea { min-height: 90px; }
+.workspace .answer { white-space: pre-wrap; padding: 1rem; border: 1px solid #82738e; margin-top: 1rem; }
+.workspace .notice { padding: .75rem; }
+
+.ava-floating { position: fixed; right: 1rem; bottom: 1rem; z-index: 100; width: min(360px, calc(100vw - 2rem)); max-height: 75vh; overflow: auto; border: 1px solid #a995c8; border-radius: 18px; padding: 1rem; background: rgba(24,16,40,.94); backdrop-filter: blur(12px); color: #fff; box-shadow: 0 6px 30px #0008; }
+.ava-floating button { padding: .6rem; border: 1px solid #a995c8; border-radius: 8px; }
+.ava-floating label { display: block; margin: .8rem 0; }
+.ava-floating textarea { width: 100%; background: #181025; border: 1px solid #a995c8; color: white; min-height: 80px; }
+.ava-floating .answer { white-space: pre-wrap; margin-top: .8rem; }
+.workspace { padding-bottom: 120px; }
