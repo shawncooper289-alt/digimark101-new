@@ -27,3 +27,12 @@ This branch consolidates the platform-foundation landing, PR #11 knowledge/chat/
 - Verified deployed RLS, provider end-to-end tests, memory retention/export/delete controls and provider lifecycle cleanup.
 
 These require further implementation and provider/database access, not merely additional API keys. Prompt expertise is not execution authority. Publishing, spending, destructive work and access changes must be server-enforced and explicitly approved before tools are added.
+
+## Website onboarding review
+- Ask whether a website exists; obtain explicit consent to send its public URL/content to Firecrawl and the configured AI provider.
+- Set FIRECRAWL_API_KEY in digimark101.com Settings > Environment Variables for Preview using protected inputs. No key is currently configured; no provider purchase made. Reader docs: https://docs.firecrawl.dev/api-reference/endpoint/scrape.
+- Review/apply 20261009_ava_website_reviews.sql after the other migrations. Confirm two-account RLS isolation before activation.
+- POST /api/platform/website reads ONE public page via Firecrawl, caps prompt content, drafts findings and saves them unconfirmed. Important product URLs can be submitted separately; this is not a full-site crawl. Missing or inaccessible content yields an explicit failure.
+- Client corrects and confirms findings through PATCH before chat can retrieve the latest three confirmed briefs. Website statements are not independently verified product claims. No promotion, ad spend or publishing is performed by a review.
+- No user-supplied URL is fetched directly by the app. HTTPS domains only; reject credentials, custom ports, IP literals and local/internal hostnames. Actual public-address/redirect enforcement is delegated to the managed reader, not claimed as app DNS verification. Do not replace this with unrestricted server-side fetch.
+- One-minute per-user sequential scan cooldown is not a full concurrency-safe quota or cost ledger. Production rate limits/entitlements remain required. Live reader connectivity, redirect safety and prompt-injection robustness require provider/browser acceptance tests; sandbox cannot call Firecrawl or deployment URLs.
