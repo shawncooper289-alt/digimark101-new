@@ -1,8 +1,9 @@
+import Link from 'next/link'
 import { platform } from '@/lib/platform-config'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="min-h-screen bg-slate-950 text-slate-100"><Link className="block px-6 py-3 text-violet-300" href="/workspace">Open Ava workspace (preview)</Link>
       <nav aria-label="Main navigation" className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-6">
         <span className="text-xl font-bold">DigiMark101<span className="text-violet-400"> / Ava Skye</span></span>
         <div className="flex gap-5 text-sm"><a href="#platform">Platform</a><a href="#studio">Ava Studio</a><a href="#beta">Launch status</a></div>
