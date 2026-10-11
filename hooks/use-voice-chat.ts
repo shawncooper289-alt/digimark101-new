@@ -85,6 +85,10 @@ export function useVoiceChat({ userId }: UseVoiceChatProps) {
           body: JSON.stringify({ userId, message: text, useVoice: true }),
         })
 
+        if (!response.ok) {
+          throw new Error('Ava could not respond.')
+        }
+
         const data = await response.json()
 
         setMessages((prev) => [
