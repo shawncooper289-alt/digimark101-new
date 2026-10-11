@@ -1,9 +1,13 @@
 import { AvaVoiceWidget } from '@/components/ava/voice-widget'
+import { DigiMarkLogo } from '@/components/branding/digimark-logo'
 
 export default function Home() {
   return (
     <main className="relative min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 p-10">
       <section className="max-w-3xl">
+        <header className="mb-10">
+          <DigiMarkLogo width={200} height={47} />
+        </header>
         <h1 className="text-4xl font-bold text-gray-900 mb-4">DigiMark101</h1>
         <p className="text-lg text-gray-700">
           Ava voice assistant scaffold is now assembled. Connect your Supabase and API keys to enable full production behavior.
