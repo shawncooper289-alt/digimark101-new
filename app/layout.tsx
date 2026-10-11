@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'DigiMark101',
-  description: 'DigiMark101 voice assistant web app scaffold',
+  title: 'DigiMark101 | Ava Skye',
+  description: 'Meet Ava Skye, the voice assistant from DigiMark101.',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
