@@ -3,7 +3,7 @@
 ## Vercel
 
 1. Import this GitHub repository in Vercel.
-2. Add environment variables from `.env.local`.
+2. Add `XAI_API_KEY` and, optionally, `XAI_MODEL` as server-side environment variables. Do not expose the API key with a `NEXT_PUBLIC_` prefix.
 3. Deploy to production.
 
 ## Supabase
