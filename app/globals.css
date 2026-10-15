@@ -1,26 +1,232 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f6f1fb;
+  --paper-deep: #ebe2f4;
+  --ink: #35105d;
+  --ink-soft: #5a4570;
+  --signal: #8738b9;
+  --signal-deep: #6a248f;
+  --line: rgba(20, 23, 28, 0.14);
+  --pine: #2a0c4a;
+  --card: #fffbfe;
+  --mist: #f4e9fb;
+  --lilac: #d879ed;
+  color-scheme: light;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-signal: var(--signal);
+  --color-signal-deep: var(--signal-deep);
+  --color-pine: var(--pine);
+  --color-card: var(--card);
+  --color-mist: var(--mist);
+  --color-lilac: var(--lilac);
+  --font-sans: var(--font-outfit), "Avenir Next", "Segoe UI", sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+  background: var(--paper);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background: #e7c0f4;
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 80;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.display {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+}
+
+.field-grid {
+  background-image:
+    linear-gradient(to right, rgba(20, 23, 28, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 23, 28, 0.055) 1px, transparent 1px);
+  background-size: 4.5rem 4.5rem;
+}
+
+.rule {
+  height: 1px;
+  background: var(--line);
+  border: 0;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-signal {
+  background: var(--signal);
+  color: #fffbfe;
+}
+
+.btn-signal:hover {
+  background: var(--signal-deep);
+}
+
+.btn-ink {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn-ink:hover {
+  background: #2a0c4a;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: rgba(20, 23, 28, 0.22);
+}
+
+.btn-ghost:hover {
+  background: rgba(20, 23, 28, 0.04);
+}
+
+.btn-paper {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.btn-paper:hover {
+  background: white;
+}
+
+.on-ink :focus-visible {
+  outline-color: #f6f1fb;
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid var(--signal);
+  color: var(--signal);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.35rem 0.5rem;
+  transform: rotate(-6deg);
+}
+
+.prose-studio h2 {
+  margin-top: 2.4rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  font-weight: 500;
+}
+
+.prose-studio p,
+.prose-studio li {
+  color: var(--ink-soft);
+}
+
+.prose-studio p {
+  margin-top: 1rem;
+}
+
+.prose-studio ul {
+  margin-top: 1rem;
+  padding-left: 1.1rem;
+}
+
+.prose-studio li + li {
+  margin-top: 0.4rem;
+}
+
+details.faq > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+details.faq > summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .btn:hover {
+    transform: none;
+  }
+
+  .animate-pulse {
+    animation: none;
+  }
 }

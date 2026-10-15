@@ -1,0 +1,66 @@
+import Link from "next/link"
+import { DigiMarkLogo } from "@/components/branding/digimark-logo"
+import { nav, services, site } from "@/lib/site"
+
+export function Footer() {
+  return (
+    <footer className="border-t border-white/10 bg-ink text-paper">
+      <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-12">
+        <div className="md:col-span-5">
+          <DigiMarkLogo variant="paper" />
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-[#eadff5]">
+            A digital marketing studio. Eight disciplines, one operating rhythm, and Ava Skye when you want a straight answer.
+          </p>
+          <a className="mt-4 inline-block text-sm underline decoration-white/30 underline-offset-4" href={`mailto:${site.email}`}>
+            {site.email}
+          </a>
+        </div>
+        <div className="md:col-span-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#cbb8de]">Studio</p>
+          <ul className="mt-4 grid gap-2 text-sm">
+            {nav.map((item) => (
+              <li key={item.href}>
+                <Link className="hover:text-white" href={item.href}>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link className="hover:text-white" href="/contact">
+                Contact
+              </Link>
+            </li>
+          </ul>
+        </div>
+        <div className="md:col-span-4">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#cbb8de]">Disciplines</p>
+          <ul className="mt-4 grid grid-cols-2 gap-2 text-sm">
+            {services.map((service) => (
+              <li key={service.slug}>
+                <Link className="hover:text-white" href={`/services/${service.slug}`}>
+                  {service.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-5 text-xs text-[#cbb8de] sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} DigiMark101. All rights reserved.</p>
+          <div className="flex gap-4">
+            <Link href="/privacy" className="hover:text-white">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-white">
+              Terms
+            </Link>
+            <Link href="/sitemap.xml" className="hover:text-white">
+              Sitemap
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
