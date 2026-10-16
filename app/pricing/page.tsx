@@ -1,14 +1,16 @@
 import Link from "next/link"
+import { MembershipPicker } from "@/components/pricing/membership-picker"
 import { JsonLd } from "@/components/site/json-ld"
 import { PageHeader } from "@/components/site/page-header"
+import { membershipOffers } from "@/lib/paypal/config"
 import { faqJsonLd, pageMetadata } from "@/lib/seo"
 import { packages } from "@/lib/site"
 
 const faqs = [
   {
-    question: "Why is there no rate card?",
+    question: "Why do the packages not list a fee?",
     answer:
-      "A public price would be a guess. Field, Studio, and Partner describe the shape of the work. The fee, term, and what is out of scope are written in a proposal after a short briefing.",
+      "Field, Studio, and Partner describe the shape of the work. The fee, term, and what is out of scope are written in a proposal after a short briefing. Membership is the public price, and it renews until you cancel it in PayPal.",
   },
   {
     question: "Can we start with one channel?",
@@ -22,7 +24,8 @@ const faqs = [
 
 export const metadata = pageMetadata({
   title: "Pricing",
-  description: "Field, Studio, and Partner packages from DigiMark101. Fees are quoted in a written proposal.",
+  description:
+    "Field, Studio, and Partner are quoted in a proposal. DigiMark101 Membership is a public auto-renewing price: monthly, quarterly, or semiannual.",
   path: "/pricing",
 })
 
@@ -54,6 +57,7 @@ export default function PricingPage() {
             </article>
           ))}
         </div>
+        <MembershipPicker offers={membershipOffers()} />
         <section className="mt-14 grid gap-8 border-t border-ink/10 pt-10 md:grid-cols-2">
           <div>
             <h2 className="font-serif text-4xl">What a proposal includes</h2>

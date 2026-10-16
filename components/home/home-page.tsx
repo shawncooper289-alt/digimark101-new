@@ -127,7 +127,7 @@ export function HomePage() {
             Three ways to hire the studio.
           </h2>
           <p className="mt-4 max-w-2xl text-ink-soft">
-            Fees are quoted in a proposal. This page describes the shape of the work, not a rate card and not a client result.
+            Field, Studio, and Partner are quoted in a proposal. Membership, the public auto-renewing plan, is priced on the pricing page. This block describes the shape of the work, not a client result.
           </p>
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
             {packages.map((pkg, index) => (

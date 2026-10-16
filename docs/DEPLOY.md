@@ -98,6 +98,64 @@ Voice input and spoken replies use the browser Web Speech API. They do not need 
 
 The anon / publishable key is not used for lead inserts. Do not rely on it for the form.
 
+### PayPal membership
+
+Three auto-renewing USD plans. Change the amounts in `lib/paypal/membership.json` only. The pricing page reads that file. Current placeholder base:
+
+| Term | Charge | Savings |
+| --- | --- | --- |
+| Monthly | $497 every 1 month | Base price |
+| Quarterly | $1,312 every 3 months | About 12% off |
+| Semiannual | $2,326 every 6 months | About 22% off |
+
+| Variable | Where to get it | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_PAYPAL_CLIENT_ID` | PayPal Developer → Apps & Credentials → Client ID | Public. The pricing page loads `https://www.paypal.com/sdk/js` (or the sandbox host) with `vault=true&intent=subscription`. |
+| `NEXT_PUBLIC_PAYPAL_PLAN_MONTHLY` | Plan id from the script or the PayPal dashboard | Monthly plan. |
+| `NEXT_PUBLIC_PAYPAL_PLAN_QUARTERLY` | same | Quarterly plan. |
+| `NEXT_PUBLIC_PAYPAL_PLAN_SEMIANNUAL` | same | Semiannual plan. |
+| `PAYPAL_ENV` | `sandbox` or `live` | Defaults to `sandbox` when unset. Live buttons and live webhook checks require `live`. |
+| `PAYPAL_CLIENT_ID` | Same app's client id | Server-only. Webhook verification and `scripts/paypal-create-plans.mjs`. |
+| `PAYPAL_CLIENT_SECRET` | Same app's secret | Server-only. Never use a `NEXT_PUBLIC_` name. |
+| `PAYPAL_WEBHOOK_ID` | PayPal app → Webhooks → Webhook ID | Server-only. The route rejects events it cannot verify. |
+
+With the public client id or a plan id unset, that checkout shows **Membership checkout is coming soon** and still lists the prices.
+
+Setup:
+
+1. In the [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/applications), create a REST app. Use the sandbox app until you are ready to charge real accounts, then the live app.
+2. In the Supabase SQL editor, run `supabase/migrations/20261016_subscriptions.sql`. It creates `public.subscriptions` with row-level security: a signed-in user can read only a row whose `owner_id` is `auth.uid()`. The webhook writes with the service role.
+3. From the repo root, create the product and plans. The script reads `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, and `PAYPAL_ENV` from the environment or from `.env.local`:
+
+```bash
+PAYPAL_ENV=sandbox PAYPAL_CLIENT_ID=YOUR_CLIENT_ID PAYPAL_CLIENT_SECRET=YOUR_SECRET node scripts/paypal-create-plans.mjs
+```
+
+It creates the product **DigiMark101 Membership** and prints three ids:
+
+```text
+NEXT_PUBLIC_PAYPAL_PLAN_MONTHLY=P-...
+NEXT_PUBLIC_PAYPAL_PLAN_QUARTERLY=P-...
+NEXT_PUBLIC_PAYPAL_PLAN_SEMIANNUAL=P-...
+```
+
+4. Put those ids, plus `NEXT_PUBLIC_PAYPAL_CLIENT_ID` (the same client id), into Vercel. Set `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` for the server.
+5. In that PayPal app, add a webhook pointing at `https://www.digimark101.com/api/webhooks/paypal`. Subscribe it to these events only:
+
+- `BILLING.SUBSCRIPTION.ACTIVATED`
+- `BILLING.SUBSCRIPTION.CANCELLED`
+- `BILLING.SUBSCRIPTION.SUSPENDED`
+- `BILLING.SUBSCRIPTION.EXPIRED`
+- `PAYMENT.SALE.COMPLETED`
+
+6. Copy the webhook id into `PAYPAL_WEBHOOK_ID` and redeploy.
+7. Open `/pricing`. Sandbox mode shows a sandbox notice on the button. A buyer who is signed in has their user id sent as PayPal `custom_id`, and the webhook stores `owner_id` when that value is a user id. `/thank-you` and `/cancel` are the return pages.
+8. For production, repeat steps 3–6 with `PAYPAL_ENV=live` and the live app. Sandbox plan ids do not work on live.
+
+PayPal does not change an existing subscriber when you edit the JSON. After a price change, run the script again and point the env vars at the new plan ids.
+
+`SUPABASE_SERVICE_ROLE_KEY` is required for the webhook to upsert `public.subscriptions`. It is the same server-only key as the lead form. Do not use it in the browser.
+
 ### Site URL
 
 | Variable | Value |
@@ -119,5 +177,5 @@ Auth redirect URLs are not required for this marketing site. Add `https://www.di
 ## After launch
 
 - Change the public email in `lib/site.ts` if `hello@digimark101.com` is not the mailbox you will read.
-- Add a rate card in `lib/site.ts` (`priceLabel` on each package) only when you want one published. Until then the site says fees are quoted in a proposal.
+- Add a package fee in `lib/site.ts` (`priceLabel` on each package) only when you want one published. Until then Field, Studio, and Partner stay quoted in a proposal. Membership prices are the separate public rates in `lib/paypal/membership.json`.
 - Replace a work page only with a client name and numbers that partner has approved.

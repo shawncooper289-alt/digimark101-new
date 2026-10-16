@@ -43,5 +43,5 @@ These are not in this release. The screens say so where someone could mistake a 
 5. A broader automation runner and a visual builder. The three triggers above are the whole engine today.
 6. Reporting connectors for ad platforms and analytics. Reports will keep using approved numbers only.
 7. More than one person inside a client workspace, with roles.
-8. Payments and subscriptions.
+8. Proposal invoices, and any billing beyond the three PayPal membership plans. Membership checkout itself is on the pricing page when the PayPal env vars are set.
 9. Optional paid text-to-speech. Browser speech remains the default.

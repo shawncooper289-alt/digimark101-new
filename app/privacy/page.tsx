@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <PageHeader
         eyebrow="Legal"
         title="Privacy"
-        lede="Last updated October 15, 2026. This is the studio's working privacy notice for www.digimark101.com. Have counsel review it if you need a formal legal opinion."
+        lede="Last updated October 16, 2026. This is the studio's working privacy notice for www.digimark101.com. Have counsel review it if you need a formal legal opinion."
       />
       <div className="prose-studio mx-auto max-w-3xl px-5 py-14">
         <h2>Who we are</h2>
@@ -37,6 +37,10 @@ export default function PrivacyPage() {
         <p>
           When you create an account, your contacts, pipeline, calendar, inbox notes, campaigns, site records, automations, files, and Ava memory are stored under your user id. Row-level security in Supabase allows that login to read and write only its own rows. Ava cannot read memory or records that belong to another client.
         </p>
+        <h2>Membership</h2>
+        <p>
+          If you subscribe, PayPal processes the payment. We do not store your card number. We store the PayPal subscription id, plan, status, payer email, and payment times in Supabase. When you are signed in at checkout, that row is linked to your user id. Row-level security lets that login read only its own subscription.
+        </p>
         <h2>Where leads are stored</h2>
         <p>
           When Supabase is configured with a server-side service role key, the contact note is stored in a private leads table. The anon key alone is not used to write leads. When Supabase is not configured, the note is not stored. The form says so and offers an email draft instead.
@@ -47,7 +51,7 @@ export default function PrivacyPage() {
         </p>
         <h2>Sharing</h2>
         <p>
-          We do not sell personal information. Processors that may handle it, depending on what the owner has connected, are Vercel for hosting, Supabase for lead storage, and the configured language-model provider for Ava. Each receives only what it needs to do that job.
+          We do not sell personal information. Processors that may handle it, depending on what the owner has connected, are Vercel for hosting, Supabase for storage, PayPal for membership billing, and the configured language-model provider for Ava. Each receives only what it needs to do that job.
         </p>
         <h2>Children</h2>
         <p>This site is not directed at children under 16, and we do not knowingly collect their information.</p>

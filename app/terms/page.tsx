@@ -14,16 +14,20 @@ export default function TermsPage() {
       <PageHeader
         eyebrow="Legal"
         title="Terms"
-        lede="Last updated October 15, 2026. These terms cover the public website. Paid work is governed by a written proposal, not by this page. Have counsel review them before you rely on them."
+        lede="Last updated October 16, 2026. These terms cover the public website and DigiMark101 Membership. Project work is governed by a written proposal. Have counsel review them before you rely on them."
       />
       <div className="prose-studio mx-auto max-w-3xl px-5 py-14">
         <h2>Using the site</h2>
         <p>
           You may browse DigiMark101, read the journal, and send a project note. Do not misuse the forms, attempt to break the service, or send unlawful content. We may ignore or discard notes that look automated or abusive.
         </p>
-        <h2>No engagement until a proposal</h2>
+        <h2>No project until a proposal</h2>
         <p>
-          Packages on this site describe the shape of the work. They are not an offer you can accept by using the form. A project starts when both sides agree to a written proposal that states scope, fee, and term.
+          Field, Studio, and Partner describe the shape of the work. They are not an offer you can accept by using the form. A project starts when both sides agree to a written proposal that states scope, fee, and term.
+        </p>
+        <h2>Membership</h2>
+        <p>
+          DigiMark101 Membership is a separate auto-renewing subscription billed by PayPal in USD. The price and term on the pricing page are the offer. PayPal terms apply to the payment. You can cancel the renewal in PayPal. Cancelling stops the next charge. A membership does not start a Field, Studio, or Partner project.
         </p>
         <h2>Ava Skye</h2>
         <p>

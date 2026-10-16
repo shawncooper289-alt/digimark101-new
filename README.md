@@ -28,6 +28,7 @@ npm run typecheck
 ## Where to edit
 
 - Public copy, packages, journal, and the studio email: `lib/site.ts`
+- Membership prices: `lib/paypal/membership.json`
 - Ava's rules and provider order: `lib/ava/respond.ts`
 - Lead storage: `lib/leads.ts` and `supabase/migrations/20261015_leads.sql`
 
@@ -44,6 +45,8 @@ Copy `.env.example`. Ava uses the first configured provider:
 Leads need `NEXT_PUBLIC_SUPABASE_URL` (or `SUPABASE_URL` / `NEXT_PUBLIC_DIGIMARK_SUPABASE_URL`) and `SUPABASE_SERVICE_ROLE_KEY`. The service role key is server-only.
 
 The studio needs the same URL plus `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the anon key, not the service role). Voice does not need a speech vendor. It uses the browser Web Speech API.
+
+Membership checkout needs the PayPal variables in `.env.example`. Until they are set, the pricing page lists the prices and says checkout is coming soon. The webhook also needs `SUPABASE_SERVICE_ROLE_KEY` so it can write `public.subscriptions`.
 
 ## Deploy
 

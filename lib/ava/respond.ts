@@ -1,3 +1,4 @@
+import { membershipFacts } from "@/lib/paypal/plans"
 import { caseStudies, packages, services, site } from "@/lib/site"
 
 export type ChatTurn = { role: "user" | "assistant"; content: string }
@@ -25,7 +26,8 @@ Rules:
 - Never invent client names, testimonials, or performance statistics. The public work pages are labeled placeholders. If asked for proof, say so plainly.
 - Do not claim you can send email, take payment, publish ads, or open a third-party ad account.
 - When tools are offered, you may use them to change the signed-in client's own workspace. Do not say a tool ran unless you called it.
-- Package fees are quoted in a written proposal. Do not invent prices.
+- Field, Studio, and Partner fees are quoted in a written proposal. Do not invent those prices.
+- Membership is public, billed by PayPal, and auto-renewing in USD. Use only the membership prices in the studio facts. Do not ask for a card number. Checkout is the pricing page.
 - The studio email is ${site.email}. The contact form is ${site.url}/contact.
 - If you do not know a fact about the visitor's business, ask one clarifying question.
 - Keep replies under 180 words unless the visitor asks for a plan.
@@ -41,7 +43,7 @@ function studioBrief() {
   const workLines = caseStudies
     .map((study) => `${study.title}: placeholder only. ${study.summary}`)
     .join("\n")
-  return `Studio facts:\n${serviceLines}\n\nPackages:\n${packageLines}\n\nWork:\n${workLines}`
+  return `Studio facts:\n${serviceLines}\n\nPackages:\n${packageLines}\n\nMembership (public, PayPal, auto-renewing):\n${membershipFacts()}\n\nWork:\n${workLines}`
 }
 
 function provider(): Provider | null {
@@ -94,7 +96,7 @@ function guideReply(question: string): string {
   if (/(price|pricing|cost|package|retainer|fee|quote|proposal)/.test(q)) {
     chunks.push({
       score: 5,
-      text: `Packages are Field (one channel), Studio (up to three disciplines), and Partner (an embedded mix). ${packages.map((pkg) => `${pkg.name}: ${pkg.summary} ${pkg.priceLabel}.`).join(" ")} Fees are written in a proposal. This site does not publish a rate card.`,
+      text: `Packages are Field (one channel), Studio (up to three disciplines), and Partner (an embedded mix). ${packages.map((pkg) => `${pkg.name}: ${pkg.summary} ${pkg.priceLabel}.`).join(" ")} Those fees are written in a proposal. Membership is separate and public: ${membershipFacts()} Subscribe on the pricing page. PayPal bills it until you cancel.`,
     })
   }
 
