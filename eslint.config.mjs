@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
     "**/next-env.d.ts",
     "avaskye-online/node_modules/**",
     "tests/**/*.cjs",
+    "supabase/functions/**",
   ]),
 ]);
 

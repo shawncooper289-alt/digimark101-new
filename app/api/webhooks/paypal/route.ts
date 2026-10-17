@@ -25,7 +25,8 @@ export async function POST(request: Request) {
   if (!isHandledPaypalEvent(eventType)) return Response.json({ received: true, ignored: true })
 
   try {
-    await recordPaypalEvent(eventType, body?.resource)
+    const eventId = typeof body?.id === "string" ? body.id : undefined
+    await recordPaypalEvent(eventType, body?.resource, eventId)
   } catch (error) {
     const message = error instanceof Error ? error.message : "error"
     console.error("PayPal subscription store failed", eventType, message)

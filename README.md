@@ -40,6 +40,10 @@ npm run typecheck
 - **Payments:** PayPal subscriptions for the public membership. Field, Studio, and Partner stay quoted in a proposal.
 - **Model:** one of `AVA_LLM_API_KEY`, `XAI_API_KEY`, or `OPENAI_API_KEY`. With none of them, Ava still answers from the studio guide.
 
+## Backend
+
+The Postgres schema is in `supabase/migrations`, applied in filename order. [docs/BACKEND.md](docs/BACKEND.md) lists every file, the row-level rules, and which Next.js route or Supabase edge function runs each job. `lib/supabase/types.ts` matches that schema. `20261018_complete_backend.sql` adds workspaces, companies, tasks, pipelines, email lists, funnels, bookings, lead niches, consent, enrichment, the audit log, Ava's identity and dress codes, PayPal plans, webhook events, provisioning jobs, and affiliate links. Lead personal details stay in `lead_private_contacts` for the owner and the service role.
+
 ## The public site
 
 Dark theme. Services, placeholder work structures, packages, pricing, journal, about, contact, privacy, terms, the lead marketplace, and the studio.
