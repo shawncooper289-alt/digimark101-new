@@ -24,8 +24,8 @@ const groups = [
   {
     label: "Marketing",
     items: [
-      { href: "/studio/campaigns", label: "Campaigns" },
-      { href: "/studio/sites", label: "Sites" },
+      { href: "/studio/campaigns", label: "Email" },
+      { href: "/studio/sites", label: "Funnels" },
       { href: "/studio/automations", label: "Automations" },
     ],
   },
@@ -36,6 +36,7 @@ const groups = [
       { href: "/studio/leads", label: "Leads" },
       { href: "/studio/files", label: "Files" },
       { href: "/studio/memory", label: "Memory" },
+      { href: "/studio/knowledge", label: "Ava skills" },
       { href: "/studio/backend", label: "Backend" },
     ],
   },

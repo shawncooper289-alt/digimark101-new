@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
+import { spokenText } from "@/lib/ava-speech"
 
 export function AvaDesk() {
   const router = useRouter()
@@ -9,6 +10,16 @@ export function AvaDesk() {
   const [reply, setReply] = useState("Ask me to open a desk, summarize the counts, or draft a contact. I will not save anything until you confirm.")
   const [pending, setPending] = useState(false)
   const [draft, setDraft] = useState<{ name: string; email?: string; company?: string } | null>(null)
+  const [voice, setVoice] = useState(false)
+
+  function speak(line: string) {
+    if (!voice || typeof window === "undefined" || !("speechSynthesis" in window)) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(spokenText(line))
+    utterance.lang = "en-US"
+    utterance.rate = 1
+    window.speechSynthesis.speak(utterance)
+  }
 
   async function send(event: FormEvent) {
     event.preventDefault()
@@ -26,7 +37,9 @@ export function AvaDesk() {
         setReply(data.error || "I could not answer that.")
         return
       }
-      setReply(data.reply || "Done.")
+      const nextReply = data.reply || "Done."
+      setReply(nextReply)
+      speak(nextReply)
       setDraft(data.draft ?? null)
       setText("")
       if (data.href) router.push(data.href)
@@ -47,7 +60,9 @@ export function AvaDesk() {
         body: JSON.stringify({ action: "create_contact", confirmed: true, ...draft }),
       })
       const data = (await response.json()) as { error?: string }
-      setReply(response.ok ? `Saved ${draft.name} in the CRM.` : data.error || "Nothing was saved.")
+      const saved = response.ok ? `Saved ${draft.name} in the CRM.` : data.error || "Nothing was saved."
+      setReply(saved)
+      if (response.ok) speak(saved)
       if (response.ok) {
         setDraft(null)
         router.refresh()
@@ -66,6 +81,18 @@ export function AvaDesk() {
         </label>
         <button type="submit" className="rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" disabled={pending || !text.trim()}>
           Ask
+        </button>
+        <button
+          type="button"
+          className="rounded-full border border-border px-4 py-2 text-sm"
+          aria-pressed={voice}
+          onClick={() => {
+            const next = !voice
+            setVoice(next)
+            if (!next) window.speechSynthesis?.cancel()
+          }}
+        >
+          Voice {voice ? "on" : "off"}
         </button>
       </form>
       <p className="mx-auto mt-3 max-w-6xl text-sm text-muted">{reply}</p>

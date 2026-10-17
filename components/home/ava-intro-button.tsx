@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import { avaIntroScript } from "@/lib/ava/intro"
+import { AVA_IDENTITY } from "@/lib/ava/identity"
+import { spokenText } from "@/lib/ava/speech"
 
 export function AvaIntroButton() {
   const [playing, setPlaying] = useState(false)
@@ -67,8 +69,9 @@ export function AvaIntroButton() {
       return
     }
     window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(avaIntroScript)
-    utterance.rate = 1
+    const utterance = new SpeechSynthesisUtterance(spokenText(avaIntroScript))
+    utterance.lang = AVA_IDENTITY.speech.browserLang
+    utterance.rate = AVA_IDENTITY.speech.browserRate
     utterance.onend = finish
     utterance.onerror = finish
     window.speechSynthesis.speak(utterance)
