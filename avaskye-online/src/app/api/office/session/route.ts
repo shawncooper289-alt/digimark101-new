@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
-import { encodeOfficeSession, officeConfig, officeCookieOptions, officeSignInAllowed } from "@/lib/office-store"
+import { encodeOfficeSession, officeConfig, officeCookieOptions, officeSignInAllowed, supabaseKeyHeaders } from "@/lib/office-store"
 
 const COOKIE = "ava_office"
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   }
   const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
     method: "POST",
-    headers: { apikey: anon, Authorization: `Bearer ${anon}`, "Content-Type": "application/json" },
+    headers: supabaseKeyHeaders(anon, { "Content-Type": "application/json" }),
     body: JSON.stringify({ email, password }),
     cache: "no-store",
   })
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   if (projectUrl && service) {
     await fetch(`${projectUrl}/rest/v1/rpc/sync_owner_email`, {
       method: "POST",
-      headers: { apikey: service, Authorization: `Bearer ${service}`, "Content-Type": "application/json" },
+      headers: supabaseKeyHeaders(service, { "Content-Type": "application/json" }),
       body: JSON.stringify({ owner_email: owner }),
       cache: "no-store",
     }).catch(() => null)

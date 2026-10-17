@@ -17,7 +17,7 @@ export async function rest(path: string, init: RequestInit) {
     ...init,
     headers: {
       apikey: db.key,
-      Authorization: `Bearer ${db.key}`,
+      ...(db.key.startsWith("sb_publishable_") || db.key.startsWith("sb_secret_") ? {} : { Authorization: `Bearer ${db.key}` }),
       "Content-Type": "application/json",
       ...(init.headers ?? {}),
     },

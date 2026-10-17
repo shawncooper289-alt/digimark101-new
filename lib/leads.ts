@@ -1,3 +1,5 @@
+import { supabaseKeyHeaders } from "@/lib/supabase/headers"
+
 export type LeadInput = {
   name: string
   email: string
@@ -33,12 +35,10 @@ export async function saveLead(lead: LeadInput): Promise<LeadResult> {
 
   const response = await fetch(`${url}/rest/v1/leads`, {
     method: "POST",
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
+    headers: supabaseKeyHeaders(key, {
       "Content-Type": "application/json",
       Prefer: "return=minimal",
-    },
+    }),
     body: JSON.stringify({
       name: lead.name,
       email: lead.email,
