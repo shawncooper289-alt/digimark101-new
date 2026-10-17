@@ -37,9 +37,11 @@ export default function TermsPage() {
         <p>
           The lead-lists page shows anonymized previews of premium leads that allowed sharing. Requesting a list does not buy it and does not charge a card. Contact details are released only after that order is marked paid. DigiMark101 does not collect personal data by scraping a site against its terms. Opt out any time on the unsubscribe page.
         </p>
-        <h2>Placeholders</h2>
+        <h2>Work and published results</h2>
         <p>
-          Work pages marked as placeholders are structural examples. They are not testimonials and not measured outcomes. Do not reuse them as proof of performance.
+          The Work pages explain the studio&apos;s approach and do not report client outcomes. No client results are
+          currently published on this site. Client names and performance claims may be published only after the
+          partner approves the facts and context. Method walkthroughs are not evidence of past performance.
         </p>
         <h2>Intellectual property</h2>
         <p>

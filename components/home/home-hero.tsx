@@ -46,7 +46,8 @@ export function HomeHero() {
             <span className="mt-1 block italic text-signal">Build the dynasty.</span>
           </h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
-            Search, paid media, social, content, web, email, analytics, and automation, planned as one growth system you keep. Ava Skye is here for the next decision, and she will not invent a result to impress you.
+            A clear offer, a measurable next step, and the channels to grow around them—built into a system you keep.
+            Ava Skye helps clarify the next decision; a person checks the facts and owns the work.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/contact" className="btn btn-signal">

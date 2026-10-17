@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { HomeHero } from "@/components/home/home-hero"
 import { JsonLd } from "@/components/site/json-ld"
-import { PlaceholderNote } from "@/components/site/placeholder-note"
 import { faqJsonLd } from "@/lib/seo"
 import { caseStudies, formatDate, homeFaqs, method, packages, posts, services } from "@/lib/site"
 
@@ -20,6 +19,10 @@ export function HomePage() {
                 One system, switched on with intent.
               </h2>
             </div>
+            <p className="max-w-xl text-sm leading-relaxed text-ink-soft">
+              Start with the offer and the page. Then choose the channel that can reach the right people and learn from
+              their response. This keeps effort tied to a real next step instead of spreading it across every channel.
+            </p>
             <Link href="/services" className="btn btn-ghost">
               All services
             </Link>
@@ -53,7 +56,12 @@ export function HomePage() {
               <li key={step.index} className="rounded-[1.4rem] border border-white/10 bg-paper/40 p-5">
                 <p className="font-serif text-3xl text-signal">{step.index}</p>
                 <h3 className="mt-3 font-serif text-2xl">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">{step.body}</p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-signal">Idea</p>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">{step.idea}</p>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-signal">How</p>
+                <p className="mt-1 text-sm leading-relaxed text-ink-soft">{step.how}</p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-signal">Why it works</p>
+                <p className="mt-1 text-sm leading-relaxed text-ink-soft">{step.why}</p>
               </li>
             ))}
           </ol>
@@ -63,15 +71,14 @@ export function HomePage() {
       <section className="dm-rise border-b border-ink/10" aria-labelledby="work-heading">
         <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-signal">Field notes</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-signal">Method walkthroughs</p>
             <h2 id="work-heading" className="display mt-3 text-4xl md:text-6xl">
-              The shape of the work, before the proof.
+              The sequence, from offer to readout.
             </h2>
-          </div>
-          <div className="mt-6">
-            <PlaceholderNote>
-              These are structural examples. No client is named, and no performance number on this site is real.
-            </PlaceholderNote>
+            <p className="mt-4 leading-relaxed text-ink-soft">
+              Each walkthrough explains a decision, the work behind it, and what we would measure. No client results
+              are published here yet; client names and results appear only with partner approval.
+            </p>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {caseStudies.map((study) => (
@@ -80,11 +87,11 @@ export function HomePage() {
                 href={`/work/${study.slug}`}
                 className="flex flex-col rounded-[1.5rem] border border-ink/10 bg-card p-5 hover:border-signal/40"
               >
-                <span className="stamp w-fit">Sample only</span>
-                <h3 className="mt-6 font-serif text-3xl">{study.title}</h3>
+                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-signal">The approach</span>
+                <h3 className="mt-3 font-serif text-3xl">{study.title}</h3>
                 <p className="mt-2 text-sm text-signal">{study.discipline}</p>
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft">{study.summary}</p>
-                <span className="mt-6 text-sm font-semibold">Read the structure</span>
+                <span className="mt-6 text-sm font-semibold">Explore the approach</span>
               </Link>
             ))}
           </div>
@@ -98,7 +105,9 @@ export function HomePage() {
             Three ways to hire the studio.
           </h2>
           <p className="mt-4 max-w-2xl text-ink-soft">
-            Field, Studio, and Partner are quoted in a proposal. Membership, the public auto-renewing plan, is priced on the pricing page. This block describes the shape of the work, not a client result.
+            Choose scope by the constraint and the team’s capacity to act. Field isolates one bottleneck, Studio
+            connects related disciplines, and Partner builds a sustained working rhythm. We widen the system when
+            measurement shows what deserves more attention.
           </p>
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
             {packages.map((pkg, index) => (
@@ -113,6 +122,12 @@ export function HomePage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">{pkg.eyebrow}</p>
                 <h3 className="mt-3 font-serif text-4xl">{pkg.name}</h3>
                 <p className="mt-3 text-sm leading-relaxed">{pkg.summary}</p>
+                <p className="mt-4 border-t border-current/15 pt-3 text-sm leading-relaxed">
+                  <span className="font-semibold">Best fit:</span> {pkg.fits}
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+                  <span className="font-semibold text-ink">Why this scope:</span> {pkg.why}
+                </p>
                 <p className="mt-4 text-sm font-semibold text-ink">{pkg.priceLabel}</p>
                 <ul className="mt-5 space-y-2 text-sm">
                   {pkg.includes.map((item) => (
