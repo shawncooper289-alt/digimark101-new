@@ -55,6 +55,7 @@ export async function handleAvaPost(request: Request) {
     fills: reply.fills ?? null,
     navigate: reply.navigate ?? null,
     clientActions: reply.clientActions ?? null,
+    pendingActions: reply.pendingActions ?? null,
     refresh: reply.refresh ?? false,
   })
 }

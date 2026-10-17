@@ -71,6 +71,7 @@ export function AvaWidget() {
   const [notice, setNotice] = useState<string | null>(null)
   const [live, setLive] = useState<boolean | null>(null)
   const [messages, setMessages] = useState<Turn[]>([])
+  const [queued, setQueued] = useState<Action[] | null>(null)
   const scroller = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<RecognitionLike | null>(null)
@@ -128,6 +129,7 @@ export function AvaWidget() {
         fills?: Record<string, string> | null
         navigate?: string | null
         clientActions?: Action[] | null
+        pendingActions?: Action[] | null
         refresh?: boolean
       }
       if (!response.ok || !data.text) {
@@ -140,8 +142,9 @@ export function AvaWidget() {
         window.dispatchEvent(new CustomEvent("ava:client-actions", { detail }))
         if (detail.summaries.length) text = detail.summaries.join(" ")
       }
+      if (data.pendingActions?.length) setQueued(data.pendingActions)
       if (data.refresh) window.dispatchEvent(new Event("ava:refresh"))
-      if (data.navigate) router.push(data.navigate)
+      if (data.navigate && !data.pendingActions?.length) router.push(data.navigate)
       setLive(Boolean(data.live))
       setNotice(data.notice ?? null)
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: text }])
@@ -267,6 +270,35 @@ export function AvaWidget() {
               ))
             )}
             {pending ? <p className="text-sm text-ink-soft">Ava is thinking…</p> : null}
+            {queued ? (
+              <div className="rounded-2xl border border-ink/10 bg-mist p-3">
+                <p className="text-sm text-ink">This stays a draft until you confirm it.</p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-signal"
+                    onClick={() => {
+                      void (async () => {
+                        try {
+                          const summaries: string[] = []
+                          for (const action of queued) summaries.push(await platform.run(action))
+                          setQueued(null)
+                          setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: summaries.join(" ") || "Saved." }])
+                          window.dispatchEvent(new Event("ava:refresh"))
+                        } catch {
+                          setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: "I could not save that draft. Nothing was changed." }])
+                        }
+                      })()
+                    }}
+                  >
+                    Confirm save
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => setQueued(null)}>
+                    Discard
+                  </button>
+                </div>
+              </div>
+            ) : null}
             {notice ? <p className="text-xs leading-relaxed text-signal">{notice}</p> : null}
           </div>
 

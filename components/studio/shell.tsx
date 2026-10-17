@@ -36,6 +36,7 @@ const groups = [
       { href: "/studio/leads", label: "Leads" },
       { href: "/studio/files", label: "Files" },
       { href: "/studio/memory", label: "Memory" },
+      { href: "/studio/backend", label: "Backend" },
     ],
   },
 ]

@@ -4,6 +4,7 @@ import { AvaWidget } from "@/components/ava/ava-widget"
 import { SiteChrome } from "@/components/site/chrome"
 import { JsonLd } from "@/components/site/json-ld"
 import { PlatformProvider } from "@/components/studio/platform-provider"
+import { partnerLinks } from "@/lib/partners"
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo"
 import { site } from "@/lib/site"
 import "./globals.css"
@@ -73,7 +74,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         <PlatformProvider>
-          <SiteChrome>{children}</SiteChrome>
+          <SiteChrome partners={partnerLinks()}>{children}</SiteChrome>
           <AvaWidget />
         </PlatformProvider>
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />

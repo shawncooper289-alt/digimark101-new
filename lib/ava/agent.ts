@@ -1,6 +1,9 @@
 import { respondToAva, type ChatTurn } from "@/lib/ava/respond"
+import { setOwnerVisitorMode } from "@/lib/office/appearance"
+import { visitorModeIntent, visitorModeReply } from "@/lib/office/intent"
+import { isOwnerIdentity } from "@/lib/owner/access"
 import { interpret } from "@/lib/platform/interpret"
-import { commitAction, rosterFor } from "@/lib/platform/db"
+import { rosterFor } from "@/lib/platform/db"
 import type { Action, Roster, Stage, Trigger, AutomationAction } from "@/lib/platform/types"
 import { automationActions, stages, triggers } from "@/lib/platform/types"
 import { createSupabaseServer } from "@/lib/supabase/server"
@@ -13,6 +16,7 @@ export type AvaAnswer = {
   fills?: Record<string, string>
   navigate?: string
   clientActions?: Action[]
+  pendingActions?: Action[]
   refresh?: boolean
 }
 
@@ -29,7 +33,7 @@ const toolDefs = [
   { type: "function", function: { name: "create_automation", description: "Create an automation inside the workspace.", parameters: { type: "object", properties: { name: { type: "string" }, trigger: { type: "string", enum: triggers }, action: { type: "string", enum: automationActions } }, required: ["trigger", "action"] } } },
   { type: "function", function: { name: "remember", description: "Save a memory that only this client can read.", parameters: { type: "object", properties: { key: { type: "string" }, value: { type: "string" } }, required: ["key", "value"] } } },
   { type: "function", function: { name: "navigate", description: "Open a page in this product.", parameters: { type: "object", properties: { href: { type: "string" } }, required: ["href"] } } },
-  { type: "function", function: { name: "fill_form", description: "Fill visible form fields on the current page.", parameters: { type: "object", properties: { name: { type: "string" }, email: { type: "string" }, company: { type: "string" }, website: { type: "string" }, phone: { type: "string" }, message: { type: "string" }, title: { type: "string" }, headline: { type: "string" }, brief: { type: "string" } } } } },
+  { type: "function", function: { name: "fill_form", description: "Fill visible form fields. Do not save. Ask one short question if a required field is missing.", parameters: { type: "object", properties: { name: { type: "string" }, email: { type: "string" }, company: { type: "string" }, website: { type: "string" }, phone: { type: "string" }, message: { type: "string" }, title: { type: "string" }, headline: { type: "string" }, brief: { type: "string" }, region: { type: "string" }, site: { type: "string" } } } } },
 ]
 
 function str(value: unknown) {
@@ -82,7 +86,7 @@ function allowedHref(value: string) {
   return ["/studio", "/contact", "/pricing", "/services", "/work", "/about", "/blog", "/ava"].some((path) => value === path || value.startsWith(`${path}/`))
 }
 
-async function runAction(action: Action, userId: string | null): Promise<Pick<AvaAnswer, "text" | "clientActions" | "refresh" | "navigate">> {
+function draftAction(action: Action): Pick<AvaAnswer, "text" | "pendingActions" | "navigate"> {
   const navigate = action.type === "create_contact" ? "/studio/contacts"
     : action.type === "create_deal" || action.type === "move_deal" ? "/studio/pipeline"
     : action.type === "book_appointment" ? "/studio/calendar"
@@ -92,14 +96,11 @@ async function runAction(action: Action, userId: string | null): Promise<Pick<Av
     : action.type === "create_automation" ? "/studio/automations"
     : action.type === "remember" ? "/studio/memory"
     : undefined
-
-  if (!userId) {
-    return { text: "", clientActions: [action], navigate }
+  return {
+    text: "I drafted that. Confirm save and I will keep it.",
+    pendingActions: [action],
+    navigate,
   }
-  const supabase = await createSupabaseServer()
-  if (!supabase) return { text: "Supabase is not configured, so I could not save that.", clientActions: [action], navigate }
-  const result = await commitAction(supabase, userId, action)
-  return { text: result.summary, refresh: true, navigate }
 }
 
 export async function answerAva(input: {
@@ -110,20 +111,27 @@ export async function answerAva(input: {
   const latest = input.turns[input.turns.length - 1]?.content ?? ""
   const session = await createSupabaseServer()
   const user = session ? (await session.auth.getUser()).data.user : null
+  const appearance = visitorModeIntent(latest)
+  if (appearance !== null) {
+    if (!isOwnerIdentity(user)) {
+      return { text: "Visitor mode is an owner office control.", mode: "guide", live: false }
+    }
+    const saved = await setOwnerVisitorMode(user, appearance)
+    return { text: saved.ok ? visitorModeReply(appearance) : saved.error, mode: "guide", live: false }
+  }
   const roster = user && session ? await rosterFor(session, user.id).catch(() => input.rosterHint) : input.rosterHint
   const found = interpret(latest, input.pageFields)
   const fromRoster = rosterReply(latest, roster)
 
   if (found.handled && found.action) {
-    const ran = await runAction(found.action, user?.id ?? null)
+    const drafted = draftAction(found.action)
     return {
-      text: ran.text || found.summary,
+      text: drafted.text || found.summary,
       mode: "guide",
       live: false,
       fills: found.fills,
-      navigate: found.navigate || ran.navigate,
-      clientActions: ran.clientActions,
-      refresh: ran.refresh,
+      navigate: found.navigate || drafted.navigate,
+      pendingActions: drafted.pendingActions,
     }
   }
 
@@ -137,7 +145,7 @@ export async function answerAva(input: {
 
   const model = await respondToAva(input.turns, {
     tools: user ? toolDefs : undefined,
-    extra: `Workspace roster, which is the only set of names and counts you may cite:\n${JSON.stringify(roster ?? { contacts: [], deals: [], appointments: [], campaigns: [], memory: [] })}\nVisible form fields: ${input.pageFields.join(", ") || "none"}.\nYou may call tools to change this client's workspace. Never invent clients, revenue, or campaign results. Campaign and site tools create drafts only.`,
+    extra: `Workspace roster, which is the only set of names and counts you may cite:\n${JSON.stringify(roster ?? { contacts: [], deals: [], appointments: [], campaigns: [], memory: [] })}\nVisible form fields: ${input.pageFields.join(", ") || "none"}.\nYou may call tools to prepare this client's workspace. Never invent clients, revenue, or campaign results. Campaign, site, and record tools return drafts. Nothing is saved until the person confirms.`,
   })
 
   if (!model.toolCalls?.length || !user) {
@@ -147,6 +155,7 @@ export async function answerAva(input: {
   const fills: Record<string, string> = {}
   let navigate: string | undefined
   const summaries: string[] = []
+  const pendingActions: Action[] = []
   for (const call of model.toolCalls) {
     let args: Record<string, unknown> = {}
     try {
@@ -163,25 +172,26 @@ export async function answerAva(input: {
       for (const [key, value] of Object.entries(args)) {
         if (typeof value === "string" && input.pageFields.includes(key)) fills[key] = value
       }
-      summaries.push("I filled the form fields that are on this page.")
+      summaries.push("I filled the form fields that are on this page. Review them before you submit.")
       continue
     }
     const action = actionFromTool(call.function.name, args)
     if (!action) continue
-    const ran = await runAction(action, user.id)
-    if (ran.text) summaries.push(ran.text)
-    navigate = navigate || ran.navigate
+    const draft = draftAction(action)
+    if (draft.pendingActions) pendingActions.push(...draft.pendingActions)
+    summaries.push(draft.text)
+    navigate = navigate || draft.navigate
   }
 
   const text = [model.text, ...summaries].filter(Boolean).join("\n\n")
   return {
-    text: text || "Done.",
+    text: text || "Here is the draft. Confirm it before I save anything.",
     mode: model.mode,
     live: model.live,
     notice: model.notice,
     fills: Object.keys(fills).length ? fills : undefined,
     navigate,
-    refresh: true,
+    pendingActions: pendingActions.length ? pendingActions : undefined,
   }
 }
 

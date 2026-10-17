@@ -1,8 +1,9 @@
 import Link from "next/link"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
+import type { PartnerLink } from "@/lib/partners"
 import { nav, services, site } from "@/lib/site"
 
-export function Footer() {
+export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
   return (
     <footer className="border-t border-ink/10 bg-paper-deep text-ink">
       <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-12">
@@ -48,7 +49,12 @@ export function Footer() {
       <div className="border-t border-ink/10">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-5 text-xs text-ink-soft sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} DigiMark101. All rights reserved.</p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
+            {partners.map((partner) => (
+              <a key={partner.label} href={partner.href} className="hover:text-signal" rel="noopener noreferrer">
+                {partner.label}
+              </a>
+            ))}
             <Link href="/privacy" className="hover:text-signal">
               Privacy
             </Link>
