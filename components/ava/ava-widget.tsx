@@ -4,6 +4,8 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 import { AvaAvatar } from "@/components/branding/ava-avatar"
+import { AVA_IDENTITY } from "@/lib/ava/identity"
+import { spokenText } from "@/lib/ava/speech"
 import { usePlatform } from "@/components/studio/platform-provider"
 import { rosterFrom, type Action } from "@/lib/platform/types"
 
@@ -305,8 +307,9 @@ export function AvaWidget() {
     holdListen.current = true
     stopListen()
     window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.rate = 1
+    const utterance = new SpeechSynthesisUtterance(spokenText(text))
+    utterance.lang = AVA_IDENTITY.speech.browserLang
+    utterance.rate = AVA_IDENTITY.speech.browserRate
     const resume = () => {
       holdListen.current = false
       if (shouldListen()) startListen()

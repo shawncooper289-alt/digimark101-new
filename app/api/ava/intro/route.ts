@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { avaIntroScript } from "@/lib/ava/intro"
+import { spokenSsml, spokenText } from "@/lib/ava/speech"
 import { clientIp, sameOrigin, tooManyRequests } from "@/lib/http"
 
 export const runtime = "nodejs"
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
       body: JSON.stringify({
         model,
         voice,
-        input: avaIntroScript,
+        input: process.env.AVA_TTS_SSML === "true" ? spokenSsml(avaIntroScript) : spokenText(avaIntroScript),
         response_format: "mp3",
       }),
       signal: AbortSignal.timeout(12000),
