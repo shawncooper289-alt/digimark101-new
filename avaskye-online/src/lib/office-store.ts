@@ -5,11 +5,38 @@ const COOKIE = "ava_office"
 type TokenBag = { access: string; refresh: string; exp: number }
 
 export function officeConfig() {
-  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").replace(/\/$/, "")
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+  const url = (
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    ""
+  ).replace(/\/$/, "")
+  const anon =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_PUBLISHABLE_KEY ||
+    ""
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
   const owner = (process.env.OWNER_EMAIL || "").trim().toLowerCase()
   return { url, anon, service, owner, configured: Boolean(url && anon && service && owner) }
+}
+
+export function missingOfficeEnv() {
+  const config = officeConfig()
+  const missing: string[] = []
+  if (!config.url) missing.push("NEXT_PUBLIC_SUPABASE_URL")
+  if (!config.anon) missing.push("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+  if (!config.service) missing.push("SUPABASE_SERVICE_ROLE_KEY")
+  if (!config.owner) missing.push("OWNER_EMAIL")
+  if (!process.env.LEAD_HASH_SALT?.trim()) missing.push("LEAD_HASH_SALT")
+  if (!process.env.PAYPAL_CLIENT_ID?.trim()) missing.push("PAYPAL_CLIENT_ID")
+  if (!process.env.PAYPAL_CLIENT_SECRET?.trim()) missing.push("PAYPAL_CLIENT_SECRET")
+  if (!process.env.PAYPAL_WEBHOOK_ID?.trim()) missing.push("PAYPAL_WEBHOOK_ID")
+  if (!process.env.XAI_API_KEY?.trim() && !process.env.AVA_LLM_API_KEY?.trim() && !process.env.OPENAI_API_KEY?.trim()) {
+    missing.push("XAI_API_KEY")
+  }
+  return missing
 }
 
 export function officeCookieOptions(maxAge: number) {

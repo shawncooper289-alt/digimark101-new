@@ -10,11 +10,13 @@ export function OfficeExperience({
   isOwner,
   configured,
   casual,
+  compact = false,
 }: {
   visitorMode: boolean
   isOwner: boolean
   configured: boolean
   casual: OfficeLook
+  compact?: boolean
 }) {
   const router = useRouter();
   const [mode, setMode] = useState(visitorMode);
@@ -82,11 +84,11 @@ export function OfficeExperience({
   const look = mode ? PROFESSIONAL_LOOK : casual;
 
   return (
-    <section className="mx-auto grid max-w-6xl gap-10 px-5 py-10 md:grid-cols-[auto_1fr] md:items-start">
+    <section className={compact ? "mt-10 grid gap-6 md:grid-cols-[auto_1fr]" : "mx-auto grid max-w-6xl gap-10 px-5 py-10 md:grid-cols-[auto_1fr] md:items-start"}>
       <CasualAva look={look} />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted">Owner office</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">{compact ? "Appearance" : "Owner office"}</p>
           {isOwner ? (
             <button
               type="button"
@@ -99,9 +101,11 @@ export function OfficeExperience({
             </button>
           ) : null}
         </div>
+        {compact ? null : (
         <h1 className="mt-3 text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>
           Founder office
         </h1>
+        )}
         <p className="mt-4 max-w-xl text-muted">
           The daily look stays relaxed. Visitor mode switches Ava to the professional outfit while guests are here, then back to casual when you turn it off or tell her to.
         </p>

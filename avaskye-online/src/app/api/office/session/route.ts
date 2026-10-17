@@ -37,6 +37,15 @@ export async function POST(request: Request) {
   }
   const jar = await cookies()
   jar.set(COOKIE, encodeOfficeSession(data.access_token, data.refresh_token, data.expires_in || 3600), officeCookieOptions(data.expires_in || 3600))
+  const { url: projectUrl, service } = officeConfig()
+  if (projectUrl && service) {
+    await fetch(`${projectUrl}/rest/v1/rpc/sync_owner_email`, {
+      method: "POST",
+      headers: { apikey: service, Authorization: `Bearer ${service}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ owner_email: owner }),
+      cache: "no-store",
+    }).catch(() => null)
+  }
   return NextResponse.json({ ok: true })
 }
 

@@ -6,9 +6,10 @@ const display = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600", 
 const sans = Outfit({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-sans-loaded" });
 
 export const metadata: Metadata = {
-  title: "Ava Skye — buy the operator, not the stack",
-  description: "Starter Ava writes the content. Pro Ava drafts the automation. Upgrade into a DigiMark101 seat when you want the full agency.",
+  title: "Owner office",
+  description: "Private back office for DigiMark101.",
   metadataBase: new URL("https://avaskye.online"),
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
