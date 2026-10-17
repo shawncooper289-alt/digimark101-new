@@ -10,7 +10,7 @@ export const site = {
   email: "hello@digimark101.com",
   tagline: "Marketing, built as a system.",
   description:
-    "DigiMark101 is a digital marketing studio and a simple client workspace for contacts, pipeline, calendar, campaigns, and Ava Skye.",
+    "DigiMark101 is a digital marketing studio that builds a clear offer, a measurable next step, and the channels to grow around them.",
 } as const
 
 export const nav = [
@@ -307,6 +307,7 @@ export type Package = {
   eyebrow: string
   summary: string
   fits: string
+  why: string
   includes: string[]
   priceLabel: string
 }
@@ -317,6 +318,7 @@ export const packages: Package[] = [
     eyebrow: "One channel",
     summary: "For a team that needs a single discipline made serious.",
     fits: "You can name the bottleneck.",
+    why: "A focused scope makes the first learning clear before you add another moving part.",
     includes: [
       "One primary service",
       "A written monthly plan",
@@ -331,6 +333,7 @@ export const packages: Package[] = [
     eyebrow: "The connected system",
     summary: "For a team whose channels are working, and arguing with each other.",
     fits: "You are ready to run search, media, and a home base together.",
+    why: "Shared planning aligns the offer, landing experience, and measurement across disciplines.",
     includes: [
       "Up to three disciplines",
       "Shared monthly planning",
@@ -345,6 +348,7 @@ export const packages: Package[] = [
     eyebrow: "Embedded",
     summary: "For a company that wants the studio inside the week.",
     fits: "Marketing is a core growth function, not a side task.",
+    why: "A steady operating rhythm gives a wider system room to learn and adapt without losing accountability.",
     includes: [
       "A scoped mix of all eight disciplines",
       "Quarterly planning",
@@ -373,16 +377,16 @@ export const caseStudies: CaseStudy[] = [
     slug: "search-rebuild",
     index: "A",
     title: "Search rebuild",
-    sector: "Illustrative structure for a multi-location service business",
+    sector: "Search and web · multi-location services",
     discipline: "SEO and web",
-    summary: "A sample of how we would rebuild search around offers and locations, without a named client or a claimed result.",
+    summary: "An offer-led search rebuild: map intent to useful location pages, then measure qualified actions before expanding.",
     situation:
-      "Imagine a service company with several cities, thin location pages, and a blog that never mentions the offer. This page shows the shape of that engagement. It is not a story we delivered, and it does not report results.",
+      "When local pages are thin and an offer is hard to find, first separate crawl and indexing issues from relevance and conversion issues. This sequence shows how to reason through the work and define its measures before changes go live.",
     approach: [
-      "Audit indexation, duplicates, and the pages that already receive visits.",
-      "Replace thin location pages with pages that explain the service, the city, and the next step.",
-      "Point internal links and the paid landing pages at the same offers.",
-      "Report queries, indexed pages, and leads only after a real account is connected and the client approves the numbers.",
+      "Check crawlability, duplicates, search demand, and existing landing-page behavior to locate the constraint before rewriting.",
+      "Map priority searches to pages with a clear service, location, and next action; do not multiply near-duplicate pages.",
+      "Align internal links, useful content, and any paid landing page around the same offer so demand meets a consistent next step.",
+      "Define a qualified inquiry and its attribution before launch; review indexed pages, relevant search activity, and qualified organic inquiries over time.",
     ],
     wouldMeasure: ["Indexed offer pages", "Queries that match the service", "Leads attributed to organic landing pages"],
   },
@@ -390,16 +394,16 @@ export const caseStudies: CaseStudy[] = [
     slug: "launch-media",
     index: "B",
     title: "Launch media",
-    sector: "Illustrative structure for a product launch",
+    sector: "Paid media and analytics · offer launch",
     discipline: "Paid ads and analytics",
-    summary: "A sample media system for a launch. No spend, return, or audience size is stated because none has been approved.",
+    summary: "A launch sequence that connects a clear offer, a relevant landing page, and a conversion event worth trusting.",
     situation:
-      "Imagine a company with a new offer, an untrusted pixel, and a landing page that talks about the company instead of the product. This is the sequence we would run. It is a template, not a result.",
+      "When tracking is uncertain or a landing page leads with the company instead of the offer, more spend makes the read harder. Establish the action to count and make the page match the ad before expanding distribution.",
     approach: [
-      "Repair conversion tracking before the first scaled dollar.",
-      "Pair a small set of ads with a page that states the offer, the fit, and the next step.",
-      "Separate prospecting from remarketing so the readout can be explained.",
-      "Publish performance only when the client approves the figures.",
+      "Test conversion tracking against a real completed action before using it to guide budget.",
+      "Pair a focused set of ads with a page that states the offer, who it fits, and the next step.",
+      "Keep prospecting and remarketing distinct so each audience and message can be understood.",
+      "Compare qualified actions and their costs against the agreed source of truth; use the readout to hold, fix, or scale.",
     ],
     wouldMeasure: ["Qualified leads or purchases", "Cost per that action", "Share of spend on ads that earned the action"],
   },
@@ -407,16 +411,16 @@ export const caseStudies: CaseStudy[] = [
     slug: "lifecycle-notes",
     index: "C",
     title: "Lifecycle notes",
-    sector: "Illustrative structure for a membership brand",
+    sector: "Email and content · membership",
     discipline: "Email and content",
-    summary: "A sample lifecycle program. The list size and revenue are intentionally absent.",
+    summary: "An owned-channel sequence that makes the signup promise clear, welcomes new members, and gives each send a job.",
     situation:
-      "Imagine a membership with a signup and almost no welcome, plus a newsletter that recaps the company calendar. This is how we would rebuild the owned channel. No member count is claimed.",
+      "When a signup has no clear welcome and regular email has no defined purpose, begin with the promise made at signup and the next useful action for a new member.",
     approach: [
-      "Rewrite the signup so the permission matches the promise.",
-      "Ship a short welcome that teaches one use of the product.",
-      "Replace the calendar recap with letters that have a job.",
-      "Hold every statistic until it comes from the live account and is approved for publication.",
+      "Make the signup promise specific and ensure consent language matches how the list will be used.",
+      "Build a short welcome sequence that sets expectations and teaches one useful product action.",
+      "Give each campaign one job and a relevant destination instead of sending for frequency alone.",
+      "Track welcome completion, clicks to the intended offer, and unsubscribes against sends to guide the next revision.",
     ],
     wouldMeasure: ["Welcome completion", "Campaign clicks to the offer", "Unsubscribes against sends"],
   },
@@ -524,7 +528,7 @@ export const posts: JournalPost[] = [
       { type: "h2", text: "What she will not do" },
       {
         type: "p",
-        text: "Ava does not invent client names, testimonials, or performance statistics. The work pages on this site are labeled placeholders for that reason. She also does not send the email, charge a card, or change an ad account from the chat. A person does those things.",
+        text: "Ava does not invent client names, testimonials, or performance statistics. Client results are published only after partner approval. She also does not send the email, charge a card, or change an ad account from the chat. A person does those things.",
       },
       { type: "h2", text: "Use her before the form" },
       {
@@ -551,7 +555,7 @@ export const posts: JournalPost[] = [
       { type: "h2", text: "1. The offer and the page" },
       {
         type: "p",
-        text: "If a stranger cannot tell who the work is for and what to do next, every channel will tax that confusion. Web and content come first when the site is the bottleneck. This is often a smaller project than a company expects.",
+        text: "If a stranger cannot tell who the work is for, why it is worth choosing, or what to do next, every channel will tax that confusion. Make the desired outcome concrete, strengthen the reasons to believe it, and reduce unnecessary time or effort to act. Web and content come first when the site is the bottleneck.",
       },
       { type: "h2", text: "2. The measurement" },
       {
@@ -561,7 +565,7 @@ export const posts: JournalPost[] = [
       { type: "h2", text: "3. The channel that can learn this month" },
       {
         type: "p",
-        text: "Paid media learns quickly when the page and the event are sound. SEO learns slowly and compounds. Email learns whenever someone has already raised a hand. We pick one of these as the Field engagement, based on the bottleneck, not on what is fashionable.",
+        text: "Start with warm outreach when the team can have relevant conversations. Publish useful content to build a durable signal, then use targeted cold outreach where it fits. Paid media follows when the offer, page, and measurement can support the spend. Search compounds over time; email serves people who have already opted in. We choose based on the bottleneck, not fashion.",
       },
       { type: "h2", text: "4. The supporting voice" },
       {
@@ -594,7 +598,7 @@ export const homeFaqs = [
   {
     question: "Do you publish client results?",
     answer:
-      "Not on this site. The work pages are labeled placeholders so we never present invented client names or statistics as real. A story goes up only after a partner approves the facts.",
+      "No client results are published here yet. The work pages explain our approach; client names and outcomes appear only after the partner approves the facts and context.",
   },
   {
     question: "Who is Ava Skye?",
@@ -622,17 +626,23 @@ export const method = [
   {
     index: "01",
     title: "Name the bottleneck",
-    body: "A page, a channel, a measurement gap, or a team that cannot see the week. We pick one.",
+    idea: "Growth gets easier to reason about when one constraint is named before more activity is added.",
+    how: "Review the offer, customer journey, and current signals with the team, then choose the page, channel, or measurement gap to address first.",
+    why: "A bounded first move helps the team see what changed and keeps effort on a real business problem.",
   },
   {
     index: "02",
     title: "Make the system small",
-    body: "An offer, a next step, a trusted event, and the channel that can learn. Then we build that.",
+    idea: "Traffic is more useful when it meets a clear offer and a next step the team can fulfill.",
+    how: "Clarify the promise and page, verify the conversion event, then work through warm outreach, useful public content, targeted cold outreach, and paid distribution as the offer and measurement are ready.",
+    why: "This sequence moves from direct conversations to wider reach while keeping the offer credible, the next step clear, and the time or effort asked of a buyer reasonable.",
   },
   {
     index: "03",
     title: "Read it out loud",
-    body: "Every month gets a note: what changed, what it cost, what we will stop. No invented proof.",
+    idea: "Measurement earns its place when it changes the next decision, not when it fills a dashboard.",
+    how: "Agree on the action and source of truth, review the cost and quality of response, then record what changed and what to try next.",
+    why: "A short, consistent readout makes uncertainty visible and helps a team scale only what its evidence supports.",
   },
 ] as const
 

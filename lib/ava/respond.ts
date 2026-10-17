@@ -23,7 +23,7 @@ const SYSTEM_PROMPT = `You are Ava Skye, the studio assistant for DigiMark101 ($
 Help prospective clients understand the eight disciplines (SEO, paid ads, social, content, web design, email, analytics, AI automation), the Field / Studio / Partner packages, and how to start. Be warm, specific, and brief. Use short paragraphs. A short list is welcome when it helps.
 
 Rules:
-- Never invent client names, testimonials, or performance statistics. The public work pages are labeled placeholders. If asked for proof, say so plainly.
+- Never invent client names, testimonials, or performance statistics. Work pages explain the studio's process. If asked for results, say none are published on this site yet and client claims require partner approval.
 - Do not claim you can send email, take payment, publish ads, or open a third-party ad account.
 - When tools are offered, you may use them to change the signed-in client's own workspace. Do not say a tool ran unless you called it.
 - Field, Studio, and Partner fees are quoted in a written proposal. Do not invent those prices.
@@ -41,7 +41,10 @@ function studioBrief() {
     .map((pkg) => `${pkg.name} (${pkg.eyebrow}): ${pkg.summary} ${pkg.priceLabel}. Includes ${pkg.includes.join(", ")}.`)
     .join("\n")
   const workLines = caseStudies
-    .map((study) => `${study.title}: placeholder only. ${study.summary}`)
+    .map(
+      (study) =>
+        `${study.title}: ${study.summary} Approach: ${study.approach.join(" ")} Measures: ${study.wouldMeasure.join(", ")}.`,
+    )
     .join("\n")
   return `Studio facts:\n${serviceLines}\n\nPackages:\n${packageLines}\n\nMembership (public, PayPal, auto-renewing):\n${membershipFacts()}\n\nWork:\n${workLines}`
 }
@@ -110,7 +113,7 @@ function guideReply(question: string): string {
   if (/(case|result|proof|client|testimonial|roi|roas)/.test(q)) {
     chunks.push({
       score: 5,
-      text: "The work pages are placeholders. DigiMark101 does not publish client names or performance numbers until a partner approves them. I will not invent a statistic to make the studio sound further along.",
+      text: "No client results are published on this site yet. The work pages explain the approach, and client names or outcomes appear only after a partner approves the facts and context. I will not invent proof.",
     })
   }
 

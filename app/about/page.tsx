@@ -19,7 +19,7 @@ const principles = [
   },
   {
     title: "Proof is earned",
-    body: "Client names and statistics are published only after a partner approves them. The empty frames on the work pages are a policy, not a placeholder we forgot.",
+    body: "Client names and results are published only after a partner approves the facts and context. Until then, the site explains the method without implying a track record.",
   },
   {
     title: "The readout is short",
