@@ -1,4 +1,4 @@
-import { missingOfficeEnv, officeConfig, readOfficeOwner } from "@/lib/office-store"
+import { missingOfficeEnv, officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-store"
 
 type Row = Record<string, unknown>
 
@@ -10,7 +10,7 @@ export async function requireOwner() {
 
 function headers() {
   const { service } = officeConfig()
-  return { apikey: service, Authorization: `Bearer ${service}` }
+  return supabaseKeyHeaders(service)
 }
 
 export async function deskCount(table: string, filter = "") {

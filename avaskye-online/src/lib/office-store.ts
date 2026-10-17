@@ -2,6 +2,15 @@ import { cookies } from "next/headers"
 
 const COOKIE = "ava_office"
 
+/** sb_publishable_ and sb_secret_ keys are not JWTs and must not be sent as Bearer. */
+export function supabaseKeyHeaders(key: string, extra: Record<string, string> = {}) {
+  const headers: Record<string, string> = { apikey: key, ...extra }
+  if (!key.startsWith("sb_publishable_") && !key.startsWith("sb_secret_")) {
+    headers.Authorization = `Bearer ${key}`
+  }
+  return headers
+}
+
 type TokenBag = { access: string; refresh: string; exp: number }
 
 export function officeConfig() {
@@ -70,11 +79,7 @@ export async function readVisitorMode() {
   if (!configured) return { visitorMode: false, configured: false }
   const response = await fetch(`${url}/rest/v1/rpc/owner_office_state`, {
     method: "POST",
-    headers: {
-      apikey: service,
-      Authorization: `Bearer ${service}`,
-      "Content-Type": "application/json",
-    },
+    headers: supabaseKeyHeaders(service, { "Content-Type": "application/json" }),
     body: JSON.stringify({ owner_email: owner }),
     cache: "no-store",
   })
@@ -88,12 +93,10 @@ export async function saveVisitorMode(ownerId: string, visitorMode: boolean) {
   if (!configured) return false
   const response = await fetch(`${url}/rest/v1/owner_office_appearance?on_conflict=owner_id`, {
     method: "POST",
-    headers: {
-      apikey: service,
-      Authorization: `Bearer ${service}`,
+    headers: supabaseKeyHeaders(service, {
       "Content-Type": "application/json",
       Prefer: "resolution=merge-duplicates",
-    },
+    }),
     body: JSON.stringify({
       owner_id: ownerId,
       visitor_mode: visitorMode,

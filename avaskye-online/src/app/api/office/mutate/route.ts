@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { officeConfig, readOfficeOwner } from "@/lib/office-store"
+import { officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-store"
 
 const stages = new Set(["new", "qualified", "proposal", "won", "lost"])
 const triggers = new Set(["contact.created", "appointment.booked", "deal.moved"])
@@ -11,10 +11,10 @@ async function rest(path: string, init: RequestInit) {
   const response = await fetch(`${url}/rest/v1/${path}`, {
     ...init,
     headers: {
-      apikey: service,
-      Authorization: `Bearer ${service}`,
-      "Content-Type": "application/json",
-      Prefer: "return=minimal",
+      ...supabaseKeyHeaders(service, {
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      }),
       ...(init.headers || {}),
     },
     cache: "no-store",
