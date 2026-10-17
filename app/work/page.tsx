@@ -1,5 +1,40 @@
-import Image from 'next/image'
-import {Workspace} from '@/components/site/workspace'
-import Link from 'next/link'
-const desks=['Contacts','Pipeline','Funnels','YouTube','Pages']
-export default async function Work({searchParams}:{searchParams:Promise<{desk?:string}>}){const params=await searchParams;const desk=desks.includes(params.desk||'')?params.desk!:'Contacts';return <main><section className="banner"><Image src="/media/work-desks.jpg" alt="Ava presenting Contacts, Pipeline, Funnels, YouTube and Pages work desks" width={1168} height={784}/><div><p className="eyebrow">Organize your next move</p><h1>Work Desks</h1></div></section><section className="section"><div className="desk-tabs">{desks.map(d=><Link key={d} aria-current={d===desk?'page':undefined} href={`/work?desk=${d}`}>{d}</Link>)}</div><p>Plan and organize your {desk.toLowerCase()} here. These are saved notes and drafts—not connected CRM automation, funnel hosting or YouTube publishing.</p><Workspace key={desk} kind={desk}/></section></main>}
+import Link from "next/link"
+import { PageHeader } from "@/components/site/page-header"
+import { PlaceholderNote } from "@/components/site/placeholder-note"
+import { pageMetadata } from "@/lib/seo"
+import { caseStudies } from "@/lib/site"
+
+export const metadata = pageMetadata({
+  title: "Work",
+  description:
+    "Placeholder structures for DigiMark101 engagements. No client names or performance statistics are claimed.",
+  path: "/work",
+})
+
+export default function WorkPage() {
+  return (
+    <>
+      <PageHeader
+        eyebrow="03 — Field notes"
+        title="Structures, not trophies."
+        lede="These pages show how an engagement is shaped. They are not case studies of real clients, and they do not report results."
+      />
+      <div className="mx-auto max-w-6xl px-5 py-12 md:py-16">
+        <PlaceholderNote>
+          Replace a card only when a partner approves the client name and the numbers. Until then, the stamp stays.
+        </PlaceholderNote>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {caseStudies.map((study) => (
+            <Link key={study.slug} href={`/work/${study.slug}`} className="rounded-[1.5rem] border border-ink/10 bg-card p-6 hover:border-ink/30">
+              <span className="stamp">Sample only</span>
+              <p className="mt-8 text-xs uppercase tracking-[0.16em] text-ink-soft">{study.sector}</p>
+              <h2 className="mt-3 font-serif text-4xl">{study.title}</h2>
+              <p className="mt-3 text-sm text-signal">{study.discipline}</p>
+              <p className="mt-3 text-ink-soft">{study.summary}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}

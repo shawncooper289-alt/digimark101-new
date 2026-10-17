@@ -1,0 +1,27 @@
+{
+  "productName": "DigiMark101 Membership",
+  "currency": "USD",
+  "plans": [
+    {
+      "key": "monthly",
+      "name": "Monthly",
+      "months": 1,
+      "amount": "497.00",
+      "planEnv": "NEXT_PUBLIC_PAYPAL_PLAN_MONTHLY"
+    },
+    {
+      "key": "quarterly",
+      "name": "Quarterly",
+      "months": 3,
+      "amount": "1312.00",
+      "planEnv": "NEXT_PUBLIC_PAYPAL_PLAN_QUARTERLY"
+    },
+    {
+      "key": "semiannual",
+      "name": "Semiannual",
+      "months": 6,
+      "amount": "2326.00",
+      "planEnv": "NEXT_PUBLIC_PAYPAL_PLAN_SEMIANNUAL"
+    }
+  ]
+}

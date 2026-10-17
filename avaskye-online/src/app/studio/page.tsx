@@ -15,7 +15,6 @@ export default function StudioPage() {
   const [brief, setBrief] = useState("");
   const [draft, setDraft] = useState("");
   const [note, setNote] = useState("");
-  const [left, setLeft] = useState(40);
 
   async function run() {
     const res = await fetch("/api/ava/draft", {
@@ -25,8 +24,7 @@ export default function StudioPage() {
     });
     const data = await res.json();
     setDraft(data.draft || "");
-    setLeft((n) => Math.max(0, n - 1));
-    setNote(data.note || "One prompt used. Approve before anything sends.");
+    setNote(data.note || "Draft ready. Approve before anything sends.");
   }
 
   return (

@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server"
+import { sameOrigin } from "@/lib/http"
 
-export async function POST() {
-  return NextResponse.json(
-    { success: false, error: 'AVA_NOT_CONFIGURED', message: 'Ava voice and calls are not connected yet.' },
-    { status: 503 },
-  )
+export async function POST(request: Request) {
+  if (!sameOrigin(request)) {
+    return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
+  }
+
+  return NextResponse.json({ success: true, channel: "browser" })
 }

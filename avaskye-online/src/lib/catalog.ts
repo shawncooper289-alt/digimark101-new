@@ -1,9 +1,9 @@
 export const SITE = {
   name: "Ava Skye",
   host: "https://avaskye.online",
-  agency: "https://digimark101-new-umber.vercel.app",
-  agencyPricing: "https://digimark101-new-umber.vercel.app",
-  agencyApp: "https://digimark101-new-umber.vercel.app",
+  agency: "https://www.digimark101.com",
+  agencyPricing: "https://www.digimark101.com/pricing",
+  agencyApp: "https://www.digimark101.com/studio",
 };
 
 export const PLANS = [
