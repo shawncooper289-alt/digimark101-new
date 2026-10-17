@@ -1,3 +1,13 @@
+-- Defined here because this file sorts before 20261017_owner_role.sql.
+-- That later migration replaces the function with the same body.
+create or replace function public.is_owner()
+returns boolean
+language sql
+stable
+as $$
+  select coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'owner';
+$$;
+
 create table if not exists public.managed_backends (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users (id) on delete cascade,

@@ -18,7 +18,7 @@ type ExistingSubscription = {
   cancelled_at: string | null
 }
 
-export async function recordPaypalEvent(eventType: string, resource: unknown) {
+export async function recordPaypalEvent(eventType: string, resource: unknown, eventId?: string) {
   const patch = subscriptionPatch(eventType, resource)
   if (!patch) throw new Error("PayPal event could not be read")
   const admin = createSupabaseAdmin()
@@ -61,6 +61,17 @@ export async function recordPaypalEvent(eventType: string, resource: unknown) {
 
   const { error: writeError } = await admin.from("subscriptions").upsert(row, { onConflict: "paypal_subscription_id" })
   if (writeError) throw new Error("Subscription upsert failed")
+
+  const payload = resource && typeof resource === "object" ? resource : {}
+  const { error: eventError } = await admin.from("paypal_webhook_events").insert({
+    event_id: eventId || `${eventType}:${patch.paypal_subscription_id}:${new Date().toISOString()}`,
+    event_type: eventType,
+    paypal_subscription_id: patch.paypal_subscription_id,
+    payload,
+  })
+  if (eventError && !/paypal_webhook_events|schema cache/i.test(eventError.message)) {
+    console.error("PayPal webhook log failed", eventError.message)
+  }
 }
 
 function assign(row: Record<string, string | number | null>, key: string, next: string | number | undefined, previous: string | number | null | undefined) {

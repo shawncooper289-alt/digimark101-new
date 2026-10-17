@@ -163,6 +163,11 @@ async function rememberRejection(admin: Admin, hash: string, source: LeadSource,
     source_kind: source,
     reason,
   })
+  await admin.from("lead_audit").insert({
+    action: reason,
+    email_hash: hash,
+    detail: niche,
+  })
 }
 
 export async function ingestLead(input: LeadIntake): Promise<{ stored: boolean; reason: "unconfigured" | "suppressed" | "no_consent" | "rejected" | "stored" }> {
@@ -635,13 +640,12 @@ export async function runLeadJob() {
 export async function previewPools() {
   const supabase = await createSupabaseServer()
   if (!supabase) return []
-  const { data, error } = await supabase
-    .from("lead_records")
-    .select("niche, region, company_size, score")
-    .eq("premium", true)
-    .eq("sellable", true)
-    .limit(500)
-  if (error || !data) return []
+  const store = await supabase.from("lead_store").select("niche, region, company_size, score").limit(500)
+  const fallback = store.error
+    ? await supabase.from("lead_records").select("niche, region, company_size, score").eq("premium", true).eq("sellable", true).limit(500)
+    : store
+  const data = fallback.data
+  if (fallback.error || !data) return []
   const groups = new Map<string, { niche: string; count: number; regions: Set<string>; sizes: Set<string>; scores: number[] }>()
   for (const row of data) {
     const niche = String(row.niche || "general")

@@ -104,6 +104,12 @@ export async function provisionBackend(input: { userId: string; name: string; re
   const { data: existing } = await admin.from("managed_backends").select("id, project_ref, name, region, status, api_url, owner_id").eq("owner_id", input.userId).maybeSingle()
   if (existing?.project_ref) return { ok: true as const, backend: mapRow(existing as Record<string, unknown>) }
 
+  const { data: job } = await admin
+    .from("provisioning_jobs")
+    .insert({ owner_id: input.userId, name, region, status: "provisioning", detail: "Management API" })
+    .select("id")
+    .single()
+
   const slug = `dm101-${createHash("sha256").update(input.userId).digest("hex").slice(0, 8)}`
   const dbPass = randomBytes(24).toString("base64url")
   const response = await managementFetch("/projects", {
@@ -115,7 +121,10 @@ export async function provisionBackend(input: { userId: string; name: string; re
       db_pass: dbPass,
     }),
   })
-  if (!response?.ok) return { ok: false as const, reason: "rejected" as const }
+  if (!response?.ok) {
+    if (job?.id) await admin.from("provisioning_jobs").update({ status: "failed", detail: "Management API rejected the project", updated_at: new Date().toISOString() }).eq("id", job.id)
+    return { ok: false as const, reason: "rejected" as const }
+  }
   const created = (await response.json()) as { id?: string; ref?: string; status?: string }
   const ref = created.ref || created.id
   if (!ref) return { ok: false as const, reason: "rejected" as const }
@@ -142,5 +151,11 @@ export async function provisionBackend(input: { userId: string; name: string; re
     .select("id, owner_id, project_ref, name, region, status, api_url")
     .single()
   if (error || !data) return { ok: false as const, reason: "rejected" as const }
+  if (job?.id) {
+    await admin
+      .from("provisioning_jobs")
+      .update({ backend_id: data.id, status, detail: apiUrl, updated_at: new Date().toISOString() })
+      .eq("id", job.id)
+  }
   return { ok: true as const, backend: mapRow(data as Record<string, unknown>) }
 }

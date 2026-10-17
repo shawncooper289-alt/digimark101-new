@@ -66,7 +66,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 }
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${fraunces.variable} ${outfit.variable} h-full`}>
       <body className="flex min-h-full flex-col antialiased">
@@ -74,7 +74,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         <PlatformProvider>
-          <SiteChrome partners={partnerLinks()}>{children}</SiteChrome>
+          <SiteChrome partners={await partnerLinks()}>{children}</SiteChrome>
           <AvaWidget />
         </PlatformProvider>
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />

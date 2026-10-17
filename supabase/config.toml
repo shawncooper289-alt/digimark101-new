@@ -1,0 +1,45 @@
+# Local Supabase config for DigiMark101.
+# Apply supabase/migrations in filename order. Production uses the hosted project.
+
+project_id = "digimark101"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[db.migrations]
+enabled = true
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "https://www.digimark101.com"
+additional_redirect_urls = ["https://avaskye.online"]
+
+[functions.leads-collect]
+verify_jwt = false
+
+[functions.leads-qualify]
+verify_jwt = false
+
+[functions.leads-opt-out]
+verify_jwt = false
+
+[functions.paypal-webhook]
+verify_jwt = false
+
+[functions.platforms-provision]
+verify_jwt = false
+
+[functions.ava-memory]
+verify_jwt = false
