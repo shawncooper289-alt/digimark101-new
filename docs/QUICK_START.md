@@ -58,7 +58,7 @@ The widget badge switches from "Studio guide" to "Live model".
 
 Visit http://localhost:3000/studio. Without Supabase this is a labeled browser preview. After the platform migration and a sign-in, the same screens read and write only that user's rows.
 
-Voice is the Voice toggle in Ava's panel. It uses the browser. There is no speech API key. Chrome or Edge is required for dictation. On the contact page, say "my name is …, email …" and Ava fills the fields.
+Voice is the Voice switch in Ava's panel. It uses the browser. Chat does not need a speech API key. Chrome or Edge is required for the microphone. On the contact page, say "my name is …, email …" and Ava fills the fields. The homepage introduction uses `AVA_TTS_API_KEY` when that key is set, and browser speech otherwise. It does not play until someone presses Hear Ava.
 
 Voice input works in Chromium browsers that expose the Web Speech API. Allow the microphone when asked. Safari and Firefox can still type.
 

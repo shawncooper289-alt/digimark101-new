@@ -1,7 +1,5 @@
-import Image from "next/image"
 import Link from "next/link"
-import { OpenAvaButton } from "@/components/ava/open-ava-button"
-import { AvaAvatar } from "@/components/branding/ava-avatar"
+import { HomeHero } from "@/components/home/home-hero"
 import { JsonLd } from "@/components/site/json-ld"
 import { PlaceholderNote } from "@/components/site/placeholder-note"
 import { faqJsonLd } from "@/lib/seo"
@@ -11,78 +9,31 @@ export function HomePage() {
   return (
     <>
       <JsonLd data={faqJsonLd(homeFaqs)} />
-      <section className="border-b border-ink/10">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 md:grid-cols-12 md:py-24">
-          <div className="md:col-span-7">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-signal">Studio 01 — DigiMark101</p>
-            <h1 className="display mt-5 text-[3.4rem] text-ink sm:text-7xl lg:text-[5.6rem]">
-              Marketing that holds up in the <span className="italic text-signal">numbers.</span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
-              DigiMark101 plans, makes, and measures growth across search, paid media, social, content, web, email, analytics, and AI automation. Ava Skye is here when you want a clear recommendation.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/contact" className="btn btn-signal">
-                Start a project
-              </Link>
-              <Link href="/studio" className="btn btn-ink">
-                Open the studio
-              </Link>
-              <OpenAvaButton className="btn btn-ghost">Talk with Ava</OpenAvaButton>
-            </div>
-          </div>
-          <aside className="md:col-span-5">
-            <Image
-              src="/media/ava-city.jpg"
-              alt="Ava Skye against the evening city skyline"
-              width={1168}
-              height={784}
-              priority
-              className="h-full max-h-[640px] w-full rounded-2xl object-cover"
-            />
-          </aside>
-        </div>
-      </section>
-      <section className="border-b border-ink/10">
-        <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 md:grid-cols-[1.2fr_0.8fr] md:items-center">
-          <aside className="flex flex-col justify-between rounded-[2rem] border border-ink/10 bg-card p-6 text-ink md:p-8">
-            <div>
-              <div className="flex items-center gap-3">
-                <AvaAvatar size="lg" showOnlineIndicator />
-                <div>
-                  <p className="font-serif text-2xl leading-none">Ava Skye</p>
-                  <p className="mt-1 text-sm text-ink-soft">Studio assistant</p>
-                </div>
-              </div>
-              <p className="mt-6 text-lg leading-relaxed text-ink">
-                Ask which channel to turn on first. She knows the eight disciplines and the three packages, and she will not invent a case study to impress you.
-              </p>
-            </div>
-            <OpenAvaButton className="btn btn-paper mt-8 w-full">Open Ava</OpenAvaButton>
-          </aside>
-        </div>
-      </section>
+      <HomeHero />
 
-      <section className="border-b border-ink/10" aria-labelledby="disciplines-heading">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:py-20">
+      <section className="dm-rise border-b border-ink/10" aria-labelledby="disciplines-heading">
+        <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-signal">Eight disciplines</p>
               <h2 id="disciplines-heading" className="display mt-3 text-4xl md:text-6xl">
-                The whole system, available on purpose.
+                One system, switched on with intent.
               </h2>
             </div>
             <Link href="/services" className="btn btn-ghost">
               All services
             </Link>
           </div>
-          <ol className="mt-10 divide-y divide-ink/10 border-y border-ink/10">
+          <ol className="mt-10 grid gap-3 md:grid-cols-2">
             {services.map((service) => (
               <li key={service.slug}>
-                <Link href={`/services/${service.slug}`} className="group grid gap-3 py-5 md:grid-cols-12 md:items-baseline">
-                  <span className="font-serif text-2xl text-signal md:col-span-1">{service.index}</span>
-                  <span className="font-serif text-3xl tracking-tight group-hover:text-signal md:col-span-3">{service.name}</span>
-                  <span className="text-ink-soft md:col-span-8">{service.summary}</span>
+                <Link
+                  href={`/services/${service.slug}`}
+                  className="group flex h-full flex-col rounded-[1.4rem] border border-ink/10 bg-card/80 p-5 shadow-[inset_0_1px_0_rgba(234,228,215,0.06)] transition hover:border-signal/50 hover:shadow-[0_0_32px_rgba(203,176,130,0.12)]"
+                >
+                  <span className="font-serif text-2xl text-signal">{service.index}</span>
+                  <span className="mt-3 font-serif text-3xl tracking-tight group-hover:text-signal">{service.name}</span>
+                  <span className="mt-2 text-sm leading-relaxed text-ink-soft">{service.summary}</span>
                 </Link>
               </li>
             ))}
@@ -90,26 +41,27 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="bg-pine text-ink" aria-labelledby="method-heading">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:py-20">
+      <section className="dm-rise relative overflow-hidden bg-pine text-ink" aria-labelledby="method-heading">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(203,176,130,0.16),transparent_55%)]" aria-hidden="true" />
+        <div className="relative mx-auto max-w-6xl px-5 py-16 md:py-24">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-signal">How an engagement runs</p>
           <h2 id="method-heading" className="display mt-3 max-w-3xl text-4xl md:text-6xl">
-            Small enough to finish. Serious enough to measure.
+            Small enough to finish. Serious enough to keep.
           </h2>
           <ol className="mt-10 grid gap-6 md:grid-cols-3">
             {method.map((step) => (
-              <li key={step.index} className="border-t border-white/20 pt-5">
+              <li key={step.index} className="rounded-[1.4rem] border border-white/10 bg-paper/40 p-5">
                 <p className="font-serif text-3xl text-signal">{step.index}</p>
                 <h3 className="mt-3 font-serif text-2xl">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#f3e9fb]">{step.body}</p>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">{step.body}</p>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section className="border-b border-ink/10" aria-labelledby="work-heading">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:py-20">
+      <section className="dm-rise border-b border-ink/10" aria-labelledby="work-heading">
+        <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-signal">Field notes</p>
             <h2 id="work-heading" className="display mt-3 text-4xl md:text-6xl">
@@ -123,7 +75,11 @@ export function HomePage() {
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {caseStudies.map((study) => (
-              <Link key={study.slug} href={`/work/${study.slug}`} className="flex flex-col rounded-[1.5rem] border border-ink/10 bg-card p-5 hover:border-ink/30">
+              <Link
+                key={study.slug}
+                href={`/work/${study.slug}`}
+                className="flex flex-col rounded-[1.5rem] border border-ink/10 bg-card p-5 hover:border-signal/40"
+              >
                 <span className="stamp w-fit">Sample only</span>
                 <h3 className="mt-6 font-serif text-3xl">{study.title}</h3>
                 <p className="mt-2 text-sm text-signal">{study.discipline}</p>
@@ -135,8 +91,8 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-ink/10 bg-paper-deep" aria-labelledby="pricing-heading">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:py-20">
+      <section className="dm-rise border-b border-ink/10 bg-paper-deep" aria-labelledby="pricing-heading">
+        <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-signal">Packages</p>
           <h2 id="pricing-heading" className="display mt-3 max-w-3xl text-4xl md:text-6xl">
             Three ways to hire the studio.
@@ -148,11 +104,13 @@ export function HomePage() {
             {packages.map((pkg, index) => (
               <article
                 key={pkg.name}
-                className={`rounded-[1.5rem] p-6 ${index === 1 ? "border border-signal bg-mist" : "border border-ink/10 bg-card"}`}
+                className={`rounded-[1.5rem] p-6 ${
+                  index === 1
+                    ? "border border-signal bg-mist shadow-[0_0_40px_rgba(203,176,130,0.16)]"
+                    : "border border-ink/10 bg-card"
+                }`}
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
-                  {pkg.eyebrow}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">{pkg.eyebrow}</p>
                 <h3 className="mt-3 font-serif text-4xl">{pkg.name}</h3>
                 <p className="mt-3 text-sm leading-relaxed">{pkg.summary}</p>
                 <p className="mt-4 text-sm font-semibold text-ink">{pkg.priceLabel}</p>
@@ -172,8 +130,8 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-ink/10" aria-labelledby="journal-heading">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:py-20">
+      <section className="dm-rise border-b border-ink/10" aria-labelledby="journal-heading">
+        <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
           <div className="flex items-end justify-between gap-4">
             <h2 id="journal-heading" className="display text-4xl md:text-5xl">
               Studio notes
@@ -184,7 +142,7 @@ export function HomePage() {
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {posts.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`} className="rounded-[1.5rem] border border-ink/10 p-5 hover:border-ink/30">
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="rounded-[1.5rem] border border-ink/10 bg-card/60 p-5 hover:border-signal/40">
                 <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">{formatDate(post.date)}</p>
                 <h3 className="mt-3 font-serif text-2xl leading-tight">{post.title}</h3>
                 <p className="mt-3 text-sm text-ink-soft">{post.description}</p>
@@ -194,8 +152,8 @@ export function HomePage() {
         </div>
       </section>
 
-      <section aria-labelledby="faq-heading">
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-12 md:py-20">
+      <section className="dm-rise" aria-labelledby="faq-heading">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-12 md:py-24">
           <div className="md:col-span-4">
             <h2 id="faq-heading" className="display text-4xl md:text-5xl">
               Before you write.

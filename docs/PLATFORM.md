@@ -20,7 +20,7 @@ Signed-in clients get their own rows in Supabase. Policies use `auth.uid() = own
 | Files | Upload into a private Storage folder named with your user id |
 | Memory | Facts Ava stores for this client only |
 
-Ava can do those same actions from any page, open a section, and fill a form that is on the screen. Type, or use the Voice toggle. Voice input and spoken replies use the browser's Web Speech API. No ElevenLabs or other speech account is required. Chrome and Edge support dictation. Spoken replies work in any browser with `speechSynthesis`.
+Ava can do those same actions from any page, open a section, and fill a form that is on the screen. Type, or turn Voice on. With Voice on she speaks each reply and then listens for the next one. Typing stays available. Chat speech uses the browser's Web Speech API. Chrome and Edge support the microphone. Spoken replies work in any browser with `speechSynthesis`. The homepage introduction can use `AVA_TTS_API_KEY` for a generated recording; without that key the browser speaks it, and only after the visitor presses play.
 
 Without Supabase keys, the studio opens in a preview that stays in this browser. It is labeled as a preview. It is not isolated per client. Sign in after the migration to get real isolation.
 
@@ -30,7 +30,7 @@ Without Supabase keys, the studio opens in a preview that stays in this browser.
 2. In Supabase Auth, decide whether new emails must be confirmed. The signup screen explains both outcomes.
 3. In Vercel, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Set `SUPABASE_SERVICE_ROLE_KEY` for lead intake, the lead qualifier, and PayPal webhooks. Do not use the service role for ordinary studio reads. It bypasses row-level security. Raw lead emails stay in `lead_private_contacts`, which anon and authenticated roles cannot read.
 4. For live Ava, set one model key: `XAI_API_KEY` (default model `grok-4.7`), or `OPENAI_API_KEY` (default `gpt-4o-mini`), or `AVA_LLM_API_KEY` with `AVA_LLM_BASE_URL` and `AVA_LLM_MODEL`. With no key, Ava still runs the studio commands she recognizes and fills forms from what she hears.
-5. Speech: no account. Allow the microphone in the browser.
+5. Chat speech: no account. Allow the microphone in the browser. Optional homepage recording: `AVA_TTS_API_KEY`, plus `AVA_TTS_BASE_URL`, `AVA_TTS_MODEL`, and `AVA_TTS_VOICE` if you are not using OpenAI's defaults.
 
 ## Later phases
 

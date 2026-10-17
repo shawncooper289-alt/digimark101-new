@@ -217,6 +217,90 @@ details.faq > summary::-webkit-details-marker {
   display: none;
 }
 
+.hero-stage {
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(203, 176, 130, 0.08), transparent 42%),
+    var(--paper);
+}
+
+.hero-glow {
+  background:
+    radial-gradient(32rem 32rem at var(--mx, 74%) var(--my, 38%), rgba(203, 176, 130, 0.28), transparent 60%),
+    radial-gradient(22rem 16rem at 8% 90%, rgba(120, 140, 150, 0.18), transparent 70%);
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(234, 228, 215, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(234, 228, 215, 0.055) 1px, transparent 1px);
+  background-size: 4.25rem 4.25rem;
+  mask-image: radial-gradient(ellipse at 70% 40%, black 15%, transparent 74%);
+}
+
+.hero-perspective {
+  height: 100%;
+  perspective: 1200px;
+}
+
+.hero-frame {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 1.6rem;
+  border: 1px solid rgba(203, 176, 130, 0.5);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.45),
+    0 0 48px rgba(203, 176, 130, 0.16);
+  transform-style: preserve-3d;
+  transition: transform 180ms ease;
+}
+
+.hero-chip {
+  animation: hero-float 7s ease-in-out infinite;
+}
+
+.ava-avatar-handle {
+  touch-action: none;
+  cursor: grab;
+}
+
+.ava-avatar-handle:active {
+  cursor: grabbing;
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes dm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .dm-rise {
+      animation: dm-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 32%;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -226,7 +310,14 @@ details.faq > summary::-webkit-details-marker {
     transform: none;
   }
 
-  .animate-pulse {
+  .animate-pulse,
+  .hero-chip,
+  .dm-rise {
     animation: none;
+  }
+
+  .hero-frame {
+    transform: none !important;
+    transition: none;
   }
 }

@@ -7,22 +7,17 @@ interface DigiMarkLogoProps {
   compact?: boolean
 }
 
-export function DigiMarkLogo({ className, variant = "ink", compact = false }: DigiMarkLogoProps) {
-  const image = (
-    // The official lockup is a wide SVG. Height is fixed so the header stays stable.
-    <Image
-      src="/brand/digimark101-logo.svg"
-      alt="DigiMark101"
-      width={720}
-      height={300}
-      priority
-      className={compact ? "h-9 w-auto" : "h-12 w-auto"}
-    />
+export function DigiMarkLogo({ className, compact = false }: DigiMarkLogoProps) {
+  return (
+    <span className={cn("inline-flex bg-transparent", className)}>
+      <Image
+        src="/brand/digimark101-logo.svg"
+        alt="DigiMark101"
+        width={720}
+        height={148}
+        priority
+        className={compact ? "h-10 w-auto" : "h-12 w-auto"}
+      />
+    </span>
   )
-
-  if (variant === "paper") {
-    return <span className={cn("inline-flex rounded-2xl bg-[#eae4d7] px-2 py-1", className)}>{image}</span>
-  }
-
-  return <span className={cn("inline-flex", className)}>{image}</span>
 }

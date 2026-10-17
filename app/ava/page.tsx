@@ -22,7 +22,7 @@ export default function AvaPage() {
       <PageHeader
         eyebrow="08 — Assistant"
         title="Ava Skye, on the record."
-        lede="Ava is the studio assistant. The mark is an illustration, not a photograph of a person. Her job is to make the first conversation sharper."
+        lede="Ava is the studio assistant. Her portrait is on this site. Her job is to make the first conversation sharper."
       />
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-12">
         <div className="md:col-span-5">
@@ -30,7 +30,7 @@ export default function AvaPage() {
             <AvaAvatar size="xl" showOnlineIndicator />
             <p className="mt-6 font-serif text-4xl">Ask her before you write the form.</p>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              Voice input uses your browser&apos;s speech recognition where it exists. Replies can be read aloud. Typing works in every browser.
+              Turn Voice on and she speaks her replies, then listens. Typing works in every browser, including when the microphone is unavailable.
             </p>
             <OpenAvaButton className="btn btn-signal mt-6">Open Ava</OpenAvaButton>
           </div>
