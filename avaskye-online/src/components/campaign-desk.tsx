@@ -111,6 +111,9 @@ export function CampaignDesk({
                   {labels.get(campaign.ownerId) || "Account"} · {campaign.channel} · {campaign.status}
                 </p>
                 {campaign.brief ? <p className="mt-2 max-w-xl text-sm">{campaign.brief}</p> : null}
+                <a className="mt-2 inline-block text-sm underline" href={`https://www.digimark101.com/studio/campaigns?workspace=${encodeURIComponent(campaign.ownerId)}`}>
+                  Open this account in the studio
+                </a>
               </div>
               <button
                 type="button"

@@ -142,8 +142,13 @@ export function StudioHome() {
           Ava is at the desk.
         </h1>
         <p className="max-w-xl text-sm text-fg/90">
-          Today’s look is {look.label}. Pick a work table. She opens it and waits for a yes before anything is saved.
+          This is the back office. The same mailbox is the owner on digimark101.com, with no seat cap. Campaigns saved here are the ones that account sees in the studio.
         </p>
+        <div className="flex flex-wrap gap-2">
+          <a className="rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" href="https://www.digimark101.com/studio">
+            Open digimark101.com as owner
+          </a>
+        </div>
         <label className="grid max-w-sm gap-2 text-sm" htmlFor="work-table">
           Work table
           <select

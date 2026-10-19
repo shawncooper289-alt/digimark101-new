@@ -56,7 +56,12 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
   const [workspaces, setWorkspaces] = useState<WorkspaceOption[]>([])
 
   const refresh = useCallback(async (nextWorkspaceId?: string) => {
-    const selected = nextWorkspaceId ?? (typeof window === "undefined" ? "" : sessionStorage.getItem(WORKSPACE_KEY) || "")
+    let selected = nextWorkspaceId || ""
+    if (!selected && typeof window !== "undefined") {
+      const fromUrl = new URLSearchParams(window.location.search).get("workspace") || ""
+      if (fromUrl) sessionStorage.setItem(WORKSPACE_KEY, fromUrl)
+      selected = fromUrl || sessionStorage.getItem(WORKSPACE_KEY) || ""
+    }
     const query = selected ? `?workspace=${encodeURIComponent(selected)}` : ""
     const response = await fetch(`/api/studio${query}`)
     const data = (await response.json()) as {
