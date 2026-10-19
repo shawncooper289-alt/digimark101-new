@@ -31,7 +31,7 @@ export function paypalClientId() {
 }
 
 export function paypalClientSecret() {
-  return firstEnv(["PAYPAL_CLIENT_SECRET", "PayPal"])
+  return firstEnv(["PAYPAL_CLIENT_SECRET", "secrete", "PayPal"])
 }
 
 export function paypalSdkSrc(clientId: string, mode: PaypalMode) {
