@@ -33,7 +33,11 @@ export function officeConfig() {
     process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_ANON_KEY ||
     process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_PUBLISHABLE_KEY ||
     ""
-  const service = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+  const service =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.Supabase_service_roll ||
+    ""
   const emails = ownerEmails()
   return {
     url,
