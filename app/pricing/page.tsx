@@ -30,7 +30,7 @@ export const dynamic = "force-dynamic"
 export const metadata = pageMetadata({
   title: "Pricing",
   description:
-    "Field, Studio, and Partner are quoted in a proposal. DigiMark101 Membership is a public auto-renewing price: monthly, quarterly, or semiannual.",
+    "Field, Studio, and Partner are quoted in a proposal. DigiMark101 Membership is a public auto-renewing price: a month-to-month starter, or monthly, quarterly, and semiannual studio terms. Founding rates run through January 31, 2027.",
   path: "/pricing",
 })
 

@@ -113,13 +113,16 @@ export function MembershipPicker({ offers, unrestricted = false }: { offers: Mem
     <section className="mt-14 border-t border-ink/10 pt-10" aria-labelledby="membership-heading">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-signal">Membership</p>
       <h2 id="membership-heading" className="mt-3 font-serif text-4xl md:text-5xl">
-        One membership. Three ways to pay.
+        One membership. A month-to-month starter, or three studio terms.
       </h2>
       <p className="mt-4 max-w-2xl text-ink-soft">
-        DigiMark101 Membership renews automatically in USD until you cancel it in PayPal. The proposal packages above stay quoted. These prices are the membership, and they live in one config file so they can change later.
+        DigiMark101 Membership renews automatically in USD until you cancel it in PayPal. Founding rates run through January 31, 2027, then the regular price applies to new checkouts. People who join before then stay on the rate they paid. Ad spend is not included. The proposal packages above stay quoted.
+      </p>
+      <p className="mt-4 max-w-2xl text-sm text-ink-soft">
+        Starter is $179 a month, $20 under the $199 month-to-month plan Scalehackerlab published in September 2026. Studio monthly is $447, under the $500 entry LYFE Marketing publishes, and that plan also adds a $300 setup fee. A done-for-you retainer is a different product. Those still commonly start around $1,500 a month.
       </p>
 
-      <div className="mt-8 inline-flex rounded-full border border-ink/10 bg-card p-1" role="radiogroup" aria-label="Billing term">
+      <div className="mt-8 flex flex-wrap gap-1 rounded-full border border-ink/10 bg-card p-1" role="radiogroup" aria-label="Billing term">
         {offers.plans.map((plan) => {
           const active = plan.key === selected.key
           return (
@@ -137,7 +140,7 @@ export function MembershipPicker({ offers, unrestricted = false }: { offers: Mem
         })}
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {offers.plans.map((plan) => {
           const active = plan.key === selected.key
           return (
@@ -147,13 +150,16 @@ export function MembershipPicker({ offers, unrestricted = false }: { offers: Mem
             >
               <div className="flex items-baseline justify-between gap-3">
                 <h3 className="font-serif text-3xl">{plan.name}</h3>
-                {plan.savingsPercent > 0 ? (
+                {plan.listLabel ? (
+                  <span className="stamp">Founding</span>
+                ) : plan.savingsPercent > 0 ? (
                   <span className="stamp">About {plan.savingsPercent}% off</span>
                 ) : (
                   <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">Base</span>
                 )}
               </div>
               <p className="mt-3 text-2xl font-semibold">{plan.amountLabel}</p>
+              {plan.listLabel ? <p className="text-sm text-ink-soft">Regular price {plan.listLabel}</p> : null}
               <p className="text-sm text-ink-soft">{plan.cadence}, auto-renewing</p>
               {plan.compareLabel ? <p className="mt-3 text-sm text-ink-soft">{plan.compareLabel}</p> : null}
               <button type="button" className="btn btn-signal mt-5" onClick={() => setSelectedKey(plan.key)} aria-pressed={active}>
@@ -169,7 +175,7 @@ export function MembershipPicker({ offers, unrestricted = false }: { offers: Mem
           {selected.name} · {selected.amountLabel}
         </h3>
         <p className="mt-2 text-sm text-ink-soft">
-          Billed {selected.cadence}. {selected.savingsPercent > 0 ? `About ${selected.savingsPercent}% off the monthly rate.` : "This is the monthly base."}
+          Billed {selected.cadence}. {selected.key === "starter" ? "Month to month. Cancel in PayPal before the next renewal." : selected.savingsPercent > 0 ? `About ${selected.savingsPercent}% off the monthly studio rate.` : "This is the monthly studio rate."} {selected.listLabel ? `Founding rate. New checkouts after January 31, 2027 pay ${selected.listLabel}.` : ""}
         </p>
         {unrestricted || !(offers.mode === "sandbox" && checkoutReady) ? null : (
           <p className="mt-3 text-sm font-semibold text-signal">Sandbox checkout. This button will not charge a live PayPal account.</p>

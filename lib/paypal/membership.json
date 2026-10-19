@@ -1,12 +1,22 @@
 {
   "productName": "DigiMark101 Membership",
   "currency": "USD",
+  "foundingUntil": "2027-01-31",
   "plans": [
+    {
+      "key": "starter",
+      "name": "Starter",
+      "months": 1,
+      "amount": "199.00",
+      "foundingAmount": "179.00",
+      "planEnv": "NEXT_PUBLIC_PAYPAL_PLAN_STARTER"
+    },
     {
       "key": "monthly",
       "name": "Monthly",
       "months": 1,
       "amount": "497.00",
+      "foundingAmount": "447.00",
       "planEnv": "NEXT_PUBLIC_PAYPAL_PLAN_MONTHLY"
     },
     {
@@ -14,6 +24,7 @@
       "name": "Quarterly",
       "months": 3,
       "amount": "1312.00",
+      "foundingAmount": "1181.00",
       "planEnv": "NEXT_PUBLIC_PAYPAL_PLAN_QUARTERLY"
     },
     {
@@ -21,6 +32,7 @@
       "name": "Semiannual",
       "months": 6,
       "amount": "2326.00",
+      "foundingAmount": "2093.00",
       "planEnv": "NEXT_PUBLIC_PAYPAL_PLAN_SEMIANNUAL"
     }
   ]

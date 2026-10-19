@@ -1,22 +1,47 @@
 import membership from "./membership.json"
 
-export type MembershipPlanKey = "monthly" | "quarterly" | "semiannual"
+export type MembershipPlanKey = "starter" | "monthly" | "quarterly" | "semiannual"
 
 export type MembershipPlan = {
   key: MembershipPlanKey
   name: string
   months: number
   amount: string
+  listAmount: string
   planEnv: string
 }
 
-const keys = new Set<string>(["monthly", "quarterly", "semiannual"])
+const keys = new Set<string>(["starter", "monthly", "quarterly", "semiannual"])
+
+type RawPlan = {
+  key: string
+  name: string
+  months: number
+  amount: string
+  foundingAmount?: string
+  planEnv: string
+}
 
 export const membershipProductName = membership.productName
 export const membershipCurrency = membership.currency
+export const foundingUntil = membership.foundingUntil
 
-export function listPlans(): MembershipPlan[] {
-  return membership.plans.filter((plan): plan is MembershipPlan => keys.has(plan.key))
+function foundingOpen(now = new Date()) {
+  const until = new Date(`${membership.foundingUntil}T23:59:59Z`)
+  return now.getTime() <= until.getTime()
+}
+
+export function listPlans(now = new Date()): MembershipPlan[] {
+  return (membership.plans as RawPlan[])
+    .filter((plan): plan is RawPlan & { key: MembershipPlanKey } => keys.has(plan.key))
+    .map((plan) => ({
+      key: plan.key,
+      name: plan.name,
+      months: plan.months,
+      amount: foundingOpen(now) && plan.foundingAmount ? plan.foundingAmount : plan.amount,
+      listAmount: plan.amount,
+      planEnv: plan.planEnv,
+    }))
 }
 
 export function monthlyPlan() {

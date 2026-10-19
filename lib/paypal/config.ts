@@ -58,6 +58,7 @@ export type MembershipOffer = {
   savingsPercent: number
   compareLabel: string | null
   planId: string | null
+  listLabel: string | null
 }
 
 export type MembershipOffers = {
@@ -79,6 +80,7 @@ export function membershipOffers(): MembershipOffers {
     savingsPercent: savingsPercent(plan),
     compareLabel: compareLabel(plan),
     planId: planIdFromEnv(plan),
+    listLabel: plan.listAmount !== plan.amount ? formatUsd(plan.listAmount) : null,
   }))
   const sdkSrc = clientId && mode.mode ? paypalSdkSrc(clientId, mode.mode) : null
   return { mode: mode.mode, sdkSrc, login: clientId && paypalClientSecret() ? "ok" : "missing", plans }

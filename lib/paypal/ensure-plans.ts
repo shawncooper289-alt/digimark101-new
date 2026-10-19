@@ -50,7 +50,7 @@ async function productId(mode: PaypalMode, access: string) {
 }
 
 async function planId(mode: PaypalMode, access: string, product: string, plan: PlanRef) {
-  const name = `${membershipProductName} — ${plan.name}`
+  const name = `${membershipProductName} — ${plan.name} ${plan.amount}`
   const listed = await paypal<{ plans?: { id: string; name: string }[] }>(
     mode,
     access,
