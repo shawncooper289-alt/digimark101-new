@@ -1,4 +1,3 @@
-import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 interface DigiMarkLogoProps {
@@ -10,12 +9,11 @@ interface DigiMarkLogoProps {
 export function DigiMarkLogo({ className, compact = false }: DigiMarkLogoProps) {
   return (
     <span className={cn("inline-flex bg-transparent", className)}>
-      <Image
+      <img
         src="/brand/digimark101-logo.svg"
         alt="DigiMark101"
         width={720}
         height={148}
-        priority
         className={compact ? "h-10 w-auto" : "h-12 w-auto"}
       />
     </span>
