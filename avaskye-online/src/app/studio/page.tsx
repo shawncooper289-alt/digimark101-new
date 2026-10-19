@@ -29,7 +29,7 @@ export default function StudioPage() {
 
   return (
     <div className="min-h-dvh bg-bg">
-      <Header cta="Plans" href="/pricing" />
+      <Header />
       <section className="mx-auto grid max-w-6xl gap-8 px-5 py-12 md:grid-cols-2">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-muted">Studio · template drafting demo</p>

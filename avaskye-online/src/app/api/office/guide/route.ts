@@ -7,7 +7,8 @@ const routes: { phrase: RegExp; href: string; label: string }[] = [
   { phrase: /\bcrm\b|\bcontacts?\b/, href: "/crm", label: "CRM" },
   { phrase: /\bpipeline\b|\bdeals?\b/, href: "/pipeline", label: "Pipeline" },
   { phrase: /\bautomations?\b/, href: "/automations", label: "Automations" },
-  { phrase: /\bbilling\b|\bpaypal\b|\bsubscriptions?\b/, href: "/billing", label: "Billing" },
+  { phrase: /\bcampaigns?\b/, href: "/campaigns", label: "Campaigns" },
+  { phrase: /\bniches?\b/, href: "/niches", label: "Niches" },
   { phrase: /\bclients?\b|\bworkspaces?\b/, href: "/clients", label: "Clients" },
   { phrase: /\breports?\b/, href: "/reports", label: "Reports" },
   { phrase: /\bsettings?\b/, href: "/settings", label: "Settings" },
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     reply: route
       ? `${route.label} is on this desk. Say “open ${route.label.toLowerCase()}” and I will take you there.`
-      : "I can open leads, CRM, pipeline, automations, billing, clients, reports, tools, or settings. I can also draft a contact. I only cite counts that are in this workspace.",
+      : "I can open leads, CRM, pipeline, automations, campaigns, niches, clients, reports, tools, or settings. I can also draft a contact. I only cite counts that are in this workspace.",
     href: route?.href,
   })
 }
