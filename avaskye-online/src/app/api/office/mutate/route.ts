@@ -4,6 +4,8 @@ import { officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-
 const stages = new Set(["new", "qualified", "proposal", "won", "lost"])
 const triggers = new Set(["contact.created", "appointment.booked", "deal.moved"])
 const actions = new Set(["log_inbox", "remember"])
+const channels = new Set(["email", "search", "social", "site"])
+const campaignStatuses = new Set(["draft", "active", "paused"])
 
 async function rest(path: string, init: RequestInit) {
   const { url, service, configured } = officeConfig()
@@ -77,6 +79,34 @@ export async function POST(request: Request) {
       }),
     })
     return NextResponse.json(saved.ok ? { ok: true } : { error: "The automation was not saved." }, { status: saved.ok ? 200 : 503 })
+  }
+
+  if (action === "create_campaign") {
+    const name = typeof body.name === "string" ? body.name.trim() : ""
+    const channel = typeof body.channel === "string" && channels.has(body.channel) ? body.channel : "email"
+    const brief = typeof body.brief === "string" ? body.brief.trim().slice(0, 1000) : ""
+    if (name.length < 2) return NextResponse.json({ error: "A campaign needs a name." }, { status: 400 })
+    const saved = await rest("campaigns", {
+      method: "POST",
+      body: JSON.stringify({
+        owner_id: workspace,
+        name: name.slice(0, 120),
+        channel,
+        status: "draft",
+        brief,
+      }),
+    })
+    return NextResponse.json(saved.ok ? { ok: true } : { error: "The campaign was not saved on digimark101.com." }, { status: saved.ok ? 200 : 503 })
+  }
+
+  if (action === "set_campaign_status") {
+    const id = typeof body.id === "string" ? body.id : ""
+    const status = typeof body.status === "string" ? body.status : ""
+    if (!/^[0-9a-f-]{36}$/i.test(id) || !campaignStatuses.has(status)) {
+      return NextResponse.json({ error: "That campaign change is not valid." }, { status: 400 })
+    }
+    const saved = await rest(`campaigns?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ status }) })
+    return NextResponse.json(saved.ok ? { ok: true } : { error: "The campaign status was not updated." }, { status: saved.ok ? 200 : 503 })
   }
 
   return NextResponse.json({ error: "Unknown action." }, { status: 400 })

@@ -14,6 +14,7 @@ const LOOKS = [
 const PROFESSIONAL = { id: "professional", label: "Professional", src: "/ava/professional.jpg" }
 
 const TABLES = [
+  { href: "/campaigns", label: "Campaigns" },
   { href: "/leads", label: "Leads" },
   { href: "/crm", label: "CRM" },
   { href: "/pipeline", label: "Pipeline" },
