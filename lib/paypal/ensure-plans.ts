@@ -1,9 +1,9 @@
-import { paypalApiBase, paypalClientId, paypalClientSecret, paypalMode, type MembershipOffers, type PaypalMode } from "@/lib/paypal/config"
+import { paypalApiBase, paypalClientId, paypalClientSecret, paypalMode, paypalSdkSrc, type MembershipOffers, type PaypalMode } from "@/lib/paypal/config"
 import { listPlans, membershipCurrency, membershipProductName } from "@/lib/paypal/plans"
 
 type PlanRef = { key: string; name: string; months: number; amount: string }
 
-let ready: Record<string, string> | null = null
+let ready: { mode: PaypalMode; ids: Record<string, string> } | null = null
 let rejected = false
 
 async function token(mode: PaypalMode, clientId: string, secret: string) {
@@ -92,15 +92,31 @@ export async function offersWithPlans(offers: MembershipOffers): Promise<Members
   if (!mode.mode) return offers
   try {
     if (!ready) {
-      const access = await token(mode.mode, clientId, secret)
-      const product = await productId(mode.mode, access)
+      const preferred = mode.mode
+      const order: PaypalMode[] = preferred === "sandbox" ? ["sandbox", "live"] : ["live", "sandbox"]
+      let access = ""
+      let used: PaypalMode | null = null
+      for (const attempt of order) {
+        try {
+          access = await token(attempt, clientId, secret)
+          used = attempt
+          break
+        } catch {
+          access = ""
+        }
+      }
+      if (!used) throw new Error("token")
+      const product = await productId(used, access)
       const ids: Record<string, string> = {}
-      for (const plan of listPlans()) ids[plan.key] = await planId(mode.mode, access, product, plan)
-      ready = ids
+      for (const plan of listPlans()) ids[plan.key] = await planId(used, access, product, plan)
+      ready = { mode: used, ids }
     }
     return {
       ...offers,
-      plans: offers.plans.map((plan) => ({ ...plan, planId: plan.planId || ready?.[plan.key] || null })),
+      mode: ready.mode,
+      sdkSrc: paypalSdkSrc(clientId, ready.mode),
+      login: "ok",
+      plans: offers.plans.map((plan) => ({ ...plan, planId: plan.planId || ready?.ids[plan.key] || null })),
     }
   } catch {
     rejected = true

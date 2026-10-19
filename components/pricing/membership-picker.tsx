@@ -198,7 +198,7 @@ export function MembershipPicker({ offers, unrestricted = false }: { offers: Mem
         ) : (
           <p className="mt-5 rounded-2xl bg-mist px-4 py-3 text-sm font-semibold" role="status">
             {offers.login === "rejected"
-              ? "PayPal did not accept the saved login. The Client ID and Secret need to be a matching pair from the same app."
+              ? "PayPal did not accept the saved login on live or sandbox. The Client ID and Secret need to be a matching pair from the same app."
               : offers.mode === null
               ? "Membership checkout is coming soon. PAYPAL_ENV needs to be sandbox or live."
               : "Membership checkout is coming soon."}
