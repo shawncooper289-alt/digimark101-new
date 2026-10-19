@@ -2,6 +2,7 @@ import Link from "next/link"
 import { MembershipPicker } from "@/components/pricing/membership-picker"
 import { JsonLd } from "@/components/site/json-ld"
 import { PageHeader } from "@/components/site/page-header"
+import { offersWithPlans } from "@/lib/paypal/ensure-plans"
 import { membershipOffers } from "@/lib/paypal/config"
 import { ensureOwnerGranted, isOwnerIdentity } from "@/lib/owner/access"
 import { faqJsonLd, pageMetadata } from "@/lib/seo"
@@ -65,7 +66,7 @@ export default async function PricingPage() {
             </article>
           ))}
         </div>
-        <MembershipPicker offers={membershipOffers()} unrestricted={ownerAccess} />
+        <MembershipPicker offers={await offersWithPlans(membershipOffers())} unrestricted={ownerAccess} />
         <section className="mt-14 grid gap-8 border-t border-ink/10 pt-10 md:grid-cols-2">
           <div>
             <h2 className="font-serif text-4xl">What a proposal includes</h2>

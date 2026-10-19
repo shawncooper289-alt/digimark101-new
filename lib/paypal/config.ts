@@ -18,6 +18,22 @@ export function paypalWebBase(mode: PaypalMode) {
   return mode === "live" ? "https://www.paypal.com" : "https://www.sandbox.paypal.com"
 }
 
+function firstEnv(names: string[]) {
+  for (const name of names) {
+    const value = process.env[name]?.trim()
+    if (value) return value
+  }
+  return null
+}
+
+export function paypalClientId() {
+  return firstEnv(["PAYPAL_CLIENT_ID", "NEXT_PUBLIC_PAYPAL_CLIENT_ID", "Client_ID"])
+}
+
+export function paypalClientSecret() {
+  return firstEnv(["PAYPAL_CLIENT_SECRET", "PayPal"])
+}
+
 export function paypalSdkSrc(clientId: string, mode: PaypalMode) {
   const params = new URLSearchParams({
     "client-id": clientId,
@@ -47,12 +63,13 @@ export type MembershipOffer = {
 export type MembershipOffers = {
   mode: PaypalMode | null
   sdkSrc: string | null
+  login: "ok" | "rejected" | "missing"
   plans: MembershipOffer[]
 }
 
 export function membershipOffers(): MembershipOffers {
   const mode = paypalMode()
-  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID?.trim() || null
+  const clientId = paypalClientId()
   const plans = listPlans().map((plan) => ({
     key: plan.key,
     name: plan.name,
@@ -64,5 +81,5 @@ export function membershipOffers(): MembershipOffers {
     planId: planIdFromEnv(plan),
   }))
   const sdkSrc = clientId && mode.mode ? paypalSdkSrc(clientId, mode.mode) : null
-  return { mode: mode.mode, sdkSrc, plans }
+  return { mode: mode.mode, sdkSrc, login: clientId && paypalClientSecret() ? "ok" : "missing", plans }
 }

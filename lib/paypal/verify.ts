@@ -1,4 +1,4 @@
-import { paypalApiBase, paypalMode, type PaypalMode } from "@/lib/paypal/config"
+import { paypalApiBase, paypalClientId, paypalClientSecret, paypalMode, type PaypalMode } from "@/lib/paypal/config"
 
 function allowedCertUrl(value: string) {
   try {
@@ -37,8 +37,8 @@ export async function verifyPaypalWebhook(request: Request, event: unknown): Pro
   const mode = paypalMode()
   if (!mode.mode) return { ok: false, status: 500, error: "paypal_env" }
 
-  const clientId = process.env.PAYPAL_CLIENT_ID?.trim()
-  const secret = process.env.PAYPAL_CLIENT_SECRET?.trim()
+  const clientId = paypalClientId()
+  const secret = paypalClientSecret()
   const webhookId = process.env.PAYPAL_WEBHOOK_ID?.trim()
   if (!clientId || !secret || !webhookId) return { ok: false, status: 503, error: "unconfigured" }
 
