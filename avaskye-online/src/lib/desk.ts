@@ -1,3 +1,4 @@
+import { cookies } from "next/headers"
 import { missingOfficeEnv, officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-store"
 
 type Row = Record<string, unknown>
@@ -8,16 +9,26 @@ export async function requireOwner() {
   return owner
 }
 
-function headers() {
-  const { service } = officeConfig()
-  return supabaseKeyHeaders(service)
+async function headers() {
+  const { service, anon } = officeConfig()
+  if (service) return supabaseKeyHeaders(service)
+  const raw = (await cookies()).get("ava_office")?.value
+  if (raw && anon) {
+    try {
+      const bag = JSON.parse(raw) as { access?: string }
+      if (bag.access) return { apikey: anon, Authorization: `Bearer ${bag.access}` }
+    } catch {
+      // Fall through to the public key. The table read then fails closed.
+    }
+  }
+  return supabaseKeyHeaders(anon)
 }
 
 export async function deskCount(table: string, filter = "") {
   const { url, configured } = officeConfig()
   if (!configured) return null
   const response = await fetch(`${url}/rest/v1/${table}?select=id${filter ? `&${filter}` : ""}`, {
-    headers: { ...headers(), Prefer: "count=exact", Range: "0-0" },
+    headers: { ...(await headers()), Prefer: "count=exact", Range: "0-0" },
     cache: "no-store",
   })
   if (!response.ok) return null
@@ -36,7 +47,7 @@ export async function deskRowsMaybe(table: string, query: string) {
   const { url, configured } = officeConfig()
   if (!configured) return [] as Row[]
   const response = await fetch(`${url}/rest/v1/${table}?${query}`, {
-    headers: headers(),
+    headers: await headers(),
     cache: "no-store",
   })
   if (!response.ok) return null
@@ -48,7 +59,7 @@ export async function deskClients() {
   const { url, configured } = officeConfig()
   if (!configured) return [] as { id: string; email: string; role: string; created: string }[]
   const response = await fetch(`${url}/auth/v1/admin/users?page=1&per_page=200`, {
-    headers: headers(),
+    headers: await headers(),
     cache: "no-store",
   })
   if (!response.ok) return []

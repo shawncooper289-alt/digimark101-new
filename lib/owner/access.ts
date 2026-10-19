@@ -5,15 +5,22 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 export type OwnerIdentity = { id?: string | null; email?: string | null }
 
 export function ownerEmail() {
-  return process.env.OWNER_EMAIL?.trim().toLowerCase() || ""
+  return ownerEmails()[0] || ""
+}
+
+export function ownerEmails() {
+  return (process.env.OWNER_EMAIL || "")
+    .split(/[,;\s]+/)
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean)
 }
 
 export function isOwnerIdentity(user: OwnerIdentity | null) {
   if (!user) return false
   const configuredId = process.env.LEAD_OWNER_USER_ID?.trim()
   if (configuredId && user.id && user.id === configuredId) return true
-  const email = ownerEmail()
-  return Boolean(email && user.email?.trim().toLowerCase() === email)
+  const email = user.email?.trim().toLowerCase() || ""
+  return Boolean(email && ownerEmails().includes(email))
 }
 
 export function isWorkspaceId(value: string | null | undefined): value is string {

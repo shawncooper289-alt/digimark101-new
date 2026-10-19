@@ -73,6 +73,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <p className="mt-4 text-sm">
         {mode === "login" ? <Link href="/signup" className="underline">Create an account</Link> : <Link href="/login" className="underline">Already have an account</Link>}
       </p>
+      {mode === "login" ? (
+        <p className="mt-6 text-sm text-ink-soft">
+          Owner entrance and personal campaigns: <a className="underline" href="https://www.avaskye.online">avaskye.online</a>. Client accounts cannot open it.
+        </p>
+      ) : null}
     </div>
   )
 }

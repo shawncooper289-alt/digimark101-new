@@ -13,6 +13,13 @@ export function supabaseKeyHeaders(key: string, extra: Record<string, string> = 
 
 type TokenBag = { access: string; refresh: string; exp: number }
 
+export function ownerEmails() {
+  return (process.env.OWNER_EMAIL || "")
+    .split(/[,;\s]+/)
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean)
+}
+
 export function officeConfig() {
   const url = (
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -27,8 +34,15 @@ export function officeConfig() {
     process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_PUBLISHABLE_KEY ||
     ""
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-  const owner = (process.env.OWNER_EMAIL || "").trim().toLowerCase()
-  return { url, anon, service, owner, configured: Boolean(url && anon && service && owner) }
+  const emails = ownerEmails()
+  return {
+    url,
+    anon,
+    service,
+    owner: emails[0] || "",
+    emails,
+    configured: Boolean(url && anon && emails.length),
+  }
 }
 
 export function missingOfficeEnv() {
@@ -121,7 +135,8 @@ export async function readOfficeOwner() {
   }
   if (!bag.access) return null
   const user = await authUser(url, anon, bag.access)
-  if (!user || user.email !== owner) return null
+  const emails = ownerEmails()
+  if (!user || !emails.includes(user.email)) return null
   return user
 }
 

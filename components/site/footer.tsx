@@ -61,6 +61,9 @@ export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
             <Link href="/terms" className="hover:text-signal">
               Terms
             </Link>
+            <a href="https://www.avaskye.online" className="hover:text-signal">
+              Owner
+            </a>
             <Link href="/sitemap.xml" className="hover:text-signal">
               Sitemap
             </Link>

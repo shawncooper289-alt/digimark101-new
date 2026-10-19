@@ -124,6 +124,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                 Sign out
               </button>
             ) : (
+              <a className="btn btn-ghost" href="https://www.avaskye.online">
+                Owner entrance
+              </a>
               <Link href="/login" className="btn btn-signal">
                 Sign in
               </Link>

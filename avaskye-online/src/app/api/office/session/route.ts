@@ -12,14 +12,14 @@ export async function POST(request: Request) {
   if (!officeSignInAllowed(clientIp(request))) {
     return NextResponse.json({ error: "Too many sign-in attempts. Try again in a few minutes." }, { status: 429 })
   }
-  const { url, anon, owner } = officeConfig()
-  if (!url || !anon || !owner) {
+  const { url, anon, emails } = officeConfig()
+  if (!url || !anon || !emails.length) {
     return NextResponse.json({ error: "Owner sign-in needs Supabase configured on this server." }, { status: 503 })
   }
   const body = (await request.json().catch(() => null)) as { email?: string; password?: string } | null
   const email = body?.email?.trim().toLowerCase() || ""
   const password = body?.password || ""
-  if (!email || !password || email !== owner) {
+  if (!email || !password || !emails.includes(email)) {
     return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
   }
   const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
   }
   const data = (await response.json()) as { access_token?: string; refresh_token?: string; expires_in?: number; user?: { email?: string } }
-  if (!data.access_token || !data.refresh_token || data.user?.email?.trim().toLowerCase() !== owner) {
+  if (!data.access_token || !data.refresh_token || !emails.includes(data.user?.email?.trim().toLowerCase() || "")) {
     return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
   }
   const jar = await cookies()
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     await fetch(`${projectUrl}/rest/v1/rpc/sync_owner_email`, {
       method: "POST",
       headers: supabaseKeyHeaders(service, { "Content-Type": "application/json" }),
-      body: JSON.stringify({ owner_email: owner }),
+      body: JSON.stringify({ owner_email: email }),
       cache: "no-store",
     }).catch(() => null)
   }
