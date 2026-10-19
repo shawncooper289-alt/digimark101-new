@@ -27,11 +27,11 @@ function firstEnv(names: string[]) {
 }
 
 export function paypalClientId() {
-  return firstEnv(["PAYPAL_CLIENT_ID", "NEXT_PUBLIC_PAYPAL_CLIENT_ID", "Client_ID"])
+  return firstEnv(["PAYPAL_CLIENT_ID", "NEXT_PUBLIC_PAYPAL_CLIENT_ID", "lvidPP", "Client_ID"])
 }
 
 export function paypalClientSecret() {
-  return firstEnv(["PAYPAL_CLIENT_SECRET", "secrete", "PayPal"])
+  return firstEnv(["PAYPAL_CLIENT_SECRET", "livePP", "secrete", "PayPal"])
 }
 
 export function paypalSdkSrc(clientId: string, mode: PaypalMode) {
