@@ -13,6 +13,7 @@ const links = [
   { href: "/pipeline", label: "Pipeline" },
   { href: "/automations", label: "Automations" },
   { href: "/billing", label: "Billing" },
+  { href: "/records", label: "Records" },
   { href: "/clients", label: "Clients" },
   { href: "/reports", label: "Reports" },
   { href: "/tools", label: "Tools" },

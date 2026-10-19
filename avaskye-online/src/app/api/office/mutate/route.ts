@@ -6,6 +6,8 @@ const triggers = new Set(["contact.created", "appointment.booked", "deal.moved"]
 const actions = new Set(["log_inbox", "remember"])
 const channels = new Set(["email", "search", "social", "site"])
 const campaignStatuses = new Set(["draft", "active", "paused"])
+const recordKinds = new Set(["invoice", "expense", "record", "legal"])
+const recordStatuses = new Set(["open", "paid", "filed"])
 
 async function rest(path: string, init: RequestInit) {
   const { url, service, configured } = officeConfig()
@@ -107,6 +109,39 @@ export async function POST(request: Request) {
     }
     const saved = await rest(`campaigns?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ status }) })
     return NextResponse.json(saved.ok ? { ok: true } : { error: "The campaign status was not updated." }, { status: saved.ok ? 200 : 503 })
+  }
+
+  if (action === "create_record") {
+    const title = typeof body.title === "string" ? body.title.trim() : ""
+    const kind = typeof body.kind === "string" && recordKinds.has(body.kind) ? body.kind : ""
+    if (title.length < 2 || !kind) return NextResponse.json({ error: "A record needs a title and a kind." }, { status: 400 })
+    const amountRaw = typeof body.amount === "string" ? body.amount.trim() : ""
+    const amount = amountRaw && /^\d+(\.\d{1,2})?$/.test(amountRaw) ? amountRaw : null
+    const occurred = typeof body.occurredOn === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.occurredOn) ? body.occurredOn : null
+    const saved = await rest("office_records", {
+      method: "POST",
+      body: JSON.stringify({
+        kind,
+        title: title.slice(0, 160),
+        party: typeof body.party === "string" ? body.party.trim().slice(0, 160) : "",
+        amount,
+        currency: "USD",
+        status: "open",
+        notes: typeof body.notes === "string" ? body.notes.trim().slice(0, 2000) : "",
+        occurred_on: occurred,
+      }),
+    })
+    return NextResponse.json(saved.ok ? { ok: true } : { error: "The record was not saved. The office books table may not be installed yet." }, { status: saved.ok ? 200 : 503 })
+  }
+
+  if (action === "set_record_status") {
+    const id = typeof body.id === "string" ? body.id : ""
+    const status = typeof body.status === "string" ? body.status : ""
+    if (!/^[0-9a-f-]{36}$/i.test(id) || !recordStatuses.has(status)) {
+      return NextResponse.json({ error: "That record change is not valid." }, { status: 400 })
+    }
+    const saved = await rest(`office_records?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ status }) })
+    return NextResponse.json(saved.ok ? { ok: true } : { error: "The record was not updated." }, { status: saved.ok ? 200 : 503 })
   }
 
   return NextResponse.json({ error: "Unknown action." }, { status: 400 })
