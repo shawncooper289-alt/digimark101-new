@@ -14,6 +14,7 @@ const LOOKS = [
 const PROFESSIONAL = { id: "professional", label: "Professional", src: "/ava/professional.jpg" }
 
 const TABLES = [
+  { href: "/products", label: "Hub" },
   { href: "/campaigns", label: "Campaigns" },
   { href: "/leads", label: "Leads" },
   { href: "/crm", label: "CRM" },
@@ -143,7 +144,7 @@ export function StudioHome() {
           Ava is at the desk.
         </h1>
         <p className="max-w-xl text-sm text-fg/90">
-          This is the back office. The same mailbox is the owner on digimark101.com, with no seat cap. Campaigns saved here are the ones that account sees in the studio.
+          This office is the hub for Ava Skye and DigiMark101. DigiMark101 is the live product. The same mailbox is the owner on digimark101.com, with no seat cap.
         </p>
         <div className="flex flex-wrap gap-2">
           <a className="rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" href="https://www.digimark101.com/studio">

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { HUB_PRODUCTS, hubProduct } from "@/lib/products"
 
 export type OfficeRecord = {
   id: string
@@ -13,13 +14,15 @@ export type OfficeRecord = {
   status: string
   notes: string
   occurredOn: string
+  productKey: string
 }
 
 const KINDS = ["invoice", "expense", "record", "legal"] as const
 const NEXT: Record<string, string> = { open: "paid", paid: "filed", filed: "open" }
 
-export function RecordsDesk({ records }: { records: OfficeRecord[] }) {
+export function RecordsDesk({ records, productKey }: { records: OfficeRecord[]; productKey: string }) {
   const router = useRouter()
+  const product = hubProduct(productKey)
   const [kind, setKind] = useState<(typeof KINDS)[number]>("invoice")
   const [title, setTitle] = useState("")
   const [party, setParty] = useState("")
@@ -30,7 +33,9 @@ export function RecordsDesk({ records }: { records: OfficeRecord[] }) {
   const [notice, setNotice] = useState("")
   const [pending, setPending] = useState(false)
 
-  const shown = filter === "all" ? records : records.filter((row) => row.kind === filter)
+  const shown = records
+    .filter((row) => !row.productKey || row.productKey === product.key)
+    .filter((row) => filter === "all" || row.kind === filter)
 
   async function save(body: Record<string, unknown>) {
     setPending(true)
@@ -61,13 +66,27 @@ export function RecordsDesk({ records }: { records: OfficeRecord[] }) {
     <section>
       <h1 className="text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Records</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        Invoices, expenses, and the rest of the office paper. Only this desk can see them. Nothing here is sent to a client.
+        Invoices, expenses, and office paper for {product.name}. Only this desk can see them. Nothing here is sent to a client.
       </p>
+      {HUB_PRODUCTS.length > 1 ? (
+        <label className="mt-6 grid max-w-sm gap-1 text-sm">
+          Product
+          <select
+            className="rounded-full border border-border bg-transparent px-4 py-2"
+            value={product.key}
+            onChange={(event) => router.push(`/records?product=${event.target.value}`)}
+          >
+            {HUB_PRODUCTS.map((item) => (
+              <option key={item.key} value={item.key}>{item.name}</option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <form
         className="mt-8 grid max-w-xl gap-3"
         onSubmit={(event) => {
           event.preventDefault()
-          void save({ action: "create_record", kind, title, party, amount, occurredOn, notes })
+          void save({ action: "create_record", kind, title, party, amount, occurredOn, notes, product: product.key })
         }}
       >
         <label className="grid gap-1 text-sm">

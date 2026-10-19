@@ -28,13 +28,18 @@ export async function deskCount(table: string, filter = "") {
 }
 
 export async function deskRows(table: string, query: string) {
+  const rows = await deskRowsMaybe(table, query)
+  return rows ?? []
+}
+
+export async function deskRowsMaybe(table: string, query: string) {
   const { url, configured } = officeConfig()
   if (!configured) return [] as Row[]
   const response = await fetch(`${url}/rest/v1/${table}?${query}`, {
     headers: headers(),
     cache: "no-store",
   })
-  if (!response.ok) return [] as Row[]
+  if (!response.ok) return null
   const data = (await response.json()) as unknown
   return Array.isArray(data) ? (data as Row[]) : []
 }

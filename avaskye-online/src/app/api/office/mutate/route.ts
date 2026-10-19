@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { isHubProduct } from "@/lib/products"
 import { officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-store"
 
 const stages = new Set(["new", "qualified", "proposal", "won", "lost"])
@@ -88,16 +89,21 @@ export async function POST(request: Request) {
     const channel = typeof body.channel === "string" && channels.has(body.channel) ? body.channel : "email"
     const brief = typeof body.brief === "string" ? body.brief.trim().slice(0, 1000) : ""
     if (name.length < 2) return NextResponse.json({ error: "A campaign needs a name." }, { status: 400 })
-    const saved = await rest("campaigns", {
-      method: "POST",
-      body: JSON.stringify({
-        owner_id: workspace,
-        name: name.slice(0, 120),
-        channel,
-        status: "draft",
-        brief,
-      }),
-    })
+    const product = typeof body.product === "string" && isHubProduct(body.product) ? body.product : "digimark101"
+    const payload = {
+      owner_id: workspace,
+      name: name.slice(0, 120),
+      channel,
+      status: "draft",
+      brief,
+      product_key: product,
+    }
+    let saved = await rest("campaigns", { method: "POST", body: JSON.stringify(payload) })
+    if (!saved.ok) {
+      const { product_key, ...withoutProduct } = payload
+      void product_key
+      saved = await rest("campaigns", { method: "POST", body: JSON.stringify(withoutProduct) })
+    }
     return NextResponse.json(saved.ok ? { ok: true } : { error: "The campaign was not saved on digimark101.com." }, { status: saved.ok ? 200 : 503 })
   }
 
@@ -118,19 +124,24 @@ export async function POST(request: Request) {
     const amountRaw = typeof body.amount === "string" ? body.amount.trim() : ""
     const amount = amountRaw && /^\d+(\.\d{1,2})?$/.test(amountRaw) ? amountRaw : null
     const occurred = typeof body.occurredOn === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.occurredOn) ? body.occurredOn : null
-    const saved = await rest("office_records", {
-      method: "POST",
-      body: JSON.stringify({
-        kind,
-        title: title.slice(0, 160),
-        party: typeof body.party === "string" ? body.party.trim().slice(0, 160) : "",
-        amount,
-        currency: "USD",
-        status: "open",
-        notes: typeof body.notes === "string" ? body.notes.trim().slice(0, 2000) : "",
-        occurred_on: occurred,
-      }),
-    })
+    const product = typeof body.product === "string" && isHubProduct(body.product) ? body.product : "digimark101"
+    const payload = {
+      kind,
+      title: title.slice(0, 160),
+      party: typeof body.party === "string" ? body.party.trim().slice(0, 160) : "",
+      amount,
+      currency: "USD",
+      status: "open",
+      notes: typeof body.notes === "string" ? body.notes.trim().slice(0, 2000) : "",
+      occurred_on: occurred,
+      product_key: product,
+    }
+    let saved = await rest("office_records", { method: "POST", body: JSON.stringify(payload) })
+    if (!saved.ok) {
+      const { product_key, ...withoutProduct } = payload
+      void product_key
+      saved = await rest("office_records", { method: "POST", body: JSON.stringify(withoutProduct) })
+    }
     return NextResponse.json(saved.ok ? { ok: true } : { error: "The record was not saved. The office books table may not be installed yet." }, { status: saved.ok ? 200 : 503 })
   }
 

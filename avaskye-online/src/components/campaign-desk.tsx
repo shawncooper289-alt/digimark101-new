@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { HUB_PRODUCTS, hubProduct } from "@/lib/products"
 
 export type CampaignRow = {
   id: string
@@ -10,6 +11,7 @@ export type CampaignRow = {
   channel: string
   status: string
   brief: string
+  productKey: string
 }
 
 export type AccountOption = { id: string; label: string }
@@ -21,12 +23,15 @@ export function CampaignDesk({
   campaigns,
   accounts,
   ownerId,
+  productKey,
 }: {
   campaigns: CampaignRow[]
   accounts: AccountOption[]
   ownerId: string
+  productKey: string
 }) {
   const router = useRouter()
+  const product = hubProduct(productKey)
   const [account, setAccount] = useState(accounts[0]?.id || ownerId)
   const [name, setName] = useState("")
   const [channel, setChannel] = useState<(typeof CHANNELS)[number]>("email")
@@ -34,6 +39,7 @@ export function CampaignDesk({
   const [notice, setNotice] = useState("")
   const [pending, setPending] = useState(false)
   const labels = new Map(accounts.map((item) => [item.id, item.label]))
+  const visible = campaigns.filter((campaign) => !campaign.productKey || campaign.productKey === product.key)
 
   async function save(body: Record<string, unknown>) {
     setPending(true)
@@ -62,13 +68,27 @@ export function CampaignDesk({
     <section>
       <h1 className="text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Campaigns</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        These are the campaigns on digimark101.com. There is no seat cap on this desk. Active means the record is live in that account’s studio. It does not buy ads or send mail.
+        These campaigns belong to {product.name}. There is no seat cap on this desk. Active means the record is live in that account’s studio. It does not buy ads or send mail.
       </p>
+      {HUB_PRODUCTS.length > 1 ? (
+        <label className="mt-6 grid max-w-sm gap-1 text-sm">
+          Product
+          <select
+            className="rounded-full border border-border bg-transparent px-4 py-2"
+            value={product.key}
+            onChange={(event) => router.push(`/campaigns?product=${event.target.value}`)}
+          >
+            {HUB_PRODUCTS.map((item) => (
+              <option key={item.key} value={item.key}>{item.name}</option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <form
         className="mt-8 grid max-w-xl gap-3"
         onSubmit={(event) => {
           event.preventDefault()
-          void save({ action: "create_campaign", workspaceId: account, name, channel, brief })
+          void save({ action: "create_campaign", workspaceId: account, name, channel, brief, product: product.key })
         }}
       >
         <label className="grid gap-1 text-sm">
@@ -101,8 +121,8 @@ export function CampaignDesk({
       </form>
       {notice ? <p className="mt-4 text-sm">{notice}</p> : null}
       <ul className="mt-8 grid gap-3">
-        {campaigns.length === 0 ? <li className="text-muted">No campaigns yet.</li> : null}
-        {campaigns.map((campaign) => (
+        {visible.length === 0 ? <li className="text-muted">No campaigns yet.</li> : null}
+        {visible.map((campaign) => (
           <li key={campaign.id} className="rounded-3xl border border-border bg-surface p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>

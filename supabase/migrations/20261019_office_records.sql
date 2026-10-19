@@ -11,6 +11,7 @@ create table if not exists public.office_records (
   status text not null default 'open' check (status in ('open', 'paid', 'filed')),
   notes text not null default '',
   occurred_on date,
+  product_key text not null default 'digimark101',
   created_at timestamptz not null default now()
 );
 

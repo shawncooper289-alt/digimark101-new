@@ -7,6 +7,7 @@ import { AvaDesk } from "@/components/ava-desk"
 
 const links = [
   { href: "/", label: "Today" },
+  { href: "/products", label: "Hub" },
   { href: "/campaigns", label: "Campaigns" },
   { href: "/leads", label: "Leads" },
   { href: "/crm", label: "CRM" },

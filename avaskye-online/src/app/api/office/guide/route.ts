@@ -3,6 +3,7 @@ import { deskSnapshot } from "@/lib/desk"
 import { readOfficeOwner } from "@/lib/office-store"
 
 const routes: { phrase: RegExp; href: string; label: string }[] = [
+  { phrase: /\b(hub|products?)\b/, href: "/products", label: "Hub" },
   { phrase: /\bcampaigns?\b/, href: "/campaigns", label: "Campaigns" },
   { phrase: /\bleads?\b/, href: "/leads", label: "Leads" },
   { phrase: /\bcrm\b|\bcontacts?\b/, href: "/crm", label: "CRM" },
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     reply: route
       ? `${route.label} is on this desk. Say “open ${route.label.toLowerCase()}” and I will take you there.`
-      : "I can open campaigns, records, leads, CRM, pipeline, automations, billing, clients, reports, tools, or settings. I can also draft a contact. I only cite counts that are in this workspace.",
+      : "I can open the hub, campaigns, records, leads, CRM, pipeline, automations, billing, clients, reports, tools, or settings. I can also draft a contact. I only cite counts that are in this workspace.",
     href: route?.href,
   })
 }
