@@ -51,8 +51,8 @@ export function DeskShell({ children }: { children: ReactNode }) {
           })}
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-5 py-8">{children}</main>
-      <AvaDesk />
+      <main className={pathname === "/" ? "" : "mx-auto max-w-6xl px-5 py-8"}>{children}</main>
+      {pathname === "/" ? null : <AvaDesk />}
     </div>
   )
 }

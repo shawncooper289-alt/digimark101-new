@@ -19,3 +19,13 @@
   body { font-family: var(--font-sans); background: var(--color-bg); color: var(--color-fg); min-height: 100dvh; }
   a { color: inherit; text-decoration: none; }
 }
+
+.ava-drift {
+  animation: ava-drift 22s ease-in-out infinite alternate;
+  transform-origin: 55% 40%;
+}
+
+@keyframes ava-drift {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to { transform: scale(1.12) translate3d(-2%, -1.2%, 0); }
+}

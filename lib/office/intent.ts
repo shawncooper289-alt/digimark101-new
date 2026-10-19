@@ -2,8 +2,8 @@
 export function visitorModeIntent(text: string): boolean | null {
   const q = text.toLowerCase()
   const rules: { mode: boolean; pattern: RegExp }[] = [
-    { mode: true, pattern: /guests are coming|guests are here|switch to professional|professional outfit|visitor mode on|turn on visitor mode|enable visitor mode/ },
-    { mode: false, pattern: /back to casual|switch to casual|casual outfit|visitor mode off|turn off visitor mode|leave visitor mode|guests (?:have|are) (?:gone|left)|guests left/ },
+    { mode: true, pattern: /guests are coming|guests are here|office visitors|switch to professional|professional outfit|visitor mode on|turn on visitor mode|enable visitor mode/ },
+    { mode: false, pattern: /back to casual|back to today|switch to casual|casual outfit|visitor mode off|turn off visitor mode|leave visitor mode|guests (?:have|are) (?:gone|left)|guests left/ },
   ]
   let found: { mode: boolean; index: number } | null = null
   for (const rule of rules) {
