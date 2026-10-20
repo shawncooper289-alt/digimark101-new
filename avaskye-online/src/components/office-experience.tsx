@@ -52,7 +52,7 @@ export function OfficeExperience({
     }
   }
 
-  async function signIn(event: FormEvent) {
+  async function signIn(event: FormEvent, intent: "signin" | "signup" | "recover" = "signin") {
     event.preventDefault();
     setPending(true);
     setError(null);
@@ -60,11 +60,16 @@ export function OfficeExperience({
       const response = await fetch("/api/office/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, intent }),
       });
-      const data = (await response.json()) as { error?: string };
+      const data = (await response.json()) as { error?: string; message?: string };
       if (!response.ok) {
         setError(data.error || "Owner sign-in failed.");
+        return;
+      }
+      if (data.message) {
+        setReply(data.message);
+        setPassword("");
         return;
       }
       setPassword("");
@@ -137,14 +142,19 @@ export function OfficeExperience({
         ) : (
           <details className="mt-6 max-w-sm">
             <summary className="cursor-pointer text-sm text-muted">Owner sign-in</summary>
-            <form className="mt-3" onSubmit={signIn}>
+            <form className="mt-3" onSubmit={(event) => void signIn(event, "signin")}>
               <label className="block text-sm" htmlFor="office-email">Email</label>
-              <input id="office-email" type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1 w-full rounded-full border border-border bg-transparent px-4 py-2 text-sm" />
+              <input id="office-email" type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1 w-full rounded-full border border-border bg-transparent px-4 py-2 text-sm" />
               <label className="mt-3 block text-sm" htmlFor="office-password">Password</label>
               <input id="office-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-1 w-full rounded-full border border-border bg-transparent px-4 py-2 text-sm" />
-              <button type="submit" className="mt-3 rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" disabled={pending || !configured}>
-                Sign in
-              </button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="submit" className="rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" disabled={pending || !configured}>
+                  Sign in
+                </button>
+                <button type="button" className="rounded-full border border-border px-4 py-2 text-sm" disabled={pending || !configured} onClick={(event) => void signIn(event, "signup")}>
+                  Set founder password
+                </button>
+              </div>
               {configured ? null : <p className="mt-2 text-xs text-muted">Supabase and the owner mailbox need to be set on this server before visitor mode can be saved.</p>}
             </form>
           </details>
