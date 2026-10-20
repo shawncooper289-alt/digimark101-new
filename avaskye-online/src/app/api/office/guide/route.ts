@@ -26,6 +26,41 @@ function draftContact(text: string) {
   return { name: named?.[1] || "New contact", email, company }
 }
 
+async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSnapshot>>): Promise<string | null> {
+  const key = process.env.XAI_API_KEY || process.env.AVA_LLM_API_KEY || process.env.OPENAI_API_KEY
+  if (!key) return null
+  const base = process.env.XAI_API_KEY ? "https://api.x.ai/v1" : process.env.AVA_LLM_BASE_URL || "https://api.openai.com/v1"
+  const model = process.env.XAI_MODEL || process.env.AVA_LLM_MODEL || process.env.OPENAI_MODEL || "grok-4.7"
+  const system = `You are Ava Skye, the founder office assistant for DigiMark101. You have the same knowledge and voice as the public Ava on digimark101.com. You help the owner manage leads, the client roster, campaigns, and admin tasks. Never invent metrics. Use only the desk snapshot below. Keep replies under 180 words.
+
+Desk snapshot:
+- Premium leads: ${snap.premium ?? "unavailable"}
+- Staging: ${snap.staging ?? 0}
+- Rejected: ${snap.rejected ?? 0}
+- Contacts: ${snap.contacts ?? "unavailable"}
+- Deals: ${snap.deals ?? 0}
+- Automations: ${snap.automations ?? 0}
+- Subscriptions: ${snap.subscriptions ?? "unavailable"}`
+  try {
+    const res = await fetch(`${base.replace(/\/$/, "")}/chat/completions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(20000),
+      body: JSON.stringify({
+        model,
+        temperature: 0.3,
+        max_tokens: 500,
+        messages: [{ role: "system", content: system }, { role: "user", content: message }],
+      }),
+    })
+    if (!res.ok) return null
+    const data = await res.json() as { choices?: { message?: { content?: string } }[] }
+    return data.choices?.[0]?.message?.content?.trim() || null
+  } catch {
+    return null
+  }
+}
+
 export async function POST(request: Request) {
   const owner = await readOfficeOwner()
   if (!owner) return NextResponse.json({ error: "The owner office is closed." }, { status: 403 })
@@ -47,8 +82,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ reply: `Opening ${route.label}.`, href: route.href })
   }
 
+  const snap = await deskSnapshot()
+  const live = await liveReply(message, snap)
+  if (live) return NextResponse.json({ reply: live, href: route?.href })
+
   if (/how many|summary|status|what is on the desk/.test(message.toLowerCase())) {
-    const snap = await deskSnapshot()
     const parts = [
       snap.premium === null ? "Lead counts are unavailable until Supabase is configured." : `${snap.premium} premium leads, ${snap.staging ?? 0} in staging, ${snap.rejected ?? 0} rejected.`,
       snap.contacts === null ? "" : `${snap.contacts} contacts, ${snap.deals ?? 0} deals, ${snap.automations ?? 0} automations on.`,
