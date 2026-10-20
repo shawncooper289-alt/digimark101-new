@@ -19,7 +19,8 @@ const SUGGESTIONS = [
   "Book an appointment tomorrow at 10am",
 ]
 
-const AVATAR = 68
+const AVATAR_W = 148
+const AVATAR_H = 268
 
 function speechInputSupported() {
   return typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
@@ -78,8 +79,8 @@ function voiceKey(id: string) {
 
 function clampAnchor(point: Anchor): Anchor {
   return {
-    x: Math.min(window.innerWidth - AVATAR - 8, Math.max(8, point.x)),
-    y: Math.min(window.innerHeight - AVATAR - 8, Math.max(8, point.y)),
+    x: Math.min(window.innerWidth - AVATAR_W - 8, Math.max(8, point.x)),
+    y: Math.min(window.innerHeight - AVATAR_H - 8, Math.max(8, point.y)),
   }
 }
 
@@ -513,9 +514,9 @@ export function AvaWidget() {
     if (viewportWidth < 640) return undefined
     const width = 400
     const height = Math.min(640, Math.max(360, viewportHeight - 24))
-    const ax = anchor?.x ?? viewportWidth - AVATAR - 20
-    const ay = anchor?.y ?? viewportHeight - AVATAR - 20
-    const left = Math.min(viewportWidth - width - 12, Math.max(12, ax + AVATAR - width))
+    const ax = anchor?.x ?? viewportWidth - AVATAR_W - 20
+    const ay = anchor?.y ?? viewportHeight - AVATAR_H - 20
+    const left = Math.min(viewportWidth - width - 12, Math.max(12, ax + AVATAR_W - width))
     const top = Math.min(viewportHeight - height - 12, Math.max(12, ay - height - 12))
     return { left, top, width, height }
   }
@@ -525,24 +526,24 @@ export function AvaWidget() {
       {open ? null : (
         <button
           type="button"
-          className={`ava-avatar-handle fixed z-50 h-[68px] w-[68px] overflow-hidden rounded-full border border-signal/50 bg-paper/30 shadow-[0_0_28px_rgba(203,176,130,0.28)] ${
-            anchor ? "" : "bottom-5 right-5"
+          className={`ava-float fixed z-50 cursor-pointer border-0 bg-transparent p-0 ${
+            anchor ? "" : "bottom-3 right-3"
           }`}
-          style={anchor ? { left: anchor.x, top: anchor.y } : undefined}
+          style={anchor ? { left: anchor.x, top: anchor.y, width: AVATAR_W, height: AVATAR_H } : { width: AVATAR_W, height: AVATAR_H }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onKeyDown={onAvatarKeyDown}
           aria-haspopup="dialog"
           aria-expanded={false}
-          aria-label="Ava Skye. Drag to move her. Activate to open the chat."
+          aria-label="Ask Ava for help. Drag to move her."
         >
           <Image
-            src="/media/skye-desk-standing.jpg"
+            src="/media/ava-float.png"
             alt=""
-            width={240}
-            height={320}
-            className="h-full w-full object-cover object-[30%_22%] opacity-75 transition hover:opacity-100"
+            width={477}
+            height={866}
+            className="h-full w-full object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)] transition-transform duration-200 hover:scale-[1.03]"
           />
         </button>
       )}
