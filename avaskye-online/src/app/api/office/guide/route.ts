@@ -4,6 +4,7 @@ import { deskSnapshot } from "@/lib/desk"
 import { readOfficeOwner } from "@/lib/office-store"
 
 const routes: { phrase: RegExp; href: string; label: string }[] = [
+  { phrase: /beta|testers?|invitation/, href: "/beta", label: "Beta testers" },
   { phrase: /briefing|passive income|opportunit/, href: "/briefings", label: "Daily briefings" },
   { phrase: /\bniches?\b/, href: "/niches", label: "Niche inventory" },
   { phrase: /\bskills?\b|knowledge|reasoning/, href: "/skills", label: "Ava skills" },
