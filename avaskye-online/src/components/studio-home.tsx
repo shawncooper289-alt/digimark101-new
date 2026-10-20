@@ -22,8 +22,6 @@ const TABLES = [
   { href: "/settings", label: "Settings" },
 ] as const
 
-const SITTING = { id: "sitting", label: "At the desk", src: "/ava/desk-sitting.jpg" }
-
 export function StudioHome({ counts }: { counts: { label: string; value: number | null }[] }) {
   const router = useRouter()
   const [visitors, setVisitors] = useState(false)
