@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState, type FormEvent, type ReactNode } from "react"
 import { AvaDesk } from "@/components/ava-desk"
+import { AvaFloat } from "@/components/ava-float"
 
 const links = [
   { href: "/", label: "Today" },
@@ -88,6 +89,7 @@ export function DeskShell({ children }: { children: ReactNode }) {
       </header>
       <main className={pathname === "/" ? "" : "mx-auto max-w-6xl px-5 py-8"}>{children}</main>
       {pathname === "/" ? null : <AvaDesk />}
+      <AvaFloat />
     </div>
   )
 }
