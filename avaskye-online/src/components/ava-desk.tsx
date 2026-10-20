@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState, type FormEvent } from "react"
+import { useState, useEffect, type FormEvent } from "react"
 import { spokenText } from "@/lib/ava-speech"
 
 export function AvaDesk() {
@@ -11,6 +11,13 @@ export function AvaDesk() {
   const [pending, setPending] = useState(false)
   const [draft, setDraft] = useState<{ name: string; email?: string; company?: string } | null>(null)
   const [voice, setVoice] = useState(false)
+  const [minimized, setMinimized] = useState(false)
+  const [visitorMode, setVisitorMode] = useState(false)
+  const [mode, setMode] = useState("Office guide")
+
+  useEffect(() => {
+    void fetch("/api/office/appearance").then((res) => res.json()).then((data: { visitorMode?: boolean }) => setVisitorMode(Boolean(data.visitorMode))).catch(() => undefined)
+  }, [])
 
   function speak(line: string) {
     if (!voice || typeof window === "undefined" || !("speechSynthesis" in window)) return
@@ -32,13 +39,14 @@ export function AvaDesk() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: content }),
       })
-      const data = (await response.json()) as { reply?: string; href?: string; draft?: { name: string; email?: string; company?: string }; error?: string }
+      const data = (await response.json()) as { reply?: string; href?: string; draft?: { name: string; email?: string; company?: string }; error?: string; live?: boolean; mode?: string; notice?: string }
       if (!response.ok) {
         setReply(data.error || "I could not answer that.")
         return
       }
       const nextReply = data.reply || "Done."
-      setReply(nextReply)
+      setMode(data.live ? "Live Ava · " + (data.mode || "AI") : "Office guide · not live AI")
+      setReply(data.notice ? `${nextReply} ${data.notice}` : nextReply)
       speak(nextReply)
       setDraft(data.draft ?? null)
       setText("")
@@ -73,8 +81,15 @@ export function AvaDesk() {
   }
 
   return (
-    <section className="border-t border-border bg-surface px-5 py-4">
-      <form className="mx-auto flex max-w-6xl flex-wrap items-end gap-3" onSubmit={send}>
+    <aside aria-label="Ava Skye office companion" className="rounded-3xl border border-border bg-surface p-4 shadow-xl">
+      <div className="flex items-center justify-between gap-3">
+        <div><p className="text-xl">Ava Skye</p><p className="text-xs text-muted">{mode}</p></div>
+        <button type="button" className="rounded-full border border-border px-3 py-1 text-sm" onClick={() => setMinimized(!minimized)} aria-expanded={!minimized}>{minimized ? "Show Ava" : "Minimize"}</button>
+      </div>
+      {minimized ? null : <>
+      <img src={visitorMode ? "/ava/professional.jpg" : "/ava/knit.jpg"} alt={visitorMode ? "Ava Skye in her professional visitor outfit" : "Ava Skye in her private office knit outfit"} className="mt-4 h-72 w-full rounded-2xl object-cover object-top lg:h-96" />
+      <p className="mt-3 text-xs text-muted">Same Ava. Private office wardrobe. Nothing is saved without your confirmation.</p>
+      <form className="mt-4 flex flex-wrap items-end gap-3" onSubmit={send}>
         <label className="min-w-0 flex-1 text-sm" htmlFor="ava-desk">
           Ava Skye
           <input id="ava-desk" value={text} onChange={(event) => setText(event.target.value)} placeholder="Open leads, or draft a contact named Jordan Lee" className="mt-1 w-full rounded-full border border-border bg-transparent px-4 py-2" />
@@ -95,7 +110,7 @@ export function AvaDesk() {
           Voice {voice ? "on" : "off"}
         </button>
       </form>
-      <p className="mx-auto mt-3 max-w-6xl text-sm text-muted">{reply}</p>
+      <p role="status" aria-live="polite" className="mt-3 text-sm text-muted">{reply}</p>
       {draft ? (
         <div className="mx-auto mt-3 flex max-w-6xl flex-wrap items-center gap-3 text-sm">
           <p>Draft contact: {draft.name}{draft.email ? ` · ${draft.email}` : ""}{draft.company ? ` · ${draft.company}` : ""}</p>
@@ -103,6 +118,7 @@ export function AvaDesk() {
           <button type="button" className="rounded-full border border-border px-3 py-1" onClick={() => setDraft(null)}>Discard</button>
         </div>
       ) : null}
-    </section>
+      </>}
+    </aside>
   )
 }

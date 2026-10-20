@@ -26,7 +26,7 @@ async function headers() {
 
 export async function deskCount(table: string, filter = "") {
   const { url, configured } = officeConfig()
-  if (!configured) return null
+  if (!configured || !(await requireOwner())) return null
   const response = await fetch(`${url}/rest/v1/${table}?select=id${filter ? `&${filter}` : ""}`, {
     headers: { ...(await headers()), Prefer: "count=exact", Range: "0-0" },
     cache: "no-store",
@@ -45,7 +45,7 @@ export async function deskRows(table: string, query: string) {
 
 export async function deskRowsMaybe(table: string, query: string) {
   const { url, configured } = officeConfig()
-  if (!configured) return [] as Row[]
+  if (!configured || !(await requireOwner())) return null
   const response = await fetch(`${url}/rest/v1/${table}?${query}`, {
     headers: await headers(),
     cache: "no-store",
@@ -57,7 +57,7 @@ export async function deskRowsMaybe(table: string, query: string) {
 
 export async function deskClients() {
   const { url, configured } = officeConfig()
-  if (!configured) return [] as { id: string; email: string; role: string; created: string }[]
+  if (!configured || !(await requireOwner())) return [] as { id: string; email: string; role: string; created: string }[]
   const response = await fetch(`${url}/auth/v1/admin/users?page=1&per_page=200`, {
     headers: await headers(),
     cache: "no-store",

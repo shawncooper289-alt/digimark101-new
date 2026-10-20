@@ -25,6 +25,24 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@shared/*": [
+        "../lib/*"
+      ],
+      "@/lib/ava/knowledge-base": [
+        "../lib/ava/knowledge-base"
+      ],
+      "@/lib/ava/identity": [
+        "../lib/ava/identity"
+      ],
+      "@/lib/paypal/plans": [
+        "../lib/paypal/plans"
+      ],
+      "@/lib/site": [
+        "../lib/site"
+      ],
+      "@/lib/platform/types": [
+        "../lib/platform/types"
       ]
     }
   },

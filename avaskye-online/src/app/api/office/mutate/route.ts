@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { workspaceChange } from "@/lib/workspace-command"
+import { contentChange } from "@/lib/content-command"
 import { isHubProduct } from "@/lib/products"
 import { officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-store"
 
@@ -34,6 +36,35 @@ export async function POST(request: Request) {
   if (body?.confirmed !== true) return NextResponse.json({ error: "Confirm the draft before saving." }, { status: 400 })
   const action = body.action
   const workspace = typeof body.workspaceId === "string" && /^[0-9a-f-]{36}$/i.test(body.workspaceId) ? body.workspaceId : owner.id
+
+  if (action === "book_appointment" || action === "save_memory") {
+    const change = workspaceChange(body, owner.id)
+    if (!change) return NextResponse.json({ error: "Provide a valid customer ID and all required fields. Appointment time must include a timezone." }, { status: 400 })
+    if (!officeConfig().service) return NextResponse.json({ error: "The server administration key is required." }, { status: 503 })
+    const saved = await rest(change.table, {
+      method: "POST",
+      headers: { Prefer: action === "save_memory" ? "resolution=merge-duplicates,return=minimal" : "return=minimal" },
+      body: JSON.stringify(change.row),
+    })
+    return NextResponse.json(saved.ok ? { ok: true } : { error: "The shared workspace change was not saved." }, { status: saved.ok ? 200 : 503 })
+  }
+
+  if (action === "update_site_content") {
+    const change = contentChange(body)
+    if (!change) return NextResponse.json({ error: "Provide a valid site, name (up to 160 characters), and headline (up to 500 characters)." }, { status: 400 })
+    const { url, service } = officeConfig()
+    if (!url || !service) return NextResponse.json({ error: "The server administration key is required." }, { status: 503 })
+    const response = await fetch(`${url}/rest/v1/sites?id=eq.${change.id}&select=id`, {
+      method: "PATCH",
+      headers: supabaseKeyHeaders(service, { "Content-Type": "application/json", Prefer: "return=representation" }),
+      body: JSON.stringify(change.patch),
+      cache: "no-store",
+    })
+    if (!response.ok) return NextResponse.json({ error: "Shared content was not saved." }, { status: 503 })
+    const updated = await response.json() as { id: string }[]
+    if (!Array.isArray(updated) || updated.length !== 1) return NextResponse.json({ error: "The site no longer exists. Refresh before editing." }, { status: 404 })
+    return NextResponse.json({ ok: true })
+  }
 
   if (action === "create_contact") {
     const name = typeof body.name === "string" ? body.name.trim() : ""

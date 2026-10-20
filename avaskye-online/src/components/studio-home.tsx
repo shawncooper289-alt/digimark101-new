@@ -14,7 +14,13 @@ const LOOKS = [
 const PROFESSIONAL = { id: "professional", label: "Professional", src: "/ava/professional.jpg" }
 
 const TABLES = [
+  { href: "/platform", label: "Main office" },
+  { href: "/beta", label: "Beta testers" },
+  { href: "/niches", label: "Niche inventory" },
+  { href: "/skills", label: "Ava skills" },
+  { href: "/briefings", label: "Daily briefings" },
   { href: "/products", label: "Hub" },
+  { href: "/content", label: "Content" },
   { href: "/campaigns", label: "Campaigns" },
   { href: "/leads", label: "Leads" },
   { href: "/crm", label: "CRM" },
@@ -25,6 +31,10 @@ const TABLES = [
   { href: "/clients", label: "Clients" },
   { href: "/reports", label: "Reports" },
   { href: "/tools", label: "Tools" },
+  { href: "/calendar", label: "Calendar" },
+  { href: "/inbox", label: "Inbox" },
+  { href: "/memory", label: "Memory" },
+  { href: "/files", label: "Files" },
   { href: "/settings", label: "Settings" },
 ] as const
 
