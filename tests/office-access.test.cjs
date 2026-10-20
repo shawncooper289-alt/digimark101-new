@@ -27,6 +27,7 @@ function setup(owner = null, response = Response.json([])) {
     'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } },
     '@/lib/products': { isHubProduct: () => true },
     '@/lib/content-command': content,
+    '@/lib/workspace-command': load('avaskye-online/src/lib/workspace-command.ts', {}),
   }, { fetch })
   return { desk, route, calls }
 }

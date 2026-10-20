@@ -13,6 +13,10 @@ const areas = [
   { href: "/billing", title: "Payments & subscriptions", table: "subscriptions", description: "Review webhook-synced billing. No charges or refunds are made here." },
   { href: "/records", title: "Business records", table: "office_records", description: "Manage invoices, expenses, and legal records." },
   { href: "/reports", title: "Reports", table: "lead_orders", description: "Review shared operational reports, not visitor analytics." },
+  { href: "/calendar", title: "Calendar", table: "appointments", description: "Review shared appointments and confirm bookings." },
+  { href: "/inbox", title: "Inbox", table: "threads", description: "Read studio conversations and recent messages." },
+  { href: "/memory", title: "Memory", table: "client_memory", description: "Review and save private customer workspace memory." },
+  { href: "/files", title: "Files", table: "client_files", description: "Review private file metadata without public download links." },
   { href: "/tools", title: "Infrastructure", table: "managed_backends", description: "Review managed backend provisioning records." },
 ] as const
 

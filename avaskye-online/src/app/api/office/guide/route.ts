@@ -1,3 +1,4 @@
+import { respondToAva } from "@shared/ava/respond"
 import { NextResponse } from "next/server"
 import { deskSnapshot } from "@/lib/desk"
 import { readOfficeOwner } from "@/lib/office-store"
@@ -15,10 +16,16 @@ const routes: { phrase: RegExp; href: string; label: string }[] = [
   { phrase: /\bbilling\b|\bpaypal\b|\bsubscriptions?\b/, href: "/billing", label: "Billing" },
   { phrase: /\bclients?\b|\bworkspaces?\b/, href: "/clients", label: "Clients" },
   { phrase: /\breports?\b/, href: "/reports", label: "Reports" },
+  { phrase: /\bcalendar\b|\bappointments?\b/, href: "/calendar", label: "Calendar" },
+  { phrase: /\binbox\b|\bmessages?\b/, href: "/inbox", label: "Inbox" },
+  { phrase: /\bmemory\b|\bremember\b/, href: "/memory", label: "Memory" },
+  { phrase: /\bfiles?\b/, href: "/files", label: "Files" },
   { phrase: /\bsettings?\b/, href: "/settings", label: "Settings" },
   { phrase: /\btools?\b|\bbackends?\b/, href: "/tools", label: "Tools" },
   { phrase: /\btoday\b|\bdashboard\b|\bhome\b/, href: "/", label: "Today" },
 ]
+
+const requests = new Map<string, { count: number; reset: number }>()
 
 function draftContact(text: string) {
   const named = text.match(/(?:named|called)\s+([A-Z][\w'.-]+(?:\s+[A-Z][\w'.-]+){0,2})/)
@@ -31,8 +38,16 @@ function draftContact(text: string) {
 export async function POST(request: Request) {
   const owner = await readOfficeOwner()
   if (!owner) return NextResponse.json({ error: "The owner office is closed." }, { status: 403 })
+  const origin = request.headers.get("origin")
+  if (origin && origin !== new URL(request.url).origin) return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
+  const now = Date.now()
+  for (const [id, entry] of requests) if (entry.reset <= now) requests.delete(id)
+  const entry = requests.get(owner.id) || { count: 0, reset: now + 60000 }
+  entry.count += 1
+  requests.set(owner.id, entry)
+  if (entry.count > 30) return NextResponse.json({ error: "Too many messages. Try again in a minute." }, { status: 429 })
   const body = (await request.json().catch(() => null)) as { message?: string } | null
-  const message = body?.message?.trim() || ""
+  const message = typeof body?.message === "string" ? body.message.trim() : ""
   if (!message || message.length > 1000) return NextResponse.json({ error: "Send a short question." }, { status: 400 })
 
   const draft = draftContact(message)
@@ -59,10 +74,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ reply: parts.join(" ") })
   }
 
-  return NextResponse.json({
-    reply: route
-      ? `${route.label} is on this desk. Say “open ${route.label.toLowerCase()}” and I will take you there.`
-      : "I can open the hub, campaigns, records, leads, CRM, pipeline, automations, billing, clients, reports, tools, or settings. I can also draft a contact. I only cite counts that are in this workspace.",
-    href: route?.href,
+  const answer = await respondToAva([{ role: "user", content: message }], {
+    extra: "This is the private owner main office, not a customer enquiry. You are the same Ava Skye as DigiMark101, with a separate office wardrobe. Help manage the platform. You have not executed any tool in this response. Do not claim to read customer records, save, send, bill, or publish. Direct the owner to the appropriate office screen for confirmed changes. Office routes: /platform, /clients, /leads, /crm, /pipeline, /content, /campaigns, /automations, /billing, /records, /reports, /tools, /calendar, /inbox, /memory, /files, /settings. A guide-mode reply means the live provider is not connected or did not answer.",
   })
+  return NextResponse.json({ reply: answer.text, live: answer.live, mode: answer.mode, notice: answer.notice, href: route?.href })
 }

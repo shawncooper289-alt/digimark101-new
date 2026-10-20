@@ -27,6 +27,10 @@ const TABLES = [
   { href: "/clients", label: "Clients" },
   { href: "/reports", label: "Reports" },
   { href: "/tools", label: "Tools" },
+  { href: "/calendar", label: "Calendar" },
+  { href: "/inbox", label: "Inbox" },
+  { href: "/memory", label: "Memory" },
+  { href: "/files", label: "Files" },
   { href: "/settings", label: "Settings" },
 ] as const
 
