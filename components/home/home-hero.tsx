@@ -49,8 +49,8 @@ export function HomeHero() {
             Search, paid media, social, content, web, email, analytics, and automation, planned as one growth system you keep. Ava Skye is here for the next decision, and she will not invent a result to impress you.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link href="/contact" className="btn btn-signal">
-              Start a project
+            <Link href="/start" className="btn btn-signal">
+              Start the first campaign
             </Link>
             <Link href="/studio" className="btn btn-ink">
               Open the studio

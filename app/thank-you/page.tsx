@@ -34,16 +34,16 @@ export default async function ThankYouPage({
           </p>
         ) : null}
         <ul className="mt-6 space-y-2 text-ink-soft">
-          <li>The membership renews on its own until you cancel it in PayPal.</li>
-          <li>If you were signed in, the subscription is linked to that account when the webhook arrives.</li>
-          <li>A membership is not a project. Field, Studio, and Partner still start with a proposal.</li>
+          <li>Next, answer five questions. Ava drafts one page, one lead form, and three emails.</li>
+          <li>Nothing is marked live until you approve it.</li>
+          <li>The membership renews until you cancel it in PayPal.</li>
         </ul>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/studio" className="btn btn-signal">
-            Open the studio
+          <Link href="/start/brief" className="btn btn-signal">
+            Answer the five questions
           </Link>
-          <Link href="/pricing" className="btn btn-ghost">
-            Back to pricing
+          <Link href="/studio" className="btn btn-ghost">
+            Open the studio
           </Link>
         </div>
         <p className="mt-8 text-sm text-ink-soft">

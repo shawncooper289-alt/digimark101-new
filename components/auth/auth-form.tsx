@@ -7,7 +7,7 @@ import { useAvaForm } from "@/components/ava/use-ava-form"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
 import { createSupabaseBrowser } from "@/lib/supabase/browser"
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({ mode, nextPath = "/studio" }: { mode: "login" | "signup"; nextPath?: string }) {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -37,7 +37,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       setMessage("Account created. If email confirmation is on, open the link Supabase sends, then sign in.")
       return
     }
-    router.push("/studio")
+    router.push(nextPath.startsWith("/start") ? nextPath : "/studio")
     router.refresh()
   }
 
@@ -71,7 +71,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </button>
       </form>
       <p className="mt-4 text-sm">
-        {mode === "login" ? <Link href="/signup" className="underline">Create an account</Link> : <Link href="/login" className="underline">Already have an account</Link>}
+        {mode === "login" ? <Link href={nextPath.startsWith("/start") ? `/signup?next=${encodeURIComponent(nextPath)}` : "/signup"} className="underline">Create an account</Link> : <Link href={nextPath.startsWith("/start") ? `/login?next=${encodeURIComponent(nextPath)}` : "/login"} className="underline">Already have an account</Link>}
       </p>
       {mode === "login" ? (
         <p className="mt-6 text-sm text-ink-soft">

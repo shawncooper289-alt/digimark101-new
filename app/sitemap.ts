@@ -3,7 +3,7 @@ import { caseStudies, posts, services, site } from "@/lib/site"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date("2026-10-15T00:00:00Z")
-  const staticPaths = ["", "/services", "/work", "/pricing", "/about", "/contact", "/blog", "/ava", "/marketplace", "/privacy", "/terms"]
+  const staticPaths = ["", "/services", "/work", "/pricing", "/about", "/contact", "/blog", "/ava", "/marketplace", "/start", "/privacy", "/terms"]
 
   return [
     ...staticPaths.map((path) => ({

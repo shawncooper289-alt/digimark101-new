@@ -33,8 +33,8 @@ export function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/contact" className="btn btn-signal hidden sm:inline-flex">
-            Start a project
+          <Link href="/start" className="btn btn-signal hidden sm:inline-flex">
+            Start the first campaign
           </Link>
           <button
             type="button"
@@ -63,8 +63,8 @@ export function Header() {
               </li>
             ))}
             <li>
-              <Link href="/contact" className="btn btn-signal mt-2 w-full" onClick={() => setOpen(false)}>
-                Start a project
+              <Link href="/start" className="btn btn-signal mt-2 w-full" onClick={() => setOpen(false)}>
+                Start the first campaign
               </Link>
             </li>
           </ul>
