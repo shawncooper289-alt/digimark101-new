@@ -538,11 +538,11 @@ export function AvaWidget() {
           aria-label="Ava Skye. Drag to move her. Activate to open the chat."
         >
           <Image
-            src="/media/ava-brand.jpg"
+            src="/media/skye-desk-standing.jpg"
             alt=""
             width={240}
             height={320}
-            className="h-full w-full object-cover object-[center_18%] opacity-75 transition hover:opacity-100"
+            className="h-full w-full object-cover object-[30%_22%] opacity-75 transition hover:opacity-100"
           />
         </button>
       )}

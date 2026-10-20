@@ -65,12 +65,12 @@ export function HomeHero() {
           <div className="hero-perspective mx-auto h-full max-h-full w-full max-w-md">
             <div ref={frameRef} className="hero-frame relative h-full min-h-[12rem]">
               <Image
-                src="/media/ava-brand.jpg"
-                alt="Ava Skye, studio assistant at DigiMark101"
+                src="/media/skye-desk-standing.jpg"
+                alt="Ava Skye standing at the desk in Skye Studio"
                 fill
                 priority
                 sizes="(min-width: 1024px) 420px, 80vw"
-                className="object-cover object-[center_16%]"
+                className="object-cover object-[28%_30%]"
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-paper via-paper/10 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">

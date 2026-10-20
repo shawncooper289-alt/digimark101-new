@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import type { ReactNode } from "react"
+import { useState, type FormEvent, type ReactNode } from "react"
 import { AvaDesk } from "@/components/ava-desk"
 
 const links = [
@@ -25,9 +25,33 @@ export function DeskShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
 
+  const [nextPassword, setNextPassword] = useState("")
+  const [passwordNote, setPasswordNote] = useState<string | null>(null)
+  const [passwordPending, setPasswordPending] = useState(false)
+
   async function signOut() {
     await fetch("/api/office/session", { method: "DELETE" })
     router.refresh()
+  }
+
+  async function changePassword(event: FormEvent) {
+    event.preventDefault()
+    setPasswordPending(true)
+    setPasswordNote(null)
+    try {
+      const response = await fetch("/api/office/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: nextPassword }),
+      })
+      const data = (await response.json()) as { error?: string }
+      setPasswordNote(response.ok ? "Password updated." : data.error || "Could not update the password.")
+      if (response.ok) setNextPassword("")
+    } catch {
+      setPasswordNote("Could not update the password.")
+    } finally {
+      setPasswordPending(false)
+    }
   }
 
   return (
@@ -43,6 +67,14 @@ export function DeskShell({ children }: { children: ReactNode }) {
             <button type="button" className="rounded-full border border-border px-3 py-1" onClick={() => void signOut()}>Sign out</button>
           </div>
         </div>
+        <form className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-5 pb-3 text-sm" onSubmit={changePassword}>
+          <label className="text-muted" htmlFor="new-office-password">New password</label>
+          <input id="new-office-password" type="password" autoComplete="new-password" minLength={8} value={nextPassword} onChange={(event) => setNextPassword(event.target.value)} className="rounded-full border border-border bg-transparent px-3 py-1" />
+          <button type="submit" className="rounded-full border border-border px-3 py-1" disabled={passwordPending || nextPassword.length < 8}>
+            {passwordPending ? "Saving" : "Change password"}
+          </button>
+          {passwordNote ? <span className="text-muted">{passwordNote}</span> : null}
+        </form>
         <nav className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-5 pb-3 text-sm" aria-label="Owner office">
           {links.map((link) => {
             const active = link.href === "/" ? pathname === "/" : pathname === link.href

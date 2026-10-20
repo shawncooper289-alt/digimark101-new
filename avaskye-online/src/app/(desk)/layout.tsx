@@ -11,7 +11,7 @@ export default async function DeskLayout({ children }: { children: ReactNode }) 
     const missing = missingOfficeEnv()
     return (
       <main className="relative min-h-dvh">
-        <img src="/ava/satin.jpg" alt="Ava Skye sitting at the desk in Skye Studio" className="absolute inset-0 h-full w-full object-cover" />
+        <img src="/ava/desk-sitting.jpg" alt="Ava Skye sitting at the desk in Skye Studio" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-bg via-bg/80 to-bg/25" />
         <div className="relative z-10 mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-5 py-16">
           <p className="text-xs uppercase tracking-[0.18em] text-accent">Skye Studio</p>

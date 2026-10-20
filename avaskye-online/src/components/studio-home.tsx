@@ -4,14 +4,8 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, type FormEvent } from "react"
 import { visitorModeIntent } from "@/lib/appearance-command"
 
-const LOOKS = [
-  { id: "satin", label: "Black satin", src: "/ava/satin.jpg" },
-  { id: "knit", label: "Black knit", src: "/ava/knit.jpg" },
-  { id: "emerald", label: "Emerald silk", src: "/ava/emerald.jpg" },
-  { id: "vest", label: "Ivory shirt", src: "/ava/vest.jpg" },
-] as const
-
-const PROFESSIONAL = { id: "professional", label: "Professional", src: "/ava/professional.jpg" }
+const SITTING = { id: "sitting", label: "At the desk", src: "/ava/desk-sitting.jpg" }
+const PROFESSIONAL = { id: "professional", label: "Professional", src: "/ava/desk-standing.jpg" }
 
 const TABLES = [
   { href: "/products", label: "Hub" },
@@ -28,7 +22,7 @@ const TABLES = [
   { href: "/settings", label: "Settings" },
 ] as const
 
-const SITTING = LOOKS[0]
+const SITTING = { id: "sitting", label: "At the desk", src: "/ava/desk-sitting.jpg" }
 
 export function StudioHome({ counts }: { counts: { label: string; value: number | null }[] }) {
   const router = useRouter()
