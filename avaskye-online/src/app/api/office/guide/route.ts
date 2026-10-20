@@ -3,6 +3,8 @@ import { deskSnapshot } from "@/lib/desk"
 import { readOfficeOwner } from "@/lib/office-store"
 
 const routes: { phrase: RegExp; href: string; label: string }[] = [
+  { phrase: /\bplatform\b|main office|control cent(er|re)/, href: "/platform", label: "Main office" },
+  { phrase: /\bcontent\b|\bsites?\b|\bpages?\b/, href: "/content", label: "Content" },
   { phrase: /\b(hub|products?)\b/, href: "/products", label: "Hub" },
   { phrase: /\bcampaigns?\b/, href: "/campaigns", label: "Campaigns" },
   { phrase: /\bleads?\b/, href: "/leads", label: "Leads" },

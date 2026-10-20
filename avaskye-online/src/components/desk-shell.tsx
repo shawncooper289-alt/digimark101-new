@@ -7,7 +7,9 @@ import { AvaDesk } from "@/components/ava-desk"
 
 const links = [
   { href: "/", label: "Today" },
+  { href: "/platform", label: "Main office" },
   { href: "/products", label: "Hub" },
+  { href: "/content", label: "Content" },
   { href: "/campaigns", label: "Campaigns" },
   { href: "/leads", label: "Leads" },
   { href: "/crm", label: "CRM" },
@@ -36,7 +38,7 @@ export function DeskShell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-muted">Ava Skye</p>
-            <p className="text-sm">Owner office</p>
+            <p className="text-sm">DigiMark101 main office</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <a href="https://www.digimark101.com">Customer site</a>
