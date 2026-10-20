@@ -526,7 +526,7 @@ export function AvaWidget() {
       {open ? null : (
         <button
           type="button"
-          className={`ava-float fixed z-50 cursor-pointer border-0 bg-transparent p-0 ${
+          className={`ava-float fixed z-50 cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing ${
             anchor ? "" : "bottom-3 right-3"
           }`}
           style={anchor ? { left: anchor.x, top: anchor.y, width: AVATAR_W, height: AVATAR_H } : { width: AVATAR_W, height: AVATAR_H }}
@@ -541,9 +541,10 @@ export function AvaWidget() {
           <Image
             src="/media/ava-float.png"
             alt=""
+            draggable={false}
             width={477}
             height={866}
-            className="h-full w-full object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)] transition-transform duration-200 hover:scale-[1.03]"
+            className="pointer-events-none h-full w-full object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]"
           />
         </button>
       )}

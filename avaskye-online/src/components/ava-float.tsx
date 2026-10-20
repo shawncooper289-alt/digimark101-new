@@ -1,12 +1,15 @@
 "use client"
 
-import { useEffect, useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react"
 
 const RELAXED = [
   { id: "satin", src: "/ava/float-satin.png", label: "Black satin" },
   { id: "emerald", src: "/ava/float-emerald.png", label: "Emerald silk" },
 ]
 const PROFESSIONAL = { id: "professional", src: "/ava/float-professional.png", label: "Professional" }
+const POSITION_KEY = "avaskye.ava.position"
+
+type Point = { x: number; y: number }
 
 function officeLook(visitor: boolean) {
   if (visitor) return PROFESSIONAL
@@ -14,12 +17,21 @@ function officeLook(visitor: boolean) {
   return RELAXED[((day % RELAXED.length) + RELAXED.length) % RELAXED.length]
 }
 
+function clamp(point: Point, width: number, height: number): Point {
+  return {
+    x: Math.min(window.innerWidth - width - 8, Math.max(8, point.x)),
+    y: Math.min(window.innerHeight - height - 8, Math.max(8, point.y)),
+  }
+}
+
 export function AvaFloat() {
   const [open, setOpen] = useState(false)
   const [visitor, setVisitor] = useState(false)
   const [text, setText] = useState("")
-  const [reply, setReply] = useState("Click me when you want help. I will not save anything until you confirm.")
+  const [reply, setReply] = useState("Drag me where you want me. Click me when you want help. I will not save anything until you confirm.")
   const [pending, setPending] = useState(false)
+  const [point, setPoint] = useState<Point | null>(null)
+  const dragRef = useRef<{ pointerId: number; originX: number; originY: number; startX: number; startY: number; moved: boolean } | null>(null)
   const look = officeLook(visitor)
 
   useEffect(() => {
@@ -28,6 +40,71 @@ export function AvaFloat() {
       .then((data: { visitorMode?: boolean }) => setVisitor(Boolean(data.visitorMode)))
       .catch(() => setVisitor(false))
   }, [])
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(POSITION_KEY)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as { x?: unknown; y?: unknown }
+      if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+        setPoint({ x: parsed.x * window.innerWidth, y: parsed.y * window.innerHeight })
+      }
+    } catch {
+      // She stays in the corner when storage is blocked.
+    }
+  }, [])
+
+  function remember(next: Point, width: number, height: number) {
+    const placed = clamp(next, width, height)
+    setPoint(placed)
+    try {
+      localStorage.setItem(POSITION_KEY, JSON.stringify({ x: placed.x / window.innerWidth, y: placed.y / window.innerHeight }))
+    } catch {
+      // The move still holds for this visit.
+    }
+    return placed
+  }
+
+  function onPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (event.button !== 0) return
+    const rect = event.currentTarget.getBoundingClientRect()
+    dragRef.current = {
+      pointerId: event.pointerId,
+      originX: event.clientX,
+      originY: event.clientY,
+      startX: rect.left,
+      startY: rect.top,
+      moved: false,
+    }
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      // The drag still follows the pointer when capture is unavailable.
+    }
+  }
+
+  function onPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const dx = event.clientX - drag.originX
+    const dy = event.clientY - drag.originY
+    if (!drag.moved && Math.hypot(dx, dy) < 6) return
+    drag.moved = true
+    const rect = event.currentTarget.getBoundingClientRect()
+    setPoint(clamp({ x: drag.startX + dx, y: drag.startY + dy }, rect.width, rect.height))
+  }
+
+  function onPointerUp(event: ReactPointerEvent<HTMLButtonElement>) {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    dragRef.current = null
+    if (drag.moved) {
+      const rect = event.currentTarget.getBoundingClientRect()
+      remember({ x: rect.left, y: rect.top }, rect.width, rect.height)
+      return
+    }
+    setOpen(true)
+  }
 
   async function send(event: FormEvent) {
     event.preventDefault()
@@ -50,9 +127,15 @@ export function AvaFloat() {
     }
   }
 
+  const placed = point ? { left: point.x, top: point.y } : undefined
+
   if (open) {
     return (
-      <section className="fixed bottom-3 right-3 z-50 flex w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-3xl border border-border bg-surface p-4 shadow-2xl" aria-label="Ask Ava">
+      <section
+        className={`fixed z-50 flex w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-3xl border border-border bg-surface p-4 shadow-2xl ${point ? "" : "bottom-3 right-3"}`}
+        style={point ? { left: Math.max(8, Math.min(point.x, window.innerWidth - 360)), top: Math.max(8, point.y - 230) } : undefined}
+        aria-label="Ask Ava"
+      >
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm">Ava Skye <span className="text-muted">· {look.label}</span></p>
           <button type="button" className="rounded-full border border-border px-3 py-1 text-sm" onClick={() => setOpen(false)}>Close</button>
@@ -68,8 +151,16 @@ export function AvaFloat() {
   }
 
   return (
-    <button type="button" className="fixed bottom-2 right-2 z-50 w-36 border-0 bg-transparent p-0 sm:w-40" onClick={() => setOpen(true)} aria-label={`Ask Ava for help. She is in ${look.label}.`}>
-      <img src={look.src} alt="" className="h-auto w-full drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]" />
+    <button
+      type="button"
+      className={`fixed z-50 w-36 cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing sm:w-40 ${point ? "" : "bottom-2 right-2"}`}
+      style={placed}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      aria-label={`Ask Ava for help. Drag to move her. She is in ${look.label}.`}
+    >
+      <img src={look.src} alt="" draggable={false} className="pointer-events-none h-auto w-full drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]" />
     </button>
   )
 }
