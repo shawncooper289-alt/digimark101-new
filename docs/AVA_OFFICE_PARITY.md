@@ -29,3 +29,20 @@ Billing is read-only, reports are operational summaries rather than visitor anal
 Review PR changes and verify owner login, non-owner denial, read permissions, and confirmed writes on deliberately chosen test records. Preview currently has public Supabase config but no administration key or live AI key. Configure these through Vercel protected environment inputs in the intended environments; do not broaden access automatically. Production-only credentials are not available to a preview.
 
 No database migration is introduced. Checkout, webhooks, and scheduled jobs continue on DigiMark101. This preview does not change production domains or data.
+
+## Audit follow-up: knowledge, niches, and briefings
+
+- `/skills` renders every recorded skill group and named framework directly from the shared registry, with links to relevant office screens. Reasoning instructions require objectives, evidence, assumptions, alternatives, risks, and next action; this is not a guarantee of model reasoning quality.
+- `/niches` reads the persisted `lead_niches` registry and requests exact per-niche premium and shareable counts. Shareable requires premium + sellable + consent_share. Counts are not limited to a sampled lead list. Existing code does not establish exclusive/unallocated stock.
+- `/briefings` preserves one generated planning brief per UTC day in owner-scoped memory, with duplicate-safe insertion. Model fallback is not recorded as a live briefing. No fresh-market research source or scheduler is attached: these are explicitly labeled planning hypotheses, manually requested.
+
+### Remaining acceptance blockers
+
+Do not declare the full build attached or fully operational yet:
+1. Several `answerAva` tool-executor actions remain absent from the office conversation path. Sharing knowledge and `respondToAva` is not full agent parity.
+2. No autonomous all-record maintenance/audit worker or persisted niche-creation workflow is connected.
+3. No scheduled daily briefing delivery or sourced new-opportunity research is connected. A scheduler, chosen research source, protected credentials, and operational policy are needed.
+4. Office AI and administration credentials are not configured for preview. Live model calls, owner login, schema compatibility, writes, and scheduler delivery remain unverified.
+5. Provider billing, email delivery, phone calling, private file operations, and bot provisioning are not made operational by this work.
+
+The build and mocked regression tests validate code paths, not production acceptance. Production rollout remains deliberately unperformed.

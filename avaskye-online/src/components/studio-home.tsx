@@ -15,6 +15,9 @@ const PROFESSIONAL = { id: "professional", label: "Professional", src: "/ava/pro
 
 const TABLES = [
   { href: "/platform", label: "Main office" },
+  { href: "/niches", label: "Niche inventory" },
+  { href: "/skills", label: "Ava skills" },
+  { href: "/briefings", label: "Daily briefings" },
   { href: "/products", label: "Hub" },
   { href: "/content", label: "Content" },
   { href: "/campaigns", label: "Campaigns" },

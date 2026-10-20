@@ -4,6 +4,9 @@ import { deskSnapshot } from "@/lib/desk"
 import { readOfficeOwner } from "@/lib/office-store"
 
 const routes: { phrase: RegExp; href: string; label: string }[] = [
+  { phrase: /briefing|passive income|opportunit/, href: "/briefings", label: "Daily briefings" },
+  { phrase: /\bniches?\b/, href: "/niches", label: "Niche inventory" },
+  { phrase: /\bskills?\b|knowledge|reasoning/, href: "/skills", label: "Ava skills" },
   { phrase: /\bplatform\b|main office|control cent(er|re)/, href: "/platform", label: "Main office" },
   { phrase: /\bcontent\b|\bsites?\b|\bpages?\b/, href: "/content", label: "Content" },
   { phrase: /\b(hub|products?)\b/, href: "/products", label: "Hub" },
@@ -75,7 +78,7 @@ export async function POST(request: Request) {
   }
 
   const answer = await respondToAva([{ role: "user", content: message }], {
-    extra: "This is the private owner main office, not a customer enquiry. You are the same Ava Skye as DigiMark101, with a separate office wardrobe. Help manage the platform. You have not executed any tool in this response. Do not claim to read customer records, save, send, bill, or publish. Direct the owner to the appropriate office screen for confirmed changes. Office routes: /platform, /clients, /leads, /crm, /pipeline, /content, /campaigns, /automations, /billing, /records, /reports, /tools, /calendar, /inbox, /memory, /files, /settings. A guide-mode reply means the live provider is not connected or did not answer.",
+    extra: "This is the private owner main office, not a customer enquiry. You are the same Ava Skye as DigiMark101, with a separate office wardrobe. Help manage the platform. For recommendations explain objective, available evidence, assumptions, alternatives, risks, and next action. Never promise guaranteed passive income or pretend current market research occurred. You have not executed any tool in this response. Do not claim to read customer records, save, send, bill, or publish. Direct the owner to the appropriate office screen for confirmed changes. Office routes: /platform, /clients, /leads, /crm, /pipeline, /content, /campaigns, /automations, /billing, /records, /reports, /tools, /calendar, /inbox, /memory, /files, /settings. A guide-mode reply means the live provider is not connected or did not answer.",
   })
   return NextResponse.json({ reply: answer.text, live: answer.live, mode: answer.mode, notice: answer.notice, href: route?.href })
 }

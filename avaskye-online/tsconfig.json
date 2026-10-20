@@ -40,6 +40,9 @@
       ],
       "@/lib/site": [
         "../lib/site"
+      ],
+      "@/lib/platform/types": [
+        "../lib/platform/types"
       ]
     }
   },
