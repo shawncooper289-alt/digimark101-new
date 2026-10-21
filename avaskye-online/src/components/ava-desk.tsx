@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
-import { spokenText } from "@/lib/ava-speech"
+import { speakAva } from "@/lib/ava-speech"
 
 export function AvaDesk() {
   const router = useRouter()
@@ -13,12 +13,8 @@ export function AvaDesk() {
   const [voice, setVoice] = useState(false)
 
   function speak(line: string) {
-    if (!voice || typeof window === "undefined" || !("speechSynthesis" in window)) return
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(spokenText(line))
-    utterance.lang = "en-US"
-    utterance.rate = 1
-    window.speechSynthesis.speak(utterance)
+    if (!voice) return
+    speakAva(line)
   }
 
   async function send(event: FormEvent) {
@@ -89,7 +85,7 @@ export function AvaDesk() {
           onClick={() => {
             const next = !voice
             setVoice(next)
-            if (!next) window.speechSynthesis?.cancel()
+            if (!next && typeof window !== "undefined") window.speechSynthesis?.cancel()
           }}
         >
           Voice {voice ? "on" : "off"}
