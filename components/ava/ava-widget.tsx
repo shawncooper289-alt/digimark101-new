@@ -13,10 +13,10 @@ type Turn = { id: string; role: "user" | "assistant"; content: string }
 type Anchor = { x: number; y: number }
 
 const SUGGESTIONS = [
+  "Set up my account",
   "Which package fits a small team?",
   "Open the pipeline",
   "Add a contact named Jordan Lee",
-  "Book an appointment tomorrow at 10am",
 ]
 
 const AVATAR_W = 148

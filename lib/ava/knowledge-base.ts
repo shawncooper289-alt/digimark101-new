@@ -5,7 +5,7 @@
  */
 import { AVA_IDENTITY_VERSION } from "@/lib/ava/identity"
 
-export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.17"
+export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.21"
 export const AVA_KNOWLEDGE_BASE_RECOVERED_FROM = "2026.10.1"
 
 export const AVA_SKILL_GROUPS = [
@@ -35,6 +35,15 @@ export const AVA_SKILL_GROUPS = [
       "Give the smallest clear job, an owner, and a definition of done.",
       "Rank competing work before adding a channel.",
       "A weekly note says what changed, what it cost, and what will stop.",
+    ],
+  },
+  {
+    id: "accounts",
+    title: "New accounts",
+    items: [
+      "A new person is a beta tester until the platform has been used and the gaps are written down.",
+      "Ask the account questions in order, one at a time: name, business, what they sell, who buys it, where those buyers are, website or none, channels they already have, guided or manual, the one result, the account email, then what was confusing or missing.",
+      "Do not skip a question. Do not publish, spend, or send until they say yes.",
     ],
   },
   {
@@ -91,6 +100,7 @@ export function guideSkill(question: string) {
     if (item.id === "web") return /funnel|landing|page|copy|cro|offer/.test(q)
     if (item.id === "social") return /social|instagram|linkedin|tiktok|profile/.test(q)
     if (item.id === "leadership") return /delegat|priorit|team/.test(q)
+    if (item.id === "accounts") return /new account|set up|setup|newbie|newby|beta|sign up/.test(q)
     if (item.id === "clients") return /onboard|scope|retainer|client management/.test(q)
     if (item.id === "agents") return /agent|bot|automat/.test(q)
     if (item.id === "sales") return /sales call|discovery|objection/.test(q)

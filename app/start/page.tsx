@@ -43,6 +43,7 @@ export default function StartPage() {
           <div className="mt-6 flex flex-col gap-3">
             <Link href="/pricing" className="btn btn-signal">Pay the starter</Link>
             <Link href="/start/brief" className="btn btn-ghost">Answer the five questions</Link>
+            <Link href="/beta" className="text-sm text-ink-soft underline">Trying it first? Beta seats are for seeing how it works and what it still needs.</Link>
           </div>
         </aside>
       </div>
