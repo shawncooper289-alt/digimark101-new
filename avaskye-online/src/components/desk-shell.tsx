@@ -17,6 +17,7 @@ const links = [
   { href: "/billing", label: "Billing" },
   { href: "/records", label: "Records" },
   { href: "/clients", label: "Clients" },
+  { href: "/accounts", label: "Accounts" },
   { href: "/reports", label: "Reports" },
   { href: "/tools", label: "Tools" },
   { href: "/settings", label: "Settings" },
