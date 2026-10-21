@@ -10,6 +10,7 @@ const links = [
   { href: "/", label: "Today" },
   { href: "/products", label: "Hub" },
   { href: "/campaigns", label: "Campaigns" },
+  { href: "/media", label: "Media" },
   { href: "/leads", label: "Leads" },
   { href: "/crm", label: "CRM" },
   { href: "/pipeline", label: "Pipeline" },
