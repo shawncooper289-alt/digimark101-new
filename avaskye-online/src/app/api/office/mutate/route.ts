@@ -9,6 +9,8 @@ const channels = new Set(["email", "search", "social", "site"])
 const campaignStatuses = new Set(["draft", "active", "paused"])
 const recordKinds = new Set(["invoice", "expense", "record", "legal"])
 const recordStatuses = new Set(["open", "paid", "filed"])
+const mediaKinds = new Set(["image", "video", "copy", "creative", "document", "other"])
+const mediaStatuses = new Set(["planned", "used", "archived"])
 
 async function rest(path: string, init: RequestInit) {
   const { url, service, configured } = officeConfig()
@@ -153,6 +155,34 @@ export async function POST(request: Request) {
     }
     const saved = await rest(`office_records?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ status }) })
     return NextResponse.json(saved.ok ? { ok: true } : { error: "The record was not updated." }, { status: saved.ok ? 200 : 503 })
+  }
+
+  if (action === "create_media") {
+    const title = typeof body.title === "string" ? body.title.trim() : ""
+    const kind = typeof body.kind === "string" && mediaKinds.has(body.kind) ? body.kind : "other"
+    const status = typeof body.status === "string" && mediaStatuses.has(body.status) ? body.status : "planned"
+    if (title.length < 2) return NextResponse.json({ error: "An asset needs a title." }, { status: 400 })
+    const product = typeof body.product === "string" && isHubProduct(body.product) ? body.product : "digimark101"
+    const payload = {
+      kind,
+      title: title.slice(0, 160),
+      url: typeof body.url === "string" ? body.url.trim().slice(0, 500) : "",
+      notes: typeof body.notes === "string" ? body.notes.trim().slice(0, 2000) : "",
+      status,
+      product_key: product,
+    }
+    const saved = await rest("office_media", { method: "POST", body: JSON.stringify(payload) })
+    return NextResponse.json(saved.ok ? { ok: true } : { error: "The asset was not saved. The media table may not be installed yet." }, { status: saved.ok ? 200 : 503 })
+  }
+
+  if (action === "set_media_status") {
+    const id = typeof body.id === "string" ? body.id : ""
+    const status = typeof body.status === "string" ? body.status : ""
+    if (!/^[0-9a-f-]{36}$/i.test(id) || !mediaStatuses.has(status)) {
+      return NextResponse.json({ error: "That media change is not valid." }, { status: 400 })
+    }
+    const saved = await rest(`office_media?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ status }) })
+    return NextResponse.json(saved.ok ? { ok: true } : { error: "The asset status was not updated." }, { status: saved.ok ? 200 : 503 })
   }
 
   return NextResponse.json({ error: "Unknown action." }, { status: 400 })
