@@ -12,9 +12,11 @@ export const HUB_PRODUCTS: HubProduct[] = [
     key: "digimark101",
     name: "DigiMark101",
     house: "DigiMark101",
-    summary: "The client studio. Campaigns and the public site run from this office.",
+    summary: "The client studio. Campaigns, free social plays, media, and the public site run from this office.",
     opens: [
       { href: "/campaigns?product=digimark101", label: "Campaigns" },
+      { href: "/social", label: "Social" },
+      { href: "/media", label: "Media" },
       { href: "/records?product=digimark101", label: "Records" },
       { href: "https://www.digimark101.com/studio", label: "Studio" },
     ],

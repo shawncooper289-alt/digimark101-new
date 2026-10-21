@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { HUB_PRODUCTS, hubProduct } from "@/lib/products"
+import Link from "next/link"
 
 export type CampaignRow = {
   id: string
@@ -69,6 +70,9 @@ export function CampaignDesk({
       <h1 className="text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Campaigns</h1>
       <p className="mt-3 max-w-2xl text-muted">
         These campaigns belong to {product.name}. There is no seat cap on this desk. Active means the record is live in that account’s studio. It does not buy ads or send mail.
+      </p>
+      <p className="mt-2 text-sm">
+        <Link href="/social" className="underline">Open free social plays</Link> for Facebook, TikTok, Instagram, and YouTube. Save any play here as a campaign.
       </p>
       {HUB_PRODUCTS.length > 1 ? (
         <label className="mt-6 grid max-w-sm gap-1 text-sm">
