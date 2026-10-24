@@ -4,6 +4,7 @@ import Script from "next/script"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import type { MembershipOffers } from "@/lib/paypal/config"
+import { RequestAccess } from "@/components/pricing/request-access"
 import { createSupabaseBrowser } from "@/lib/supabase/browser"
 
 type PaypalButtons = {
@@ -202,13 +203,16 @@ export function MembershipPicker({ offers, unrestricted = false }: { offers: Mem
             ) : null}
           </>
         ) : (
-          <p className="mt-5 rounded-2xl bg-mist px-4 py-3 text-sm font-semibold" role="status">
-            {offers.login === "rejected"
-              ? "PayPal did not accept the saved login on live or sandbox. The Client ID and Secret need to be a matching pair from the same app."
-              : offers.mode === null
-              ? "Membership checkout is coming soon. PAYPAL_ENV needs to be sandbox or live."
-              : "Membership checkout is coming soon."}
-          </p>
+          <>
+            <p className="mt-5 rounded-2xl bg-mist px-4 py-3 text-sm font-semibold" role="status">
+              {offers.login === "rejected"
+                ? "PayPal did not accept the saved login on live or sandbox. The Client ID and Secret need to be a matching pair from the same app."
+                : offers.mode === null
+                ? "PayPal checkout needs PAYPAL_ENV set to sandbox or live, plus a plan id."
+                : "PayPal plan ids are not on this server yet, so the subscribe button is hidden."}
+            </p>
+            <RequestAccess planKey={selected.key} planName={selected.name} />
+          </>
         )}
         <p className="mt-4 text-sm text-ink-soft">Cancel anytime in PayPal. Cancelling stops the next renewal. It does not start a project by itself.</p>
       </div>

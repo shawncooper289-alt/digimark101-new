@@ -1,4 +1,5 @@
 import { saleShouldKeepStatus, subscriptionPatch } from "@/lib/paypal/events"
+import { deliverSeat } from "@/lib/seats/deliver"
 import { createSupabaseAdmin } from "@/lib/supabase/admin"
 
 type ExistingSubscription = {
@@ -72,6 +73,23 @@ export async function recordPaypalEvent(eventType: string, resource: unknown, ev
   if (eventError && !/paypal_webhook_events|schema cache/i.test(eventError.message)) {
     console.error("PayPal webhook log failed", eventError.message)
   }
+
+  const status = String(row.status || "")
+  if (status !== "ACTIVE") return
+  const email = typeof row.payer_email === "string" ? row.payer_email : ""
+  const userId = typeof row.owner_id === "string" ? row.owner_id : ""
+  if (!email && !userId) return
+  const seat = await deliverSeat({
+    email,
+    userId: userId || null,
+    planKey: typeof row.plan_key === "string" ? row.plan_key : "monthly",
+    source: "paypal",
+    paypalSubscriptionId: patch.paypal_subscription_id,
+  })
+  if (!seat.ok && !/deliver_seat|schema cache|does not exist|Could not find the function/i.test(seat.error)) {
+    throw new Error(seat.error)
+  }
+  if (!seat.ok) console.error("Seat delivery skipped", seat.error)
 }
 
 function assign(row: Record<string, string | number | null>, key: string, next: string | number | undefined, previous: string | number | null | undefined) {
