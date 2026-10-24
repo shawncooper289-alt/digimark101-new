@@ -10,13 +10,13 @@ export async function GET(req: NextRequest) {
   const error = searchParams.get("error");
 
   if (error) {
-    return NextResponse redirect(
+    return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=tiktok&error=${encodeURIComponent(error)}`
     );
   }
 
   if (!code || !state) {
-    return NextResponse redirect(
+    return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=tiktok&error=missing_code`
     );
   }
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   try {
     userId = Buffer.from(state, "base64url").toString("utf8");
   } catch {
-    return NextResponse redirect(
+    return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=tiktok&error=invalid_state`
     );
   }
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   const tokenData = await tokenRes.json();
 
   if (tokenData.error) {
-    return NextResponse redirect(
+    return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=tiktok&error=${encodeURIComponent(tokenData.error_description || tokenData.error)}`
     );
   }
@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
     { onConflict: "user_id,platform" }
   );
 
-  return NextResponse redirect(
+  return NextResponse.redirect(
     `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=tiktok&success=1`
   );
 }

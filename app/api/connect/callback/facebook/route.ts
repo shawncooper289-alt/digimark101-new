@@ -9,13 +9,13 @@ export async function GET(req: NextRequest) {
   const error = searchParams.get("error");
 
   if (error) {
-    return NextResponse redirect(
+    return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&error=${encodeURIComponent(error)}`
     );
   }
 
   if (!code || !state) {
-    return NextResponse redirect(
+    return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&error=missing_code`
     );
   }
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   try {
     userId = Buffer.from(state, "base64url").toString("utf8");
   } catch {
-    return NextResponse redirect(
+    return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&error=invalid_state`
     );
   }
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   const tokenData = await tokenRes.json();
 
   if (tokenData.error) {
-    return NextResponse redirect(
+    return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&error=${encodeURIComponent(tokenData.error.message)}`
     );
   }
@@ -78,12 +78,7 @@ export async function GET(req: NextRequest) {
     { onConflict: "user_id,platform" }
   );
 
-  await supabase
-    .from("client_onboarding")
-    .update({ onboarding_complete: true })
-    .eq("user_id", userId);
-
-  return NextResponse redirect(
+  return NextResponse.redirect(
     `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&success=1`
   );
 }
