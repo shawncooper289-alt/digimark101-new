@@ -73,11 +73,6 @@ export function AuthForm({ mode, nextPath = "/studio" }: { mode: "login" | "sign
       <p className="mt-4 text-sm">
         {mode === "login" ? <Link href={nextPath.startsWith("/start") ? `/signup?next=${encodeURIComponent(nextPath)}` : "/signup"} className="underline">Create an account</Link> : <Link href={nextPath.startsWith("/start") ? `/login?next=${encodeURIComponent(nextPath)}` : "/login"} className="underline">Already have an account</Link>}
       </p>
-      {mode === "login" ? (
-        <p className="mt-6 text-sm text-ink-soft">
-          Owner entrance and personal campaigns: <a className="underline" href="https://www.avaskye.online">avaskye.online</a>. Client accounts cannot open it.
-        </p>
-      ) : null}
     </div>
   )
 }

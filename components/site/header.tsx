@@ -33,6 +33,9 @@ export function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <Link href="/login" className="btn btn-ghost hidden sm:inline-flex">
+            Client login
+          </Link>
           <Link href="/start" className="btn btn-signal hidden sm:inline-flex">
             Start the first campaign
           </Link>
@@ -62,6 +65,11 @@ export function Header() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href="/login" className="btn btn-ghost mt-2 w-full" onClick={() => setOpen(false)}>
+                Client login
+              </Link>
+            </li>
             <li>
               <Link href="/start" className="btn btn-signal mt-2 w-full" onClick={() => setOpen(false)}>
                 Start the first campaign
