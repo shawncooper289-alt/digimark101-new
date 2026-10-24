@@ -120,11 +120,12 @@ p {
   line-height: 1;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
 .btn:hover {
   transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(203, 176, 130, 0.15);
 }
 
 .btn-signal {
@@ -219,40 +220,41 @@ details.faq > summary::-webkit-details-marker {
 
 .hero-stage {
   background:
-    radial-gradient(ellipse at 80% 20%, rgba(203, 176, 130, 0.08), transparent 42%),
+    radial-gradient(ellipse at 70% 30%, rgba(203, 176, 130, 0.12), transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(100, 120, 140, 0.1), transparent 60%),
     var(--paper);
 }
 
 .hero-glow {
   background:
-    radial-gradient(32rem 32rem at var(--mx, 74%) var(--my, 38%), rgba(203, 176, 130, 0.28), transparent 60%),
-    radial-gradient(22rem 16rem at 8% 90%, rgba(120, 140, 150, 0.18), transparent 70%);
+    radial-gradient(40rem 40rem at var(--mx, 75%) var(--my, 35%), rgba(203, 176, 130, 0.35), transparent 65%),
+    radial-gradient(28rem 20rem at 10% 85%, rgba(120, 140, 160, 0.22), transparent 70%);
 }
 
 .hero-grid {
   background-image:
-    linear-gradient(rgba(234, 228, 215, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(234, 228, 215, 0.055) 1px, transparent 1px);
-  background-size: 4.25rem 4.25rem;
-  mask-image: radial-gradient(ellipse at 70% 40%, black 15%, transparent 74%);
+    linear-gradient(rgba(234, 228, 215, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(234, 228, 215, 0.07) 1px, transparent 1px);
+  background-size: 4rem 4rem;
+  mask-image: radial-gradient(ellipse at 65% 40%, black 20%, transparent 75%);
 }
 
 .hero-perspective {
   height: 100%;
-  perspective: 1200px;
+  perspective: 1400px;
 }
 
 .hero-frame {
   position: relative;
   height: 100%;
   overflow: hidden;
-  border-radius: 1.6rem;
-  border: 1px solid rgba(203, 176, 130, 0.5);
+  border-radius: 1.8rem;
+  border: 1px solid rgba(203, 176, 130, 0.45);
   box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.45),
-    0 0 48px rgba(203, 176, 130, 0.16);
+    0 30px 80px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(203, 176, 130, 0.2);
   transform-style: preserve-3d;
-  transition: transform 180ms ease;
+  transition: transform 200ms ease;
 }
 
 .hero-chip {
