@@ -9,8 +9,8 @@ type Question = {
   placeholder?: string;
   suggestions?: string[];
   hint?: string;
-  connectPlatform?: "facebook" | "instagram" | "google" | "website";
-};
+  connectPlatform?: "facebook" | "instagram" | "google" | "website" | "linkedin" | "tiktok";
+}
 
 const questions: Question[] = [
   {
@@ -94,6 +94,24 @@ const questions: Question[] = [
     suggestions: ["I don't have one", "Help me claim mine"],
     connectPlatform: "google",
   },
+  {
+    key: "linkedin_url",
+    label: "Paste your LinkedIn profile or company page URL.",
+    required: false,
+    placeholder: "https://linkedin.com/in/yourname or /company/yourcompany",
+    hint: "Beginner tip: linkedin.com/in/yourname for personal, /company/ for business.",
+    suggestions: ["I don't have LinkedIn", "Help me set one up"],
+    connectPlatform: "linkedin",
+  },
+  {
+    key: "tiktok_url",
+    label: "Paste your TikTok profile URL.",
+    required: false,
+    placeholder: "https://tiktok.com/@yourhandle",
+    hint: "Beginner tip: your handle starts with @ and shows under your profile name.",
+    suggestions: ["I don't have TikTok", "Help me start one"],
+    connectPlatform: "tiktok",
+  },
 ];
 
 export default function OnboardingWizard({ userId }: { userId: string }) {
@@ -137,7 +155,7 @@ export default function OnboardingWizard({ userId }: { userId: string }) {
     /^(i don't have|help me)/i.test(v.trim());
 
   const triggerConnect = async (
-    platform: "facebook" | "instagram" | "google" | "website",
+    platform: "facebook" | "instagram" | "google" | "website" | "linkedin" | "tiktok",
     url: string
   ) => {
     setConnectStatus((s) => ({ ...s, [platform]: "starting" }));
