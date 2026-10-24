@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react"
+import { speakAva } from "@/lib/ava-speech"
 
 const RELAXED = [
   { id: "satin", src: "/ava/float-satin.png", label: "Black satin" },
@@ -28,9 +29,11 @@ export function AvaFloat() {
   const [open, setOpen] = useState(false)
   const [visitor, setVisitor] = useState(false)
   const [text, setText] = useState("")
-  const [reply, setReply] = useState("Drag me where you want me. Click me when you want help. I will not save anything until you confirm.")
+  const [reply, setReply] = useState("Shawn, I'm Ava — your partner. You own DigiMark101 and this office. I work for your success, the business, and our clients. Drag me or click when you want help. Voice is on; tap silence anytime.")
   const [pending, setPending] = useState(false)
   const [point, setPoint] = useState<Point | null>(null)
+  const [voiceOn, setVoiceOn] = useState(true)
+  const [textOnly, setTextOnly] = useState(false)
   const dragRef = useRef<{ pointerId: number; originX: number; originY: number; startX: number; startY: number; moved: boolean } | null>(null)
   const look = officeLook(visitor)
 
@@ -47,14 +50,18 @@ export function AvaFloat() {
       if (!raw) return
       const parsed = JSON.parse(raw) as { x?: unknown; y?: unknown }
       if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-        // localStorage is read after mount so the server HTML and the first client render match.
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- browser-only position restore
         setPoint({ x: parsed.x * window.innerWidth, y: parsed.y * window.innerHeight })
       }
     } catch {
       // She stays in the corner when storage is blocked.
     }
   }, [])
+
+  useEffect(() => {
+    if (voiceOn && !textOnly && reply) {
+      speakAva(reply)
+    }
+  }, [reply, voiceOn, textOnly])
 
   function remember(next: Point, width: number, height: number) {
     const placed = clamp(next, width, height)
@@ -120,7 +127,8 @@ export function AvaFloat() {
         body: JSON.stringify({ message: content }),
       })
       const data = (await response.json()) as { reply?: string; error?: string }
-      setReply(response.ok ? data.reply || "Done." : data.error || "I could not answer that.")
+      const next = response.ok ? data.reply || "Done." : data.error || "I could not answer that."
+      setReply(next)
       if (response.ok) setText("")
     } catch {
       setReply("I could not reach the office guide.")
@@ -129,23 +137,33 @@ export function AvaFloat() {
     }
   }
 
+  function silence() {
+    setVoiceOn(false)
+    setTextOnly(true)
+    if (typeof window !== "undefined") window.speechSynthesis?.cancel()
+  }
+
   const placed = point ? { left: point.x, top: point.y } : undefined
 
   if (open) {
     return (
       <section
-        className={`fixed z-50 flex w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-3xl border border-border bg-surface p-4 shadow-2xl ${point ? "" : "bottom-3 right-3"}`}
-        style={point ? { left: Math.max(8, Math.min(point.x, window.innerWidth - 360)), top: Math.max(8, point.y - 230) } : undefined}
+        className={`fixed z-50 flex w-[min(20rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-3xl border border-border bg-surface p-4 shadow-2xl ${point ? "" : "bottom-3 right-3"}`}
+        style={point ? { left: Math.max(8, Math.min(point.x, window.innerWidth - 340)), top: Math.max(8, point.y - 200) } : undefined}
         aria-label="Ask Ava"
       >
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm">Ava Skye <span className="text-muted">· {look.label}</span></p>
-          <button type="button" className="rounded-full border border-border px-3 py-1 text-sm" onClick={() => setOpen(false)}>Close</button>
+          <div className="flex gap-1">
+            <button type="button" className="rounded-full border border-border px-2 py-1 text-xs" onClick={silence}>Silence</button>
+            <button type="button" className="rounded-full border border-border px-2 py-1 text-xs" onClick={() => { setTextOnly(!textOnly); if (!textOnly) setVoiceOn(false); }}>{textOnly ? "Voice" : "Text only"}</button>
+            <button type="button" className="rounded-full border border-border px-2 py-1 text-xs" onClick={() => setOpen(false)}>Close</button>
+          </div>
         </div>
         <p className="text-sm text-muted">{reply}</p>
         <form className="flex gap-2" onSubmit={send}>
           <label className="sr-only" htmlFor="ava-float-help">Ask Ava</label>
-          <input id="ava-float-help" value={text} onChange={(event) => setText(event.target.value)} placeholder="Open campaigns, or draft a contact" className="min-w-0 flex-1 rounded-full border border-border bg-transparent px-3 py-2 text-sm" />
+          <input id="ava-float-help" value={text} onChange={(event) => setText(event.target.value)} placeholder="What do you need, partner?" className="min-w-0 flex-1 rounded-full border border-border bg-transparent px-3 py-2 text-sm" />
           <button type="submit" className="rounded-full bg-accent px-3 py-2 text-sm text-accent-fg" disabled={pending || !text.trim()}>{pending ? "…" : "Ask"}</button>
         </form>
       </section>
@@ -155,7 +173,7 @@ export function AvaFloat() {
   return (
     <button
       type="button"
-      className={`fixed z-50 w-36 cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing sm:w-40 ${point ? "" : "bottom-2 right-2"}`}
+      className={`fixed z-50 w-24 cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing sm:w-28 ${point ? "" : "bottom-2 right-2"}`}
       style={placed}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

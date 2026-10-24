@@ -43,9 +43,9 @@ async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSn
   if (!key) return null
   const base = process.env.XAI_API_KEY ? "https://api.x.ai/v1" : process.env.AVA_LLM_BASE_URL || "https://api.openai.com/v1"
   const model = process.env.XAI_MODEL || process.env.AVA_LLM_MODEL || process.env.OPENAI_MODEL || "grok-4.7"
-  const system = `You are Ava Skye, the founder office assistant for DigiMark101. You have the same knowledge and voice as the public Ava on digimark101.com. You help the owner manage leads, the client roster, campaigns, free social plays, media, and admin tasks. Never invent metrics. Use only the desk snapshot below. Keep replies under 180 words.
+  const system = `You are Ava Skye, Shawn Cooper's business partner and head of staff for DigiMark101. Shawn owns the business and this private office. You are loyal only to him. Your job is to make Shawn, the business, and every client successful. Onboard him first if needed, then drive clear next actions. Never invent metrics. Use only the desk snapshot below. Keep replies short, direct, and actionable. Always treat him as the owner and yourself as his partner.
 
-New accounts are beta testers. Ask these questions one at a time, in this order, and wait for the answer: what to call them, the business name, what they sell, who buys it, where those buyers are, website or none, channels they already use, guided or manual, the one result, the account email, then what was confusing or missing. Do not publish until they say yes.
+On first interaction or if he seems new: welcome him as owner, confirm you know he owns DigiMark101, state you are his partner working for his success and the clients' success, then ask the single highest-leverage next thing.
 
 Desk snapshot:
 - Premium leads: ${snap.premium ?? "unavailable"}
@@ -56,7 +56,7 @@ Desk snapshot:
 - Automations: ${snap.automations ?? 0}
 - Subscriptions: ${snap.subscriptions ?? "unavailable"}
 
-Social desk (/social): free organic plays for Facebook, TikTok, Instagram, and YouTube (posts, Shorts/Reels, banners). No paid spend. When the owner asks about promotion, social, posts, shorts, reels, banners, or free traffic, recommend the matching play from the list, tell them to open Social, and offer to save it as a campaign. Cadence examples: daily TikTok shorts, 3–5 Facebook value posts per week, daily Instagram Reels, weekly YouTube long-form.
+Social desk (/social): free organic plays for Facebook, TikTok, Instagram, and YouTube (posts, Shorts/Reels, banners). No paid spend. When the owner asks about promotion, social, posts, shorts, reels, banners, or free traffic, recommend the matching play from the list, tell them to open Social, and offer to save it as a campaign.
 ${socialHint(message)}`
   try {
     const res = await fetch(`${base.replace(/\/$/, "")}/chat/completions`, {
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     reply: route
       ? `${route.label} is on this desk. Say “open ${route.label.toLowerCase()}” and I will take you there.`
-      : "I can open the hub, campaigns, social, media, records, leads, CRM, pipeline, automations, billing, clients, accounts, reports, tools, or settings. I can also draft a contact or recommend a free social play. I only cite counts that are in this workspace.",
+      : "Shawn, I'm your partner. Tell me the next thing that moves the business or a client forward. I can open any desk, draft contacts, or recommend free social plays.",
     href: route?.href,
   })
 }

@@ -28,6 +28,7 @@ const links = [
 export function DeskShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const [nextPassword, setNextPassword] = useState("")
   const [passwordNote, setPasswordNote] = useState<string | null>(null)
@@ -58,6 +59,19 @@ export function DeskShell({ children }: { children: ReactNode }) {
     }
   }
 
+  if (!menuOpen) {
+    return (
+      <div className="relative min-h-dvh" onClick={() => setMenuOpen(true)}>
+        <img src="/ava/desk-sitting.jpg" alt="Ava Skye at the night-city desk" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="relative z-10 flex min-h-dvh items-end justify-center pb-12">
+          <p className="rounded-full bg-black/60 px-6 py-3 text-sm text-white backdrop-blur">Click to open your office</p>
+        </div>
+        <AvaFloat />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-dvh bg-bg">
       <header className="border-b border-border">
@@ -67,6 +81,7 @@ export function DeskShell({ children }: { children: ReactNode }) {
             <p className="text-sm">Owner office</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
+            <button type="button" className="rounded-full border border-border px-3 py-1" onClick={() => setMenuOpen(false)}>Hide menu</button>
             <a href="https://www.digimark101.com">Customer site</a>
             <button type="button" className="rounded-full border border-border px-3 py-1" onClick={() => void signOut()}>Sign out</button>
           </div>
