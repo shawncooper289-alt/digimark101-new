@@ -47,7 +47,7 @@ export function HomeHero() {
             <span className="mt-2 block italic text-signal">Shape what comes next.</span>
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
-            One growth system for search, paid media, social, content, web, email, analytics, and automation—planned together, measured openly, and built so you keep it. Ava Skye is here for the next clear step. No invented results. Just a path you can follow and own.
+            One growth system across search, paid media, social, content, web, email, analytics, and automation. Planned together. Measured in the open. Built so you keep it. Ava Skye guides the next decision—no invented results, just a clear path you can follow and own.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <Link href="/start" className="btn btn-signal text-base px-6 py-3">
