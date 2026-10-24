@@ -165,6 +165,10 @@ export default function OnboardingWizard({ userId }: { userId: string }) {
       body: JSON.stringify({ user_id: userId, platform, url }),
     });
     const data = await res.json();
+    if (data.needsCredentials || data.missing) {
+      setConnectStatus((s) => ({ ...s, [platform]: data.message || "Needs app credentials" }));
+      return;
+    }
     if (data.authUrl) {
       setConnectStatus((s) => ({ ...s, [platform]: "redirecting" }));
       window.location.href = data.authUrl;
@@ -209,7 +213,7 @@ export default function OnboardingWizard({ userId }: { userId: string }) {
           if (e.key === "Enter" && (e.currentTarget.value.trim() || !current.required)) {
             handleAnswer(e.currentTarget.value);
           }
-        }
+        }}
       />
       {current.suggestions && current.suggestions.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -233,7 +237,7 @@ export default function OnboardingWizard({ userId }: { userId: string }) {
             ?.previousElementSibling as (HTMLInputElement | null);
           const el = (e.currentTarget.previousElementSibling as HTMLInputElement) || input;
           if (el?.value.trim() || !current.required) handleAnswer(el?.value || "");
-        }
+        }}
       >
         {saving ? "Saving…" : "Next"}
       </button>

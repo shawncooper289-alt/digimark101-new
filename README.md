@@ -133,7 +133,7 @@ Her skill book is `lib/ava/knowledge-base.ts`: pages and funnels, social pages, 
 
 Per-client memory is confirmed before it is saved, and one client cannot read another client’s memory.
 
-Chat actions she can draft: create a contact, create or move a deal, book an appointment, log an inbox note, start a campaign draft, create a site or funnel record, create an automation, remember a fact, navigate, and fill a visible form.
+Chat actions she can draft, and that stay unsaved until confirm: create a contact, create or move a deal, add a task, book an appointment, log an inbox note, start a campaign draft, create an email list, create a site or funnel record, draft a social post, create an automation, note a lead without a private email, request a white-label backend, remember a fact, navigate, and fill a visible form. A backend request does not call the management API until confirm, and it does not create a project when those credentials are missing.
 
 ## Environment
 
@@ -158,8 +158,10 @@ Copy `.env.example`. Server-only values must never use the `NEXT_PUBLIC_` prefix
 | `LEAD_CONNECTOR_URL`, `LEAD_CONNECTOR_TOKEN`, `LEAD_CONNECTORS` | Consented JSON lead sources |
 | `ENRICHMENT_BASE_URL`, `ENRICHMENT_API_KEY` | Optional enrichment. Off when either is missing |
 | `PAYPAL_ENV` | `sandbox` or `live` |
-| `NEXT_PUBLIC_PAYPAL_CLIENT_ID` and the three `NEXT_PUBLIC_PAYPAL_PLAN_*` ids | Membership buttons |
+| `NEXT_PUBLIC_PAYPAL_CLIENT_ID` and `NEXT_PUBLIC_PAYPAL_PLAN_STARTER`, `_MONTHLY`, `_QUARTERLY`, `_SEMIANNUAL` | Membership buttons. Missing plan ids show Request access |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` | Server only |
+| `SOCIAL_TOKEN_KEY` | Server only. 32-byte key for encrypted social tokens |
+| `META_APP_ID`, `META_APP_SECRET`, `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`, `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `X_CLIENT_ID`, `X_CLIENT_SECRET`, `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Social OAuth. Each network shows Needs app credentials until its pair is set. See `docs/SOCIAL.md` |
 | `SUPABASE_AFFILIATE_URL`, `VERCEL_AFFILIATE_URL` | Optional partner links. Hidden when unset |
 
 The founder office reads the same Supabase names, plus `OWNER_EMAIL`. It also lists `LEAD_HASH_SALT` and the PayPal server secrets when those jobs run there.

@@ -25,6 +25,7 @@ const groups = [
     label: "Marketing",
     items: [
       { href: "/studio/campaigns", label: "Email" },
+      { href: "/studio/social", label: "Socials" },
       { href: "/studio/sites", label: "Funnels" },
       { href: "/studio/automations", label: "Automations" },
     ],
