@@ -29,7 +29,7 @@ export function AvaFloat() {
   const [open, setOpen] = useState(false)
   const [visitor, setVisitor] = useState(false)
   const [text, setText] = useState("")
-  const [reply, setReply] = useState("Shawn, I'm Ava — your partner. You own DigiMark101 and this office. I work for your success, the business, and our clients. Drag me or click when you want help. Voice is on; tap silence anytime.")
+  const [reply, setReply] = useState("Shawn, welcome back. I'm Ava, your partner. You own DigiMark101 and this office. Let's finish onboarding so I can take you through the next steps. What should I call you? (Example: Shawn.)")
   const [pending, setPending] = useState(false)
   const [point, setPoint] = useState<Point | null>(null)
   const [voiceOn, setVoiceOn] = useState(true)
@@ -163,8 +163,8 @@ export function AvaFloat() {
         <p className="text-sm text-muted">{reply}</p>
         <form className="flex gap-2" onSubmit={send}>
           <label className="sr-only" htmlFor="ava-float-help">Ask Ava</label>
-          <input id="ava-float-help" value={text} onChange={(event) => setText(event.target.value)} placeholder="What do you need, partner?" className="min-w-0 flex-1 rounded-full border border-border bg-transparent px-3 py-2 text-sm" />
-          <button type="submit" className="rounded-full bg-accent px-3 py-2 text-sm text-accent-fg" disabled={pending || !text.trim()}>{pending ? "…" : "Ask"}</button>
+          <input id="ava-float-help" value={text} onChange={(event) => setText(event.target.value)} placeholder="Answer or ask anything" className="min-w-0 flex-1 rounded-full border border-border bg-transparent px-3 py-2 text-sm" />
+          <button type="submit" className="rounded-full bg-accent px-3 py-2 text-sm text-accent-fg" disabled={pending || !text.trim()}>{pending ? "…" : "Send"}</button>
         </form>
       </section>
     )
