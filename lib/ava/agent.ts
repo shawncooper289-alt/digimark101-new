@@ -4,8 +4,8 @@ import { visitorModeIntent, visitorModeReply } from "@/lib/office/intent"
 import { isOwnerIdentity } from "@/lib/owner/access"
 import { interpret } from "@/lib/platform/interpret"
 import { rosterFor } from "@/lib/platform/db"
-import type { Action, Roster, Stage, Trigger, AutomationAction } from "@/lib/platform/types"
-import { automationActions, stages, triggers } from "@/lib/platform/types"
+import type { Action, Roster, Stage, Trigger, AutomationAction, SocialPlatform } from "@/lib/platform/types"
+import { automationActions, socialPlatforms, stages, triggers } from "@/lib/platform/types"
 import { createSupabaseServer } from "@/lib/supabase/server"
 
 export type AvaAnswer = {
@@ -32,6 +32,11 @@ const toolDefs = [
   { type: "function", function: { name: "create_site", description: "Register a draft site record. This does not publish a page.", parameters: { type: "object", properties: { name: { type: "string" }, headline: { type: "string" } }, required: ["name"] } } },
   { type: "function", function: { name: "create_automation", description: "Create an automation inside the workspace.", parameters: { type: "object", properties: { name: { type: "string" }, trigger: { type: "string", enum: triggers }, action: { type: "string", enum: automationActions } }, required: ["trigger", "action"] } } },
   { type: "function", function: { name: "remember", description: "Save a memory that only this client can read.", parameters: { type: "object", properties: { key: { type: "string" }, value: { type: "string" } }, required: ["key", "value"] } } },
+  { type: "function", function: { name: "create_task", description: "Add an open task in this workspace. Confirm before save.", parameters: { type: "object", properties: { title: { type: "string" }, contactName: { type: "string" } }, required: ["title"] } } },
+  { type: "function", function: { name: "draft_email_list", description: "Create an email list draft. This does not send email.", parameters: { type: "object", properties: { name: { type: "string" } }, required: ["name"] } } },
+  { type: "function", function: { name: "draft_social_post", description: "Draft a social post. This does not publish it.", parameters: { type: "object", properties: { platform: { type: "string", enum: ["facebook", "instagram", "linkedin", "x", "tiktok", "youtube", "google"] }, body: { type: "string" }, scheduledFor: { type: "string" } }, required: ["platform", "body"] } } },
+  { type: "function", function: { name: "note_lead", description: "Save an anonymized lead note. Never include an email address, phone number, or other private contact detail.", parameters: { type: "object", properties: { niche: { type: "string" }, note: { type: "string" } }, required: ["niche", "note"] } } },
+  { type: "function", function: { name: "request_backend", description: "Request a white-label backend. Nothing is created until the person confirms, and no project is created when management credentials are missing.", parameters: { type: "object", properties: { name: { type: "string" }, region: { type: "string" } }, required: ["name"] } } },
   { type: "function", function: { name: "navigate", description: "Open a page in this product.", parameters: { type: "object", properties: { href: { type: "string" } }, required: ["href"] } } },
   { type: "function", function: { name: "fill_form", description: "Fill visible form fields. Do not save. Ask one short question if a required field is missing.", parameters: { type: "object", properties: { name: { type: "string" }, email: { type: "string" }, company: { type: "string" }, website: { type: "string" }, phone: { type: "string" }, message: { type: "string" }, title: { type: "string" }, headline: { type: "string" }, brief: { type: "string" }, region: { type: "string" }, site: { type: "string" } } } } },
 ]
@@ -62,6 +67,18 @@ function actionFromTool(name: string, args: Record<string, unknown>): Action | n
         : null
     case "remember":
       return str(args.key) && str(args.value) ? { type: "remember", key: str(args.key)!, value: str(args.value)! } : null
+    case "create_task":
+      return str(args.title) ? { type: "create_task", title: str(args.title)!, contactName: str(args.contactName) } : null
+    case "draft_email_list":
+      return str(args.name) ? { type: "draft_email_list", name: str(args.name)! } : null
+    case "draft_social_post":
+      return str(args.body) && socialPlatforms.includes(args.platform as SocialPlatform)
+        ? { type: "draft_social_post", platform: args.platform as SocialPlatform, body: str(args.body)!, scheduledFor: str(args.scheduledFor) }
+        : null
+    case "note_lead":
+      return str(args.niche) && str(args.note) && !/@/.test(str(args.note)!) ? { type: "note_lead", niche: str(args.niche)!, note: str(args.note)! } : null
+    case "request_backend":
+      return str(args.name) ? { type: "request_backend", name: str(args.name)!, region: str(args.region) } : null
     default:
       return null
   }
@@ -94,7 +111,11 @@ function draftAction(action: Action): Pick<AvaAnswer, "text" | "pendingActions" 
     : action.type === "start_campaign" ? "/studio/campaigns"
     : action.type === "create_site" ? "/studio/sites"
     : action.type === "create_automation" ? "/studio/automations"
-    : action.type === "remember" ? "/studio/memory"
+    : action.type === "remember" || action.type === "note_lead" ? action.type === "note_lead" ? "/studio/leads" : "/studio/memory"
+    : action.type === "create_task" ? "/studio/contacts"
+    : action.type === "draft_email_list" ? "/studio/campaigns"
+    : action.type === "draft_social_post" ? "/studio/social"
+    : action.type === "request_backend" ? "/studio/backend"
     : undefined
   return {
     text: "I drafted that. Confirm save and I will keep it.",

@@ -112,6 +112,14 @@ export type Action =
   | { type: "create_site"; name: string; headline?: string }
   | { type: "create_automation"; name: string; trigger: Trigger; action: AutomationAction }
   | { type: "remember"; key: string; value: string }
+  | { type: "create_task"; title: string; contactName?: string }
+  | { type: "draft_email_list"; name: string }
+  | { type: "draft_social_post"; platform: string; body: string; scheduledFor?: string }
+  | { type: "note_lead"; niche: string; note: string }
+  | { type: "request_backend"; name: string; region?: string }
+
+export const socialPlatforms = ["facebook", "instagram", "linkedin", "x", "tiktok", "youtube", "google"] as const
+export type SocialPlatform = (typeof socialPlatforms)[number]
 
 export function emptyWorkspace(): Workspace {
   return {

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { applyAction } from "@/lib/platform/reduce"
-import { rosterFrom, type Action, type Roster, type Stage, type Trigger, type AutomationAction, type Workspace } from "@/lib/platform/types"
+import { emptyWorkspace, rosterFrom, type Action, type Roster, type Stage, type Trigger, type AutomationAction, type Workspace } from "@/lib/platform/types"
 
 type Row = Record<string, unknown>
 
@@ -257,7 +257,74 @@ export async function saveWorkspace(supabase: SupabaseClient, ownerId: string, w
   }
 }
 
+const socialPlatforms = new Set(["facebook", "instagram", "linkedin", "x", "tiktok", "youtube", "google"])
+
+async function commitSideAction(supabase: SupabaseClient, ownerId: string, action: Action) {
+  if (action.type === "create_task") {
+    const title = action.title.trim().slice(0, 160)
+    if (title.length < 2) return { summary: "A task needs a title." }
+    const { error } = await supabase.from("tasks").insert({ owner_id: ownerId, title, status: "open" })
+    if (error) throw new Error(error.message)
+    return { summary: `Task “${title}” is open.${action.contactName ? ` It is for ${action.contactName.trim().slice(0, 80)}.` : ""}` }
+  }
+  if (action.type === "draft_email_list") {
+    const name = action.name.trim().slice(0, 120)
+    if (name.length < 2) return { summary: "An email list needs a name." }
+    const { error } = await supabase.from("email_lists").insert({ owner_id: ownerId, name })
+    if (error) throw new Error(error.message)
+    return { summary: `Email list “${name}” is a draft. Nobody has been emailed.` }
+  }
+  if (action.type === "draft_social_post") {
+    const platform = action.platform.trim().toLowerCase()
+    const body = action.body.trim().slice(0, 2000)
+    if (!socialPlatforms.has(platform) || body.length < 2) return { summary: "A social draft needs a supported network and some text." }
+    const scheduled = action.scheduledFor ? new Date(action.scheduledFor) : null
+    const when = scheduled && !Number.isNaN(scheduled.getTime()) ? scheduled.toISOString() : null
+    const { error } = await supabase.from("scheduled_posts").insert({
+      user_id: ownerId,
+      platform,
+      body,
+      status: when ? "scheduled" : "draft",
+      scheduled_for: when,
+    })
+    if (error) throw new Error(error.message)
+    return { summary: `Social draft for ${platform} is saved. It has not been published.` }
+  }
+  if (action.type === "note_lead") {
+    const niche = action.niche.trim().slice(0, 40) || "general"
+    const note = action.note.trim().slice(0, 1000)
+    if (note.length < 2) return { summary: "A lead note needs some text, and it cannot include a private email." }
+    const current = await loadWorkspace(supabase, ownerId)
+    const result = applyAction(current, { type: "remember", key: `lead:${niche}`.slice(0, 80), value: note })
+    await saveWorkspace(supabase, ownerId, result.workspace)
+    return { summary: `Saved a lead note for ${niche}. Private contact details stay out of this note.` }
+  }
+  if (action.type === "request_backend") {
+    const name = action.name.trim().slice(0, 40)
+    const region = (action.region || "us-east-1").trim()
+    if (name.length < 2) return { summary: "A backend request needs a short name." }
+    const { provisionBackend } = await import("@/lib/managed/backend")
+    const result = await provisionBackend({ userId: ownerId, name, region })
+    if (result.ok) return { summary: `Backend “${result.backend.name}” is ${result.backend.status}.` }
+    if (result.reason === "unconfigured") {
+      const { error } = await supabase.from("provisioning_jobs").insert({
+        owner_id: ownerId,
+        name,
+        region: region || "us-east-1",
+        status: "requested",
+        detail: "Needs Supabase management credentials. No project was created.",
+      })
+      if (error) throw new Error(error.message)
+      return { summary: "I recorded the backend request. Management credentials are not set, so no project was created." }
+    }
+    return { summary: "The backend request was not accepted." }
+  }
+  return null
+}
+
 export async function commitAction(supabase: SupabaseClient, ownerId: string, action: Action) {
+  const side = await commitSideAction(supabase, ownerId, action)
+  if (side) return { workspace: emptyWorkspace(), summary: side.summary }
   const current = await loadWorkspace(supabase, ownerId)
   const result = applyAction(current, action)
   await saveWorkspace(supabase, ownerId, result.workspace)
