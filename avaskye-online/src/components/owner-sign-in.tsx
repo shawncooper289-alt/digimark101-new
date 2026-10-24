@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
 
-export function OwnerSignIn({ configured }: { configured: boolean }) {
+export function OwnerSignIn({ configured, missing = [] }: { configured: boolean; missing?: string[] }) {
   const router = useRouter()
-  const [email, setEmail] = useState("digimark101s@gmail.com")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -62,7 +62,7 @@ export function OwnerSignIn({ configured }: { configured: boolean }) {
   return (
     <form className="mt-8 grid max-w-sm gap-3" onSubmit={submit}>
       <label className="text-sm" htmlFor="owner-email">Email</label>
-      <input id="owner-email" type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} className="rounded-full border border-border bg-transparent px-4 py-2" />
+      <input id="owner-email" type="email" autoComplete="username" placeholder="Owner email" value={email} onChange={(event) => setEmail(event.target.value)} className="rounded-full border border-border bg-transparent px-4 py-2" required />
       <label className="text-sm" htmlFor="owner-password">Password</label>
       <input id="owner-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="rounded-full border border-border bg-transparent px-4 py-2" />
       <button type="submit" className="mt-2 w-fit rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" disabled={pending || !configured}>
@@ -71,7 +71,11 @@ export function OwnerSignIn({ configured }: { configured: boolean }) {
       <button type="button" onClick={() => void sendMagicLink()} className="w-fit rounded-full border border-border px-4 py-2 text-sm" disabled={pending || !configured || !email}>
         {pending ? "Sending…" : "Email me a login link"}
       </button>
-      {configured ? null : <p className="text-sm text-muted">Supabase and the owner mailbox are not set on this server yet.</p>}
+      {configured ? null : (
+        <p className="text-sm text-muted" role="status">
+          Sign-in is off until this server has {missing.length ? missing.join(", ") : "NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and OWNER_EMAIL"}.
+        </p>
+      )}
       {message ? <p className="text-sm text-muted">{message}</p> : null}
       {error ? <p className="text-sm">{error}</p> : null}
     </form>
