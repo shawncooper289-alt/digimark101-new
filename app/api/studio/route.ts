@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { commitAction, loadWorkspace } from "@/lib/platform/db"
-import { emptyWorkspace, type Action, type Stage, type Trigger, type AutomationAction } from "@/lib/platform/types"
+import { emptyWorkspace, socialPlatforms, type Action, type Stage, type Trigger, type AutomationAction } from "@/lib/platform/types"
 import { automationActions, stages, triggers } from "@/lib/platform/types"
 import { sameOrigin } from "@/lib/http"
 import { ensureOwnerGranted, isOwnerIdentity, isWorkspaceId, listWorkspaces } from "@/lib/owner/access"
@@ -30,6 +30,16 @@ function parseAction(value: unknown): Action | null {
       return triggers.includes(action.trigger as Trigger) && automationActions.includes(action.action as AutomationAction) ? action : null
     case "remember":
       return typeof action.key === "string" && typeof action.value === "string" ? action : null
+    case "create_task":
+      return typeof action.title === "string" ? action : null
+    case "draft_email_list":
+      return typeof action.name === "string" ? action : null
+    case "draft_social_post":
+      return typeof action.platform === "string" && socialPlatforms.includes(action.platform as (typeof socialPlatforms)[number]) && typeof action.body === "string" ? action : null
+    case "note_lead":
+      return typeof action.niche === "string" && typeof action.note === "string" && !/@/.test(action.note) ? action : null
+    case "request_backend":
+      return typeof action.name === "string" ? action : null
     default:
       return null
   }

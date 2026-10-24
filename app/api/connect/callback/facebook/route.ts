@@ -1,6 +1,6 @@
 // app/api/connect/callback/facebook/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { connectRedirect, savePlatformConnection, siteOrigin, verifyOAuthState } from "@/lib/social/tokens";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -8,36 +8,23 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
+  const origin = siteOrigin(req);
   if (error) {
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&error=${encodeURIComponent(error)}`
-    );
+    return NextResponse.redirect(connectRedirect(origin, "facebook", { error }));
   }
 
-  if (!code || !state) {
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&error=missing_code`
-    );
-  }
-
-  let userId: string;
-  try {
-    userId = Buffer.from(state, "base64url").toString("utf8");
-  } catch {
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&error=invalid_state`
-    );
+  const userId = verifyOAuthState(state);
+  if (!code || !userId) {
+    return NextResponse.redirect(connectRedirect(origin, "facebook", { error: "missing_code" }));
   }
 
   const tokenRes = await fetch(
-    `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${process.env.META_APP_ID}&client_secret=${process.env.META_APP_SECRET}&redirect_uri=${process.env.NEXT_PUBLIC_SITE_URL}/api/connect/callback/facebook&code=${code}`
+    `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${process.env.META_APP_ID}&client_secret=${process.env.META_APP_SECRET}&redirect_uri=${encodeURIComponent(`${origin}/api/connect/callback/facebook`)}&code=${encodeURIComponent(code)}`
   );
   const tokenData = await tokenRes.json();
 
   if (tokenData.error) {
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&error=${encodeURIComponent(tokenData.error.message)}`
-    );
+    return NextResponse.redirect(connectRedirect(origin, "facebook", { error: tokenData.error.message || "token" }));
   }
 
   const longRes = await fetch(
@@ -57,28 +44,20 @@ export async function GET(req: NextRequest) {
   const pages = await pagesRes.json();
   const page = pages.data?.[0];
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const saved = await savePlatformConnection({
+    userId,
+    platform: "facebook",
+    accessToken,
+    expiresAt: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString() : null,
+    scopes: "pages_show_list,pages_read_engagement,pages_manage_posts",
+    platformUserId: me.id,
+    accountName: page?.name || me.name,
+    extra: page?.access_token ? { page_access_token: page.access_token } : {},
+    metadata: { page_id: page?.id || null },
+  });
+  if (!saved.ok) {
+    return NextResponse.redirect(connectRedirect(origin, "facebook", { error: saved.error }));
+  }
 
-  await supabase.from("platform_tokens").upsert(
-    {
-      user_id: userId,
-      platform: "facebook",
-      access_token: accessToken,
-      token_expires_at: tokenData.expires_in
-        ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
-        : null,
-      scopes: "pages_show_list,pages_read_engagement,pages_manage_posts",
-      platform_user_id: me.id,
-      platform_account_name: page?.name || me.name,
-      metadata: { page_id: page?.id, page_access_token: page?.access_token },
-    },
-    { onConflict: "user_id,platform" }
-  );
-
-  return NextResponse.redirect(
-    `${process.env.NEXT_PUBLIC_SITE_URL}/start/brief?connect=facebook&success=1`
-  );
+  return NextResponse.redirect(connectRedirect(origin, "facebook", { success: "1" }));
 }

@@ -19,6 +19,9 @@ const destinations: { href: string; words: string[] }[] = [
   { href: "/studio/sites", words: ["sites", "site", "funnel", "funnels"] },
   { href: "/studio/automations", words: ["automations", "automation"] },
   { href: "/studio/reports", words: ["reports", "reporting", "report"] },
+  { href: "/studio/leads", words: ["leads", "lead store"] },
+  { href: "/studio/social", words: ["socials", "social accounts", "social"] },
+  { href: "/studio/backend", words: ["backend", "white label", "white-label"] },
   { href: "/studio/files", words: ["files", "file", "storage"] },
   { href: "/studio/memory", words: ["memory", "memories"] },
   { href: "/contact", words: ["contact form", "the contact page"] },
@@ -179,6 +182,27 @@ export function interpret(text: string, pageFields: string[] = []): Interpretati
       action: { type: "log_message", contactName: note[1]?.trim() || "Workspace", body: note[2].trim() },
       navigate: "/studio/inbox",
     }
+  }
+
+  const task = raw.match(/(?:add|create|new)\s+(?:a\s+)?task(?:\s+(?:named|called|to))?\s+([^,\n]+)/i)
+  if (task) {
+    return { handled: true, summary: "Adding that task.", action: { type: "create_task", title: clean(task[1]) }, navigate: "/studio/contacts" }
+  }
+
+  const list = raw.match(/(?:create|add|new)\s+(?:an?\s+)?email list(?:\s+(?:named|called))?\s+([^,\n]+)/i)
+  if (list) {
+    return { handled: true, summary: "Creating that email list as a draft.", action: { type: "draft_email_list", name: clean(list[1]) }, navigate: "/studio/campaigns" }
+  }
+
+  const social = raw.match(/(?:draft|write)\s+(?:a\s+)?(?:(facebook|instagram|linkedin|tiktok|youtube|google|x)\s+)?(?:post|social post)(?:\s*:\s*|\s+)(.+)/i)
+  if (social) {
+    const platform = (social[1] || "facebook").toLowerCase()
+    return { handled: true, summary: "Drafting that social post.", action: { type: "draft_social_post", platform, body: social[2].trim() }, navigate: "/studio/social" }
+  }
+
+  if (/(?:request|provision|open)\s+(?:a\s+)?(?:backend|white-?label)/i.test(raw)) {
+    const named = raw.match(/(?:named|called)\s+([^,\n]+)/i)
+    return { handled: true, summary: "I will request that backend after you confirm. No project is created until then.", action: { type: "request_backend", name: named?.[1]?.trim() || "Workspace backend", region: "us-east-1" }, navigate: "/studio/backend" }
   }
 
   if (Object.keys(fills).length > 0) {

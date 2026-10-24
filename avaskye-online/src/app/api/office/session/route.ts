@@ -1,5 +1,6 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
+import { missingOfficeAuthEnv } from "@/lib/office-redirect"
 import { encodeOfficeSession, officeConfig, officeCookieOptions, officeSignInAllowed, supabaseKeyHeaders } from "@/lib/office-store"
 
 const COOKIE = "ava_office"
@@ -13,8 +14,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Too many sign-in attempts. Try again in a few minutes." }, { status: 429 })
   }
   const { url, anon, emails } = officeConfig()
+  const missing = missingOfficeAuthEnv()
   if (!url || !anon || !emails.length) {
-    return NextResponse.json({ error: "Owner sign-in needs Supabase configured on this server." }, { status: 503 })
+    return NextResponse.json({ error: `Owner sign-in is missing ${missing.join(", ") || "Supabase settings"}.` }, { status: 503 })
   }
   const body = (await request.json().catch(() => null)) as { email?: string; password?: string } | null
   const email = body?.email?.trim().toLowerCase() || ""

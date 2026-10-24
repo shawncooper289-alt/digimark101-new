@@ -47,6 +47,8 @@ export function AvaFloat() {
       if (!raw) return
       const parsed = JSON.parse(raw) as { x?: unknown; y?: unknown }
       if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+        // localStorage is read after mount so the server HTML and the first client render match.
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- browser-only position restore
         setPoint({ x: parsed.x * window.innerWidth, y: parsed.y * window.innerHeight })
       }
     } catch {

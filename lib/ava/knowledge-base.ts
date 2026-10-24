@@ -5,7 +5,7 @@
  */
 import { AVA_IDENTITY_VERSION } from "@/lib/ava/identity"
 
-export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.21"
+export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.24"
 export const AVA_KNOWLEDGE_BASE_RECOVERED_FROM = "2026.10.1"
 
 export const AVA_SKILL_GROUPS = [
@@ -74,8 +74,8 @@ export const AVA_SKILL_GROUPS = [
     id: "admin",
     title: "Workspace admin",
     items: [
-      "Contacts, pipeline, calendar, inbox notes, campaign drafts, site or funnel records, automations, files, and memory.",
-      "Nothing in that list is saved until the person confirms.",
+      "Contacts, tasks, pipeline, calendar, inbox notes, campaign drafts, email lists, site or funnel records, social drafts, automations, lead notes without private emails, files, memory, and a white-label backend request.",
+      "Nothing in that list is saved until the person confirms. A backend request does not call the management API until that confirm, and it does not create a project when those credentials are missing.",
     ],
   },
 ] as const

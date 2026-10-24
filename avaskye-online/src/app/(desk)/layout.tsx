@@ -1,9 +1,10 @@
 import type { ReactNode } from "react"
 import { DeskShell } from "@/components/desk-shell"
+import { OwnerSignIn } from "@/components/owner-sign-in"
+import { missingOfficeAuthEnv } from "@/lib/office-redirect"
+import { missingOfficeEnv, officeConfig, readOfficeOwner } from "@/lib/office-store"
 
 export const dynamic = "force-dynamic"
-import { OwnerSignIn } from "@/components/owner-sign-in"
-import { missingOfficeEnv, officeConfig, readOfficeOwner } from "@/lib/office-store"
 
 export default async function DeskLayout({ children }: { children: ReactNode }) {
   const owner = await readOfficeOwner()
@@ -17,7 +18,7 @@ export default async function DeskLayout({ children }: { children: ReactNode }) 
           <p className="text-xs uppercase tracking-[0.18em] text-accent">Skye Studio</p>
           <h1 className="mt-3 text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Owner office</h1>
           <p className="mt-4 text-fg/90">Ava is at the night-city desk. This office is private to Shawn Cooper. Customer accounts cannot open it.</p>
-          <OwnerSignIn configured={officeConfig().configured} />
+          <OwnerSignIn configured={officeConfig().configured} missing={missingOfficeAuthEnv()} />
           <p className="mt-8 text-sm text-muted">
             <a className="underline" href="https://www.digimark101.com">Back to the customer site</a>
           </p>
