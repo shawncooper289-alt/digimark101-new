@@ -230,7 +230,7 @@ export default function OnboardingWizard({ userId }: { userId: string }) {
         disabled={saving}
         onClick={(e) => {
           const input = e.currentTarget.previousElementSibling
-            ?.previousElementSibling as HTMLInputElement | null;
+            ?.previousElementSibling as (HTMLInputElement | null);
           const el = (e.currentTarget.previousElementSibling as HTMLInputElement) || input;
           if (el?.value.trim() || !current.required) handleAnswer(el?.value || "");
         }
