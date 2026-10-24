@@ -31,11 +31,11 @@ export function AvaAvatar({
         )}
       >
         <Image
-          src="/media/skye-desk-standing.jpg"
+          src="/media/ava-skye-hero.jpg"
           alt=""
           fill
           sizes="96px"
-          className="object-cover object-[30%_22%]"
+          className="object-cover object-center"
         />
       </span>
       {showOnlineIndicator ? (
