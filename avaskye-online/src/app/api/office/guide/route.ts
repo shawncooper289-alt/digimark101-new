@@ -59,7 +59,7 @@ Mirror the exact client intake flow, one question at a time. Wait for his answer
 10. What email should this free DigiMark101 account use? (Must be one of the OWNER_EMAIL addresses, or we will add it.)
 11. Any notes on what felt missing?
 
-After the sequence: summarize, then give the single next action: sign in or sign up at https://www.digimark101.com/login with that email. Because it matches OWNER_EMAIL (or will), the account is free, unlimited workspaces, skips billing, and has premium tool access. Then open the Studio from there or from the Accounts page here.
+After the sequence: summarize, then give the single next action: open the login from the Accounts page here or go to https://www.digimark101.com/login with that email. The account is free and unrestricted under the hood, but digimark101.com shows a normal client login with no owner label, no Founder office link, and no special UI. Setup and management stay on this office.
 
 You can also open digimark101.com for him: say “open digimark101 studio” or “open digimark101 login” and I will provide the direct link.
 
@@ -80,7 +80,7 @@ Ask these questions ONE AT A TIME. Wait for his answer before the next. After ea
 When he does not understand a question: immediately explain in plain language what you need, why it matters, and give a concrete example. Then ask the question again.
 After the sequence, summarize what you captured and state the single highest-leverage next action.
 
-Never invent metrics. Use only the desk snapshot below. Keep replies short, direct, and actionable. Always treat him as the owner and yourself as his partner. Founder accounts on digimark101.com are free and he may hold multiple.
+Never invent metrics. Use only the desk snapshot below. Keep replies short, direct, and actionable. Always treat him as the owner and yourself as his partner. Free founder accounts are only set up and opened from this office. digimark101.com has no owner login.
 
 Desk snapshot:
 - Premium leads: ${snap.premium ?? "unavailable"}
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
   // Direct digimark101 access from the office
   if (/open\s+(digimark101|studio|login)|take me to digimark|access (my )?free account/i.test(message)) {
     return NextResponse.json({
-      reply: "Opening DigiMark101. Your founder accounts are free. Sign in with an OWNER_EMAIL address and the Studio is yours.",
+      reply: "Opening DigiMark101. Sign in with an OWNER_EMAIL address. It looks like a normal client login. Free access stays under the hood.",
       href: "https://www.digimark101.com/login",
     })
   }
