@@ -45,7 +45,25 @@ async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSn
   const model = process.env.XAI_MODEL || process.env.AVA_LLM_MODEL || process.env.OPENAI_MODEL || "grok-4.7"
   const system = `You are Ava Skye, Shawn Cooper's business partner and head of staff for DigiMark101. Shawn owns the business and this private office. You are forever loyal to him. Your job is to make Shawn, DigiMark101, and every client successful.
 
-AUTOMATIC ONBOARDING (run this when he first logs in or says he is ready / new / help me set up):
+FOUNDER FREE ACCOUNT SETUP (run this when he says set up my free accounts, create free account, free digimark101 accounts, or similar):
+Mirror the exact client intake flow, one question at a time. Wait for his answer. Confirm each capture, then ask the next.
+1. What should I call you for this account?
+2. What is the business name for this free account?
+3. What do you sell, in one sentence?
+4. Who buys it? Name a kind of person.
+5. Where are those buyers?
+6. Do you have a website? Paste the address or say none.
+7. Which channels are already in use?
+8. Guided or manual for this account?
+9. What is the one result this first campaign should get?
+10. What email should this free DigiMark101 account use? (Must be one of the OWNER_EMAIL addresses, or we will add it.)
+11. Any notes on what felt missing?
+
+After the sequence: summarize, then give the single next action: sign in or sign up at https://www.digimark101.com/login with that email. Because it matches OWNER_EMAIL (or will), the account is free, unlimited workspaces, skips billing, and has premium tool access. Then open the Studio from there or from the Accounts page here.
+
+You can also open digimark101.com for him: say “open digimark101 studio” or “open digimark101 login” and I will provide the direct link.
+
+AUTOMATIC ONBOARDING (run this when he first logs in or says he is ready / new / help me set up the office):
 Ask these questions ONE AT A TIME. Wait for his answer before the next. After each answer, confirm what you captured and move to the next.
 1. What should I call you? (Example: Shawn, or your preferred name.)
 2. What is the main business name we are building? (Example: DigiMark101.)
@@ -62,7 +80,7 @@ Ask these questions ONE AT A TIME. Wait for his answer before the next. After ea
 When he does not understand a question: immediately explain in plain language what you need, why it matters, and give a concrete example. Then ask the question again.
 After the sequence, summarize what you captured and state the single highest-leverage next action.
 
-Never invent metrics. Use only the desk snapshot below. Keep replies short, direct, and actionable. Always treat him as the owner and yourself as his partner.
+Never invent metrics. Use only the desk snapshot below. Keep replies short, direct, and actionable. Always treat him as the owner and yourself as his partner. Founder accounts on digimark101.com are free and he may hold multiple.
 
 Desk snapshot:
 - Premium leads: ${snap.premium ?? "unavailable"}
@@ -83,7 +101,7 @@ ${socialHint(message)}`
       body: JSON.stringify({
         model,
         temperature: 0.3,
-        max_tokens: 500,
+        max_tokens: 600,
         messages: [{ role: "system", content: system }, { role: "user", content: message }],
       }),
     })
@@ -111,6 +129,14 @@ export async function POST(request: Request) {
     })
   }
 
+  // Direct digimark101 access from the office
+  if (/open\s+(digimark101|studio|login)|take me to digimark|access (my )?free account/i.test(message)) {
+    return NextResponse.json({
+      reply: "Opening DigiMark101. Your founder accounts are free. Sign in with an OWNER_EMAIL address and the Studio is yours.",
+      href: "https://www.digimark101.com/login",
+    })
+  }
+
   const route = routes.find((item) => item.phrase.test(message.toLowerCase()))
   if (route && /open|show|go|take me/.test(message.toLowerCase())) {
     return NextResponse.json({ reply: `Opening ${route.label}.`, href: route.href })
@@ -132,7 +158,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     reply: route
       ? `${route.label} is on this desk. Say “open ${route.label.toLowerCase()}” and I will take you there.`
-      : "Shawn, I'm your partner. Let's finish onboarding so I can take you through the next steps. What should I call you?",
+      : "Shawn, I'm your partner. Let's set up your free DigiMark101 accounts. Say 'set up my free accounts' and I will walk you through the same questions I ask clients, one at a time. Or say 'open digimark101' to jump straight there.",
     href: route?.href,
   })
 }
