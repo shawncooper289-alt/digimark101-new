@@ -63,6 +63,31 @@ export function AvaFloat() {
     }
   }, [reply, voiceOn, textOnly])
 
+  useEffect(() => {
+    function onStart(event: Event) {
+      const detail = (event as CustomEvent<{ email?: string }>).detail
+      const email = detail?.email
+      if (!email) return
+      setOpen(true)
+      const starter = `set up my free account for ${email}`
+      setText("")
+      setPending(true)
+      fetch("/api/office/guide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: starter }),
+      })
+        .then((response) => response.json())
+        .then((data: { reply?: string; error?: string }) => {
+          setReply(data.reply || data.error || "Starting setup.")
+        })
+        .catch(() => setReply("I could not start the setup."))
+        .finally(() => setPending(false))
+    }
+    window.addEventListener("ava:start-setup", onStart)
+    return () => window.removeEventListener("ava:start-setup", onStart)
+  }, [])
+
   function remember(next: Point, width: number, height: number) {
     const placed = clamp(next, width, height)
     setPoint(placed)

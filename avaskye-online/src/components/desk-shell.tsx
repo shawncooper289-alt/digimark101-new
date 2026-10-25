@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState, type FormEvent, type ReactNode } from "react"
 import { AvaDesk } from "@/components/ava-desk"
 import { AvaFloat } from "@/components/ava-float"
+import { OwnerAccountsButton } from "@/components/owner-accounts-button"
 
 const links = [
   { href: "/", label: "Today" },
@@ -81,6 +82,7 @@ export function DeskShell({ children }: { children: ReactNode }) {
             <p className="text-sm">Owner office</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
+            <OwnerAccountsButton />
             <button type="button" className="rounded-full border border-border px-3 py-1" onClick={() => setMenuOpen(false)}>Hide menu</button>
             <a href="https://www.digimark101.com">Customer site</a>
             <button type="button" className="rounded-full border border-border px-3 py-1" onClick={() => void signOut()}>Sign out</button>
