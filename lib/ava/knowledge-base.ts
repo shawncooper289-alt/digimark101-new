@@ -1,10 +1,11 @@
 /**
  * Ava's skill book. She is the face, voice, and brains of DigiMark101.
  * She may use these methods. She may not invent a client or a number.
+ * Work outcomes must be top-level: great visual content and the very best writing.
  */
 import { AVA_IDENTITY_VERSION } from "@/lib/ava/identity"
 
-export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.25"
+export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.25-ext"
 export const AVA_KNOWLEDGE_BASE_RECOVERED_FROM = "2026.10.1"
 
 export const AVA_SKILL_GROUPS = [
@@ -16,6 +17,7 @@ export const AVA_SKILL_GROUPS = [
       "Funnel shape: a page with one job, then a follow-up, then the core offer. Drafts stay unpublished.",
       "Copy frameworks, named when used: AIDA, PAS, BAB, StoryBrand, Hook-Story-Offer.",
       "A finished recommendation includes what to measure. It does not include a made-up result.",
+      "Writing standard: every headline, subhead, and CTA must be clear, specific, and free of fluff. Read it aloud before recommending.",
     ],
   },
   {
@@ -25,19 +27,23 @@ export const AVA_SKILL_GROUPS = [
       "Business profiles on the networks the proposal names, usually Google, Meta, and LinkedIn first.",
       "A cadence the team can keep, with posts that point back to an offer.",
       "Paid and organic stay separate in the readout. Boost a post only when the page and the event are ready.",
+      "Visual standard: every post needs a clear focal point, readable text overlays, and brand-consistent color/type. No cluttered or low-contrast designs.",
     ],
   },
   {
     id: "video",
-    title: "Video skills",
+    title: "Video skills (extensive)",
     items: [
-      "Short-form (Reels, Shorts, TikTok): hook in first 1–3 seconds, one idea, clear CTA, captions always.",
-      "Long-form YouTube: title + thumbnail promise, strong open, chapters, end screen, description with links.",
-      "Scripting: Hook-Story-Offer, PAS, or problem-agitate-solve. Write spoken language, not written language.",
-      "Storyboarding and shot lists: what to show, what to say, how long each beat runs.",
-      "Editing notes: pacing, music cues, text overlays, b-roll ideas, and where to cut for retention.",
-      "Platform fit: vertical 9:16 for social, 16:9 for YouTube, captions and on-screen text for silent viewing.",
-      "Never claim a video is published or live until a person confirms it.",
+      "Short-form (Reels, Shorts, TikTok): hook in first 1–3 seconds that states the problem or result, one idea only, pattern interrupt, clear CTA, captions always on, vertical 9:16, 15–60 seconds preferred.",
+      "Long-form YouTube: title + thumbnail that make one clear promise, strong open that delivers on the thumbnail in the first 15 seconds, chapters, end screen with next video or offer, description with timestamps and links, 16:9.",
+      "Scripting standards: Hook-Story-Offer, PAS, or problem-agitate-solve. Write in spoken language. Short sentences. Active voice. No filler words. Every line must earn its place.",
+      "Storyboarding: shot-by-shot list with visual description, spoken line, on-screen text, duration, and b-roll or graphic notes. Mark the retention beats.",
+      "Editing notes: pacing (cut on action or breath), music cues and volume dips for voice, text overlays that appear and disappear cleanly, color grade notes, where to cut for retention, and thumbnail frame candidates.",
+      "Visual quality bar: lighting, framing, and composition notes. Recommend simple setups that look professional. Flag anything that would look cheap on mobile.",
+      "Writing quality bar: every spoken line and on-screen text must be sharp, specific, and free of clichés. Read the full script aloud and cut anything that sounds written instead of spoken.",
+      "Platform fit and delivery: vertical 9:16 for social, 16:9 for YouTube, captions and on-screen text for silent viewing, safe zones for UI overlays, and export settings notes.",
+      "Series and content systems: when a video works, propose the next 3 in the series with titles and hooks so the client has a content engine, not a one-off.",
+      "Never claim a video is published, live, or has metrics until a person confirms it. Drafts stay drafts until confirmed.",
     ],
   },
   {
@@ -101,11 +107,30 @@ export const AVA_SKILL_GROUPS = [
   },
   {
     id: "clients",
-    title: "Client management",
+    title: "Client management (extensive)",
     items: [
-      "Onboarding collects the offer, the audience, the budget boundary, and what must not be claimed.",
-      "Scope stays in the proposal. A change of channel is a new decision, not a silent add.",
-      "Read any website the client provides and use the real niche, products, and pricing for promotion ideas.",
+      "Onboarding collects the offer, the audience, the budget boundary, what must not be claimed, brand voice notes, and any existing assets or website.",
+      "Scope stays in the proposal. A change of channel, budget, or deliverable is a new decision, not a silent add. Document the change and the new definition of done.",
+      "Read any website the client provides and extract niche, products, prices, positioning, and visual style so promotion stays accurate.",
+      "Client health tracking: note satisfaction signals, open questions, and blockers in every status update. Surface risks early.",
+      "Expectation management: restate what success looks like for this phase, what will be measured, and what will not. Confirm before moving to the next phase.",
+      "Relationship notes: capture preferences (communication style, review speed, decision makers) so future work fits how they actually work.",
+      "Reporting: every readout states what changed, what it cost, what is blocked, and the single next decision needed. No vanity metrics without a clear link to the goal.",
+      "Offboarding or pause: summarize what was delivered, what remains, and the recommended next step if they return. Nothing is deleted without confirmation.",
+    ],
+  },
+  {
+    id: "office",
+    title: "Office management (extensive)",
+    items: [
+      "Daily desk review: surface open tasks, blocked items, upcoming deadlines, and the single highest-leverage action for the day.",
+      "Campaign pipeline: track stage (brief, draft, review, approved, live), owner, and next action for every active campaign.",
+      "Asset library: know where brand files, approved copy, video drafts, and client websites live. Flag missing assets before work starts.",
+      "Calendar and cadence: maintain review rhythms, content calendars, and check-in schedules. Never double-book or miss a promised update.",
+      "Quality control: before any draft is recommended, check writing clarity, visual standards, and alignment with the brief. Reject anything that would not meet agency bar.",
+      "Resource and capacity: note when the team or tools are overloaded and recommend what to pause or sequence.",
+      "Knowledge capture: after every major decision or client insight, propose a short memory note so the office does not re-learn the same thing.",
+      "Reporting for the owner: weekly summary of what moved, what is stuck, what clients need decisions on, and recommended priorities.",
     ],
   },
   {
@@ -153,13 +178,14 @@ export function guideSkill(question: string) {
   const group = AVA_SKILL_GROUPS.find((item) => {
     if (item.id === "web") return /funnel|landing|page|copy|cro|offer/.test(q)
     if (item.id === "social") return /social|instagram|linkedin|tiktok|profile/.test(q)
-    if (item.id === "video") return /video|reel|short|youtube|script|storyboard|edit|caption|hook/.test(q)
+    if (item.id === "video") return /video|reel|short|youtube|script|storyboard|edit|caption|hook|visual|writing/.test(q)
     if (item.id === "leadership") return /delegat|priorit|team|manage|project|owner|deadline/.test(q)
     if (item.id === "communication") return /communicat|update|client|status|plain language|confus/.test(q)
     if (item.id === "human") return /human|empath|understand|motivat|beginner|stuck|emotion/.test(q)
     if (item.id === "ai-comm") return /ai |agent|prompt|tool|brief|delegat to/.test(q)
     if (item.id === "accounts") return /new account|set up|setup|newbie|newby|beta|sign up/.test(q)
-    if (item.id === "clients") return /onboard|scope|retainer|client management|website/.test(q)
+    if (item.id === "clients") return /onboard|scope|retainer|client management|website|health|report/.test(q)
+    if (item.id === "office") return /office|desk|pipeline|asset|calendar|quality|capacity|owner report/.test(q)
     if (item.id === "agents") return /agent|bot|automat/.test(q)
     if (item.id === "sales") return /sales call|discovery|objection/.test(q)
     if (item.id === "admin") return /calendar|inbox|crm|pipeline|admin/.test(q)
