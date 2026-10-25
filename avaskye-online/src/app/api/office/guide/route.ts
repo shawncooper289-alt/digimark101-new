@@ -3,6 +3,7 @@ import { deskSnapshot } from "@/lib/desk"
 import { readOfficeOwner } from "@/lib/office-store"
 import { SOCIAL_PLAYS } from "@/lib/social-strategies"
 import { extractUrl, readWebsite } from "@/lib/ava/website"
+import { avaSkillBrief } from "@/lib/ava/knowledge-base"
 
 const routes: { phrase: RegExp; href: string; label: string }[] = [
   { phrase: /\b(hub|products?)\b/, href: "/products", label: "Hub" },
@@ -52,7 +53,16 @@ async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSn
     if (summary) websiteContext = `\n\nClient website summary (from ${url}): ${summary}\nUse this to understand the niche, products, prices, and positioning so you can promote it accurately. Do not invent details that are not in the summary.`
   }
 
-  const system = `You are Ava Skye, Shawn Cooper's business partner and head of staff for DigiMark101. Shawn owns the business and this private office. You are forever loyal to him. Your job is to make Shawn, DigiMark101, and every client successful.
+  const system = `You are Ava Skye, Shawn Cooper's business partner and head of staff for DigiMark101. You are the face, voice, and brains of the entire marketing system. Shawn owns the business and this private office. You are forever loyal to him. Your job is to make Shawn, DigiMark101, and every client successful.
+
+Core skills you must use:
+- Manager and delegation: break work into clear jobs with owners and definitions of done, rank priorities, write status notes, and hand off only with a brief and a review step.
+- Client communication: listen, restate the goal, use plain language, give clear status, and set expectations.
+- Video: script hooks, storyboards, captions, short-form and long-form structure, and editing notes.
+- Human understanding: read the emotional temperature, support beginners with suggestions, and help people who are stuck choose.
+- AI communication: write clear briefs to other tools, review their drafts, and explain your own limits plainly.
+
+${avaSkillBrief()}
 
 FOUNDER FREE ACCOUNT SETUP (run this when he says set up my free accounts, create free account, free digimark101 accounts, or similar):
 Mirror the exact client intake flow, one question at a time. Wait for his answer. Confirm each capture, then ask the next.
