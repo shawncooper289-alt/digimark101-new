@@ -4,7 +4,6 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
 import { usePlatform } from "@/components/studio/platform-provider"
-import { FOUNDER_OFFICE_URL } from "@/lib/owner/public"
 import { createSupabaseBrowser } from "@/lib/supabase/browser"
 
 const groups = [
@@ -93,46 +92,18 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 px-5 py-3">
           <p className="text-sm text-ink-soft">
             {platform.mode === "account"
-              ? platform.isOwner
-                ? `Owner · ${platform.workspaceLabel}`
-                : `Signed in as ${platform.email ?? "your account"}`
+              ? `Signed in as ${platform.email ?? "your account"}`
               : "Preview workspace"}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            {platform.isOwner && platform.mode === "account" ? (
-              <>
-                <label className="text-sm text-ink-soft">
-                  <span className="sr-only">Workspace</span>
-                  <select
-                    value={platform.workspaceId ?? ""}
-                    onChange={(event) => void platform.switchWorkspace(event.target.value)}
-                    className="min-h-10 rounded-full border border-ink/15 bg-mist px-3 text-sm text-ink"
-                  >
-                    {platform.workspaces.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <a className="btn btn-ghost" href={FOUNDER_OFFICE_URL}>
-                  Founder office
-                </a>
-              </>
-            ) : null}
             {platform.mode === "account" ? (
               <button type="button" className="btn btn-ghost" onClick={() => void signOut()}>
                 Sign out
               </button>
             ) : (
-              <>
-                <a className="btn btn-ghost" href="https://www.avaskye.online">
-                  Owner entrance
-                </a>
-                <Link href="/login" className="btn btn-signal">
-                  Sign in
-                </Link>
-              </>
+              <Link href="/login" className="btn btn-signal">
+                Sign in
+              </Link>
             )}
           </div>
         </div>

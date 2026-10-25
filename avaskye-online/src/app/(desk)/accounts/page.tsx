@@ -12,13 +12,13 @@ export default async function AccountsPage() {
     <section>
       <h1 className="text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Accounts</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        Owner and founder accounts on the shared Supabase project. These accounts have the owner role, unlimited workspaces, and skip membership billing on DigiMark101. Customer accounts are listed under Clients.
+        Free founder accounts. These are owner accounts. They are only managed and opened from this office. digimark101.com shows a normal client login with no owner label, no Founder office link, and no workspace switcher.
       </p>
 
       <div className="mt-8 rounded-3xl border border-border bg-surface p-5">
-        <p className="text-xs uppercase tracking-[0.18em] text-accent">Access free founder accounts on digimark101.com</p>
+        <p className="text-xs uppercase tracking-[0.18em] text-accent">Open free founder accounts</p>
         <p className="mt-2 text-sm text-muted">
-          Your free accounts live on digimark101.com. Sign in there with any email listed in OWNER_EMAIL and you get unlimited workspaces, premium tools, and no billing.
+          Sign in on digimark101.com with an OWNER_EMAIL address. The account is free and unrestricted under the hood, but the site looks like any other client login. Access and setup stay here.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <a
@@ -39,7 +39,7 @@ export default async function AccountsPage() {
           </a>
         </div>
         <p className="mt-4 text-xs text-muted">
-          Ava will walk you through setup the same way she does for clients. Say “set up my free accounts” in chat.
+          Tell Ava “set up my free accounts” and she will walk you through the same one-at-a-time questions she asks clients.
         </p>
       </div>
 
@@ -66,7 +66,7 @@ export default async function AccountsPage() {
                 <p className="text-sm text-muted">
                   Role: {user.role} · Created: {user.created ? new Date(user.created).toLocaleDateString() : "unknown"} · {user.id}
                 </p>
-                {emails.includes(user.email.toLowerCase()) ? <p className="mt-1 text-xs text-accent">Matches OWNER_EMAIL — free on digimark101.com</p> : null}
+                {emails.includes(user.email.toLowerCase()) ? <p className="mt-1 text-xs text-accent">Matches OWNER_EMAIL — free, accessed from this office only</p> : null}
               </li>
             ))}
           </ul>
@@ -74,7 +74,7 @@ export default async function AccountsPage() {
       </div>
 
       <p className="mt-10 text-sm text-muted">
-        Full client list lives on the Clients page. The owner role is stamped on sign-in when the email matches OWNER_EMAIL. Add more emails to OWNER_EMAIL in Vercel if you want additional free founder accounts.
+        Full client list lives on the Clients page. No owner login or owner UI appears on digimark101.com. Add more emails to OWNER_EMAIL in Vercel for additional free founder accounts.
       </p>
     </section>
   )
