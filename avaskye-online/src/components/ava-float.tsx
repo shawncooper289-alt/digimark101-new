@@ -31,10 +31,13 @@ export function AvaFloat() {
   const [text, setText] = useState("")
   const [reply, setReply] = useState("Hey. What should I call you?")
   const [pending, setPending] = useState(false)
+  const [history, setHistory] = useState<{ role: "user" | "assistant"; content: string }[]>([])
   const [point, setPoint] = useState<Point | null>(null)
   const [voiceOn, setVoiceOn] = useState(true)
   const [textOnly, setTextOnly] = useState(false)
   const dragRef = useRef<{ pointerId: number; originX: number; originY: number; startX: number; startY: number; moved: boolean } | null>(null)
+  const historyRef = useRef(history)
+  historyRef.current = history
   const look = officeLook(visitor)
 
   useEffect(() => {
@@ -74,14 +77,17 @@ export function AvaFloat() {
       const starter = `set up my free account for ${email}`
       setText("")
       setPending(true)
+      const starterTurn = { role: "user" as const, content: starter }
       fetch("/api/office/guide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: starter }),
+        body: JSON.stringify({ message: starter, history: historyRef.current }),
       })
         .then((response) => response.json())
         .then((data: { reply?: string; error?: string }) => {
-          setReply(data.reply || data.error || "What should I call you?")
+          const next = data.reply || data.error || "What should I call you?"
+          setReply(next)
+          setHistory((prev) => [...prev, starterTurn, { role: "assistant", content: next }].slice(-8))
         })
         .catch(() => setReply("I missed that. Try again?"))
         .finally(() => setPending(false))
@@ -151,11 +157,12 @@ export function AvaFloat() {
       const response = await fetch("/api/office/guide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: content, history }),
       })
       const data = (await response.json()) as { reply?: string; error?: string }
       const next = response.ok ? data.reply || "Okay." : data.error || "I didn't catch that."
       setReply(next)
+      setHistory((prev) => [...prev, { role: "user", content }, { role: "assistant", content: next }].slice(-8))
       if (response.ok) setText("")
     } catch {
       setReply("I couldn't reach the desk. Try again in a second.")

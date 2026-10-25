@@ -39,7 +39,7 @@ export default async function AccountsPage() {
           </a>
         </div>
         <p className="mt-4 text-xs text-muted">
-          Tell Ava “set up my free accounts” and she will walk you through the same one-at-a-time questions she asks clients.
+          Ask Ava to set up a free account. She'll just ask what she needs.
         </p>
       </div>
 

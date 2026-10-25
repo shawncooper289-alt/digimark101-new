@@ -7,7 +7,7 @@ import { speakAva } from "@/lib/ava-speech"
 export function AvaDesk() {
   const router = useRouter()
   const [text, setText] = useState("")
-  const [reply, setReply] = useState("Ask me to open a desk, summarize the counts, or draft a contact. I will not save anything until you confirm.")
+  const [reply, setReply] = useState("What should we work on?")
   const [pending, setPending] = useState(false)
   const [draft, setDraft] = useState<{ name: string; email?: string; company?: string } | null>(null)
   const [voice, setVoice] = useState(false)

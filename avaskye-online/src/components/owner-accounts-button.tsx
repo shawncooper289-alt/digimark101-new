@@ -32,7 +32,7 @@ export function OwnerAccountsButton() {
           <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <p className="text-xs uppercase tracking-[0.18em] text-accent">Free founder accounts</p>
             <h2 className="mt-2 text-2xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Choose an email</h2>
-            <p className="mt-2 text-sm text-muted">Ava will walk you through setup for the account you pick.</p>
+            <p className="mt-2 text-sm text-muted">Pick an email and she'll get it started.</p>
             <ul className="mt-5 grid gap-2">
               {OWNER_EMAILS.map((email) => (
                 <li key={email}>

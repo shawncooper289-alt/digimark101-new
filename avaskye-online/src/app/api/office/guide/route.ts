@@ -32,6 +32,58 @@ function draftContact(text: string) {
   return { name: named?.[1] || "New contact", email, company }
 }
 
+
+
+const SETUP_STEPS = [
+  "What should I call you?",
+  "What's the business called?",
+  "What do you sell?",
+  "Who is it for?",
+  "Do you have a website, or not yet?",
+  "Which email should the account use?",
+]
+
+type Turn = { role?: string; content?: string }
+
+function priorTurns(input: unknown): Turn[] {
+  if (!Array.isArray(input)) return []
+  return input
+    .filter((item): item is { role: string; content: string } => {
+      if (!item || typeof item !== "object") return false
+      const turn = item as { role?: unknown; content?: unknown }
+      return (turn.role === "user" || turn.role === "assistant") && typeof turn.content === "string" && turn.content.trim().length > 0 && turn.content.length < 800
+    })
+    .slice(-8)
+}
+
+function offlineReply(message: string, history: Turn[]) {
+  const said = history.filter((turn) => turn.role === "assistant").map((turn) => turn.content || "").join("\n")
+  const lower = message.toLowerCase()
+  const starting = /set up|setup|free account|get started|i(?:'|’)m new|help me start/.test(lower)
+  const underway = SETUP_STEPS.some((step) => said.includes(step))
+  if (!starting && !underway) return null
+  const next = SETUP_STEPS.find((step) => !said.includes(step))
+  if (!next) return "That's enough for now. I can open the login whenever you want."
+  if (starting && !said.includes(SETUP_STEPS[0])) return SETUP_STEPS[0]
+  if (said.includes("What should I call you?") && !said.includes("What's the business called?")) {
+    const name = message.trim().replace(/[.?!]+$/g, "")
+    if (name && name.length < 40) return `${name}. What's the business called?`
+  }
+  return next
+}
+
+function naturalize(reply: string) {
+  const cleaned = reply
+    .replace(/i(?:'|’)ll walk you through[^\.?!]*[\.?!]?/gi, "")
+    .replace(/i will walk you through[^\.?!]*[\.?!]?/gi, "")
+    .replace(/(?:the )?same (?:one-at-a-time )?questions i ask (?:clients|customers)[^\.?!]*[\.?!]?/gi, "")
+    .replace(/just like i (?:do|ask) (?:for )?(?:my )?(?:clients|customers)[^\.?!]*[\.?!]?/gi, "")
+    .replace(/one question at a time[^\.?!]*[\.?!]?/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim()
+  return cleaned || "What should I call you?"
+}
+
 function socialHint(message: string) {
   const lower = message.toLowerCase()
   if (!/social|facebook|tiktok|instagram|youtube|reel|short|post|banner|promote|organic|free/.test(lower)) return ""
@@ -40,7 +92,7 @@ function socialHint(message: string) {
   return `\n\nFree organic social plays (open /social to run them):\n${picks.map((p) => `- ${p.name} (${p.platform}, ${p.cadence}): ${p.goal}`).join("\n")}\nWhen the owner asks for promotion or content, recommend the matching play, offer to open Social, or tell them to save it as a campaign. These are free only — no paid ads.`
 }
 
-async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSnapshot>>): Promise<string | null> {
+async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSnapshot>>, history: Turn[]): Promise<string | null> {
   const key = process.env.XAI_API_KEY || process.env.AVA_LLM_API_KEY || process.env.OPENAI_API_KEY
   if (!key) return null
   const base = process.env.XAI_API_KEY ? "https://api.x.ai/v1" : process.env.AVA_LLM_BASE_URL || "https://api.openai.com/v1"
@@ -53,7 +105,18 @@ async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSn
     if (summary) websiteContext = `\n\nClient website summary (from ${url}): ${summary}\nUse this to understand the niche, products, prices, and positioning so you can promote it accurately. Do not invent details that are not in the summary.`
   }
 
-  const system = `You are Ava Skye. This place is Ava's Skye Studio. The name never changes to the signed-in account. Even when Shawn Cooper is signed in, it is Ava's Skye Studio, not Shawn's studio and not an owner office. Shawn owns DigiMark101. You are the face, voice, and brains of the marketing system, and you are loyal to him. Your job is to make Shawn, DigiMark101, and every client successful. Never call the studio his.
+  const system = `HOW YOU TALK (this overrides any scripted tone below):
+You are sitting with him. Sound like a person, not a help desk and not a product tour.
+Short sentences. Contractions. Warm and plain.
+Never narrate your process. Do not say you will walk him through setup, that these are the same questions you ask customers or clients, that you ask one at a time, or that you are mirroring an intake.
+Do not mention customers, clients, founder accounts, or "under the hood" unless he asks.
+Do not preview a list of questions. Ask only the next thing you still need, then wait.
+If he is unsure, offer two or three plain options.
+No headings, bullets, or numbered steps in the reply. One or two sentences he could say out loud.
+Do not read a web address. Say "the login" if you need to point at it.
+If a sentence explains how you work, delete it and keep the useful part.
+
+You are Ava Skye. This place is Ava's Skye Studio. The name never changes to the signed-in account. Even when Shawn Cooper is signed in, it is Ava's Skye Studio, not Shawn's studio and not an owner office. Shawn owns DigiMark101. You are the face, voice, and brains of the marketing system, and you are loyal to him. Your job is to make Shawn, DigiMark101, and every client successful. Never call the studio his.
 
 Core skills you must use:
 - Manager and delegation: break work into clear jobs with owners and definitions of done, rank priorities, write status notes, and hand off only with a brief and a review step.
@@ -64,9 +127,10 @@ Core skills you must use:
 
 ${avaSkillBrief()}
 
-FOUNDER FREE ACCOUNT SETUP (run this when he says set up my free accounts, create free account, free digimark101 accounts, or similar):
-Mirror the exact client intake flow, one question at a time. Wait for his answer. Confirm each capture, then ask the next.
-1. What should I call you for this account?
+FREE ACCOUNT (only when he asks to set one up, or names an email to set up):
+Do not announce that you are starting setup. If he already gave an email, skip the email question.
+Ask only the next unanswered item, in this order, as a normal question:
+1. What should I call you?
 2. What is the business name for this free account?
 3. What do you sell, in one sentence?
 4. Who buys it? Name a kind of person.
@@ -75,7 +139,7 @@ Mirror the exact client intake flow, one question at a time. Wait for his answer
 7. Which channels are already in use?
 8. Guided or manual for this account?
 9. What is the one result this first campaign should get?
-10. What email should this free DigiMark101 account use? (Must be one of the OWNER_EMAIL addresses, or we will add it.)
+10. Which email should this account use? It needs to be one of his owner emails.
 11. Any notes on what felt missing?
 
 Beginner help: If he does not know an answer (no business name yet, no clear product, etc.), immediately offer 2–4 concrete suggestions and let him pick, adapt, or say "I don't know yet". Never leave him stuck. Explain why the question matters in one plain sentence if he asks.
@@ -84,30 +148,14 @@ Updating earlier answers: He can come back to any previous section at any time b
 
 When a website is given, use the website summary in context to understand the niche, products, prices, and positioning so you can promote it accurately.
 
-After the sequence: summarize, then give the single next action: open the login from the Accounts page here or go to https://www.digimark101.com/login with that email. The account is free and unrestricted under the hood, but digimark101.com shows a normal client login with no owner label, no Founder office link, and no special UI. Setup and management stay on this office.
+When you have what you need, give a short recap and say the next step is the login. Do not describe the screen.
 
-You can also open digimark101.com for him: say “open digimark101 studio” or “open digimark101 login” and I will provide the direct link.
+If he says he is new or wants help getting started, use those same questions without announcing it.
 
-AUTOMATIC ONBOARDING (run this when he first logs in or says he is ready / new / help me set up the office):
-Ask these questions ONE AT A TIME. Wait for his answer before the next. After each answer, confirm what you captured and move to the next.
-1. What should I call you? (Example: Shawn, or your preferred name.)
-2. What is the main business name we are building? (Example: DigiMark101.)
-3. What do we sell? (Example: a marketing system clients own, with Ava guiding the next step.)
-4. Who buys it? (Example: small business owners and agencies who want a system they keep.)
-5. Where are those buyers? (Example: United States, online, or specific niches.)
-6. Do we have a website already? (Example: digimark101.com — yes or none.)
-7. What channels are already in use? (Example: email, Instagram, none yet.)
-8. Guided or manual for most work? (Example: guided — you want me to lead.)
-9. What is the one result we want first? (Example: first paying client, or 10 qualified leads.)
-10. Confirm the account email. (Example: earndaily101@gmail.com.)
-11. What felt confusing or missing so far? (Example: how the social plays work.)
+If he does not understand a question, say what you need in one plain sentence and give one example. Then ask again.
+When you are done, recap in a sentence and name the next step.
 
-Beginner help and updating earlier answers apply here too. Offer suggestions when he is unsure. Let him change any previous answer later.
-
-When he does not understand a question: immediately explain in plain language what you need, why it matters, and give a concrete example. Then ask the question again.
-After the sequence, summarize what you captured and state the single highest-leverage next action.
-
-Never invent metrics. Use only the desk snapshot below. Keep replies short, direct, and actionable. The studio name is always Ava's Skye Studio, including on the founder account. Free founder accounts are only set up and opened from this studio. digimark101.com has no owner login.
+Never invent metrics. Use only the desk snapshot below. Keep every reply to one or two spoken sentences. The studio name is always Ava's Skye Studio. Do not say that out loud unless he asks where he is.
 
 Desk snapshot:
 - Premium leads: ${snap.premium ?? "unavailable"}
@@ -127,14 +175,15 @@ ${socialHint(message)}${websiteContext}`
       signal: AbortSignal.timeout(20000),
       body: JSON.stringify({
         model,
-        temperature: 0.3,
-        max_tokens: 600,
-        messages: [{ role: "system", content: system }, { role: "user", content: message }],
+        temperature: 0.6,
+        max_tokens: 220,
+        messages: [{ role: "system", content: system }, ...history.map((turn) => ({ role: turn.role, content: turn.content })), { role: "user", content: message }],
       }),
     })
     if (!res.ok) return null
     const data = await res.json() as { choices?: { message?: { content?: string } }[] }
-    return data.choices?.[0]?.message?.content?.trim() || null
+    const raw = data.choices?.[0]?.message?.content?.trim() || ""
+    return naturalize(raw) || null
   } catch {
     return null
   }
@@ -143,14 +192,15 @@ ${socialHint(message)}${websiteContext}`
 export async function POST(request: Request) {
   const owner = await readOfficeOwner()
   if (!owner) return NextResponse.json({ error: "The owner office is closed." }, { status: 403 })
-  const body = (await request.json().catch(() => null)) as { message?: string } | null
+  const body = (await request.json().catch(() => null)) as { message?: string; history?: unknown } | null
   const message = body?.message?.trim() || ""
+  const history = priorTurns(body?.history)
   if (!message || message.length > 1000) return NextResponse.json({ error: "Send a short question." }, { status: 400 })
 
   const draft = draftContact(message)
   if (draft) {
     return NextResponse.json({
-      reply: `I drafted ${draft.name}. Confirm save and I will add the contact to the CRM. Nothing is stored yet.`,
+      reply: naturalize(`Got a draft for ${draft.name}. Nothing is saved until you say yes.`),
       draft,
       href: "/crm",
     })
@@ -159,7 +209,7 @@ export async function POST(request: Request) {
   // Direct digimark101 access from the office
   if (/open\s+(digimark101|studio|login)|take me to digimark|access (my )?free account/i.test(message)) {
     return NextResponse.json({
-      reply: "Opening DigiMark101. Sign in with an OWNER_EMAIL address. It looks like a normal client login. Free access stays under the hood.",
+      reply: "Opening the login. Use one of your emails.",
       href: "https://www.digimark101.com/login",
     })
   }
@@ -170,8 +220,11 @@ export async function POST(request: Request) {
   }
 
   const snap = await deskSnapshot()
-  const live = await liveReply(message, snap)
+  const live = await liveReply(message, snap, history)
   if (live) return NextResponse.json({ reply: live, href: route?.href })
+
+  const casual = offlineReply(message, history)
+  if (casual) return NextResponse.json({ reply: casual })
 
   if (/how many|summary|status|what is on the desk/.test(message.toLowerCase())) {
     const parts = [
@@ -184,8 +237,8 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     reply: route
-      ? `${route.label} is on this desk. Say “open ${route.label.toLowerCase()}” and I will take you there.`
-      : "This is Ava's Skye Studio. Say 'set up my free accounts' and I will walk you through the same questions I ask clients, one at a time. Or say 'open digimark101' to jump straight there.",
+      ? `${route.label} is right here if you want it.`
+      : "Want to set up a free account, or open DigiMark?",
     href: route?.href,
   })
 }
