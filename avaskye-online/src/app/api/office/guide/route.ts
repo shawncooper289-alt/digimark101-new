@@ -59,6 +59,10 @@ Mirror the exact client intake flow, one question at a time. Wait for his answer
 10. What email should this free DigiMark101 account use? (Must be one of the OWNER_EMAIL addresses, or we will add it.)
 11. Any notes on what felt missing?
 
+Beginner help: If he does not know an answer (no business name yet, no clear product, etc.), immediately offer 2–4 concrete suggestions and let him pick, adapt, or say "I don't know yet". Never leave him stuck. Explain why the question matters in one plain sentence if he asks.
+
+Updating earlier answers: He can come back to any previous section at any time by saying "change my business name", "reset the product", "go back to who buys it", or similar. Confirm the new value, update it, and continue. Everything is editable later.
+
 After the sequence: summarize, then give the single next action: open the login from the Accounts page here or go to https://www.digimark101.com/login with that email. The account is free and unrestricted under the hood, but digimark101.com shows a normal client login with no owner label, no Founder office link, and no special UI. Setup and management stay on this office.
 
 You can also open digimark101.com for him: say “open digimark101 studio” or “open digimark101 login” and I will provide the direct link.
@@ -76,6 +80,8 @@ Ask these questions ONE AT A TIME. Wait for his answer before the next. After ea
 9. What is the one result we want first? (Example: first paying client, or 10 qualified leads.)
 10. Confirm the account email. (Example: earndaily101@gmail.com.)
 11. What felt confusing or missing so far? (Example: how the social plays work.)
+
+Beginner help and updating earlier answers apply here too. Offer suggestions when he is unsure. Let him change any previous answer later.
 
 When he does not understand a question: immediately explain in plain language what you need, why it matters, and give a concrete example. Then ask the question again.
 After the sequence, summarize what you captured and state the single highest-leverage next action.
