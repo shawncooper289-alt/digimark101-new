@@ -24,14 +24,29 @@ export default function StartPage() {
         <div>
           <ol className="grid gap-4">
             {[
-              "Sign in, then pay the starter membership on the pricing page. Use the same email.",
-              "Answer five questions. No deck and no strategy call.",
-              "Ava drafts the page, the lead form, and three emails.",
-              "Approve, or send it back. She does not publish on her own.",
+              {
+                text: "Create an account or sign in, then pay the starter membership on the pricing page. Use the same email.",
+                links: [
+                  { href: "/signup", label: "Create account" },
+                  { href: "/login", label: "Sign in" },
+                ],
+              },
+              { text: "Answer five questions. No deck and no strategy call." },
+              { text: "Ava drafts the page, the lead form, and three emails." },
+              { text: "Approve, or send it back. She does not publish on her own." },
             ].map((step, index) => (
-              <li key={step} className="rounded-[1.5rem] border border-ink/10 bg-card px-5 py-4">
+              <li key={step.text} className="rounded-[1.5rem] border border-ink/10 bg-card px-5 py-4">
                 <span className="text-xs font-semibold uppercase tracking-[0.16em] text-signal">0{index + 1}</span>
-                <p className="mt-2">{step}</p>
+                <p className="mt-2">{step.text}</p>
+                {step.links ? (
+                  <p className="mt-3 flex flex-wrap gap-4 text-sm">
+                    {step.links.map((link) => (
+                      <Link key={link.href} href={link.href} className="underline">
+                        {link.label}
+                      </Link>
+                    ))}
+                  </p>
+                ) : null}
               </li>
             ))}
           </ol>

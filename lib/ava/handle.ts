@@ -35,7 +35,7 @@ export async function handleAvaPost(request: Request) {
 
   const pageFields = Array.isArray(record.pageFields) ? record.pageFields.filter((item): item is string => typeof item === "string").slice(0, 20) : []
   const rosterHint = rosterFromClient(record.roster)
-  const reply = await answerAva({ turns, pageFields, rosterHint })
+  const reply = await answerAva({ turns, pageFields, rosterHint, spoken: record.spoken === true })
   const userText = turns
     .filter((turn) => turn.role === "user")
     .map((turn) => turn.content)

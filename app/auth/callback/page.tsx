@@ -1,49 +1,56 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { createSupabaseBrowser } from "@/lib/supabase/browser"
+import { useEffect, useState } from "react"
+import { establishSessionFromUrl, safeNextPath } from "@/lib/auth/establish-session"
+
+type Phase = "working" | "error" | "unconfigured"
 
 export default function StudioAuthCallback() {
   const router = useRouter()
-  const [status, setStatus] = useState("Opening your studio…")
+  const [phase, setPhase] = useState<Phase>("working")
 
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search)
+    const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : ""
+    const hashType = new URLSearchParams(hash).get("type")
+    const type = (query.get("type") || hashType || "").toLowerCase()
+    const nextPath = safeNextPath(query.get("next"), type === "recovery" ? "/reset-password" : "/studio")
+
     async function finish() {
-      const query = new URLSearchParams(window.location.search)
-      const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : ""
-      const params = new URLSearchParams(hash)
-      const error = query.get("error_description") || query.get("error") || params.get("error_description")
-      if (error) {
-        setStatus("This login link was rejected. Use the password form, or ask for a new invite.")
+      const result = await establishSessionFromUrl()
+      if (!result.ok) {
+        setPhase(result.reason === "unconfigured" ? "unconfigured" : "error")
         return
       }
-      const access_token = params.get("access_token") || query.get("access_token")
-      const refresh_token = params.get("refresh_token") || query.get("refresh_token")
-      window.history.replaceState({}, "", "/auth/callback")
-      const supabase = createSupabaseBrowser()
-      if (!supabase) {
-        setStatus("Supabase is not configured on this site yet.")
-        return
-      }
-      if (!access_token || !refresh_token) {
-        setStatus("This login link did not include a session. Request a new invite from the office.")
-        return
-      }
-      const { error: sessionError } = await supabase.auth.setSession({ access_token, refresh_token })
-      if (sessionError) {
-        setStatus("Could not open the studio session. Sign in with your password if you have one.")
-        return
-      }
-      router.replace("/studio")
+      const destination = result.type === "recovery" && nextPath === "/studio" ? "/reset-password" : nextPath
+      router.replace(destination)
       router.refresh()
     }
     void finish()
   }, [router])
 
+  if (phase === "working") {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5">
+        <p className="text-sm text-ink-soft">Opening your studio…</p>
+      </main>
+    )
+  }
+
+  const unconfigured = phase === "unconfigured"
   return (
-    <main className="mx-auto flex min-h-screen max-w-md items-center px-5">
-      <p className="text-sm text-ink-soft">{status}</p>
+    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5">
+      <h1 className="font-serif text-4xl">{unconfigured ? "Sign-in is not available yet" : "This link didn't work"}</h1>
+      <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+        {unconfigured
+          ? "This site is not ready to confirm accounts yet. You can go back to sign in and try again later."
+          : "This confirmation link is invalid or has expired. Request a new one, or sign in if you already confirmed your email."}
+      </p>
+      <Link href="/login" className="btn btn-signal mt-6 w-fit">
+        Back to sign in
+      </Link>
     </main>
   )
 }

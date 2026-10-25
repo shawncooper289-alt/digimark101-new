@@ -128,6 +128,7 @@ export async function answerAva(input: {
   turns: ChatTurn[]
   pageFields: string[]
   rosterHint: Roster | null
+  spoken?: boolean
 }): Promise<AvaAnswer> {
   const latest = input.turns[input.turns.length - 1]?.content ?? ""
   const session = await createSupabaseServer()
@@ -141,7 +142,7 @@ export async function answerAva(input: {
     return { text: saved.ok ? visitorModeReply(appearance) : saved.error, mode: "guide", live: false }
   }
   const roster = user && session ? await rosterFor(session, user.id).catch(() => input.rosterHint) : input.rosterHint
-  const found = interpret(latest, input.pageFields)
+  const found = interpret(latest, input.pageFields, { spoken: input.spoken === true })
   const fromRoster = rosterReply(latest, roster)
 
   if (found.handled && found.action) {

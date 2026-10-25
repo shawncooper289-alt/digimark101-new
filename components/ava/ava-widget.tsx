@@ -22,6 +22,27 @@ const SUGGESTIONS = [
 const AVATAR_W = 148
 const AVATAR_H = 268
 
+function MessageText({ text }: { text: string }) {
+  const parts = text.split(/(https?:\/\/[^\s<]+)/g)
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (!part.startsWith("http")) return <span key={index}>{part}</span>
+        const url = part.replace(/[),.;!?]+$/, "")
+        const tail = part.slice(url.length)
+        return (
+          <span key={index}>
+            <a href={url} className="underline break-all">
+              {url}
+            </a>
+            {tail}
+          </span>
+        )
+      })}
+    </>
+  )
+}
+
 function speechInputSupported() {
   return typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
 }
@@ -214,7 +235,7 @@ export function AvaWidget() {
   const scroller = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<RecognitionLike | null>(null)
-  const sendRef = useRef<(text: string) => Promise<void>>(async () => {})
+  const sendRef = useRef<(text: string, source?: "voice" | "typed") => Promise<void>>(async () => {})
   const voiceRef = useRef(false)
   const openRef = useRef(false)
   const pendingRef = useRef(false)
@@ -267,7 +288,7 @@ export function AvaWidget() {
       if (final && transcript.trim()) {
         heard = true
         silenceRef.current = 0
-        void sendRef.current(transcript)
+        void sendRef.current(transcript, "voice")
       }
     }
     recognition.onerror = (event) => {
@@ -365,7 +386,7 @@ export function AvaWidget() {
     }
   }, [])
 
-  async function send(text: string) {
+  async function send(text: string, source: "voice" | "typed" = "typed") {
     const content = text.trim()
     if (!content || pendingRef.current) return
     pendingRef.current = true
@@ -384,6 +405,7 @@ export function AvaWidget() {
           messages: nextMessages.map(({ role, content: value }) => ({ role, content: value })),
           pageFields: visibleFields(),
           roster: platform.mode === "preview" ? rosterFrom(platform.workspace) : null,
+          spoken: source === "voice",
         }),
       })
       const data = (await response.json()) as {
@@ -601,7 +623,7 @@ export function AvaWidget() {
                     message.role === "user" ? "ml-auto bg-mist text-ink" : "bg-paper-deep text-ink"
                   }`}
                 >
-                  {message.content}
+                  <MessageText text={message.content} />
                 </p>
               ))
             )}

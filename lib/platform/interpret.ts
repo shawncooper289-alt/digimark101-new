@@ -83,7 +83,7 @@ function stageOf(value: string): Stage | null {
   return found ?? null
 }
 
-export function interpret(text: string, pageFields: string[] = []): Interpretation {
+export function interpret(text: string, pageFields: string[] = [], options?: { spoken?: boolean }): Interpretation {
   const raw = text.trim()
   const q = raw.toLowerCase()
   const fills = formFills(raw, pageFields)
@@ -206,7 +206,10 @@ export function interpret(text: string, pageFields: string[] = []): Interpretati
   }
 
   if (Object.keys(fills).length > 0) {
-    return { handled: true, summary: "I filled the fields I could hear. Check them before you send.", fills }
+    const summary = options?.spoken
+      ? "I filled the fields I could hear. Check them before you send."
+      : "I filled the fields from what you typed. Check them before you send."
+    return { handled: true, summary, fills }
   }
 
   return { handled: false, summary: "" }

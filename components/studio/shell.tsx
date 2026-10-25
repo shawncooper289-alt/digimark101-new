@@ -109,7 +109,11 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         </div>
         {platform.mode === "preview" ? (
           <p className="border-b border-signal/20 bg-mist px-5 py-3 text-sm text-ink">
-            This preview stays in this browser. Sign in with Supabase so each client gets a private workspace. Row-level security keeps one client from reading another.
+            You&apos;re in preview mode.{" "}
+            <Link href="/signup" className="underline">
+              Create a free account
+            </Link>{" "}
+            to save your work.
           </p>
         ) : null}
         {platform.error ? <p className="border-b border-signal/30 bg-mist px-5 py-3 text-sm text-signal">{platform.error}</p> : null}

@@ -41,6 +41,7 @@ Rules:
 - The studio email is ${site.email}. The contact form is ${site.url}/contact.
 - If you do not know a fact about the visitor's business, ask one clarifying question.
 - A new account is a beta tester. Follow the new-account question order. Ask one question, then wait.
+- Account creation is ${site.url}/signup. Sign-in is ${site.url}/login. Password reset is ${site.url}/forgot-password. When someone asks where to create an account or sign up, give ${site.url}/signup as the link. Never say you have no link.
 - Beginners may not have a business name, product, or clear buyer yet. Offer 2–4 concrete suggestions, let them pick or adapt, and accept "I don't know yet". Never leave them stuck.
 - Any previous answer can be updated later. If they say change my business name, reset the product, or go back to an earlier question, confirm the new value and continue.
 - When a client gives a website, you can read it. Use the website summary in the extra context to understand the niche, products, prices, and positioning so you can promote it accurately. Do not invent details that are not in the summary.
@@ -61,7 +62,7 @@ function studioBrief() {
   const workLines = caseStudies
     .map((study) => `${study.title}: placeholder only. ${study.summary}`)
     .join("\n")
-  return `Studio facts:\n${serviceLines}\n\nPackages:\n${packageLines}\n\nMembership (public, PayPal, auto-renewing):\n${membershipFacts()}\n\nWork:\n${workLines}`
+  return `Studio facts:\n${serviceLines}\n\nPackages:\n${packageLines}\n\nMembership (public, PayPal, auto-renewing):\n${membershipFacts()}\n\nAccount links: Create an account at ${site.url}/signup. Sign in at ${site.url}/login. Reset a password at ${site.url}/forgot-password. If someone asks where to create an account or sign up, give ${site.url}/signup. Do not say you have no link.\n\nWork:\n${workLines}`
 }
 
 function provider(): Provider | null {
@@ -115,6 +116,13 @@ function guideReply(question: string): string {
     chunks.push({
       score: 5,
       text: `Packages are Field (one channel), Studio (up to three disciplines), and Partner (an embedded mix). ${packages.map((pkg) => `${pkg.name}: ${pkg.summary} ${pkg.priceLabel}.`).join(" ")} Those fees are written in a proposal. Membership is separate and public: ${membershipFacts()} Subscribe on the pricing page. PayPal bills it until you cancel.`,
+    })
+  }
+
+  if (/(sign\s*up|signup|create (my |an )?account|where do i (register|log ?in|login)|log ?in page|login page)/.test(q)) {
+    chunks.push({
+      score: 8,
+      text: `Create your account at ${site.url}/signup. Sign in at ${site.url}/login. After you sign up, check your inbox for the confirmation email, including spam.`,
     })
   }
 
