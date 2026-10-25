@@ -19,6 +19,12 @@ const TEXT_FIELDS = [
   "tiktok_url",
   "youtube_url",
   "x_url",
+  "legal_name",
+  "dba_name",
+  "business_type",
+  "ein",
+  "privacy_url",
+  "terms_url",
 ] as const
 
 type OnboardingWriter = SupabaseClient
