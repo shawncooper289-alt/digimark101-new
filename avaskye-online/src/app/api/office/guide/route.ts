@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { deskSnapshot } from "@/lib/desk"
 import { readOfficeOwner } from "@/lib/office-store"
 import { SOCIAL_PLAYS } from "@/lib/social-strategies"
+import { extractUrl, readWebsite } from "@/lib/ava/website"
 
 const routes: { phrase: RegExp; href: string; label: string }[] = [
   { phrase: /\b(hub|products?)\b/, href: "/products", label: "Hub" },
@@ -43,6 +44,14 @@ async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSn
   if (!key) return null
   const base = process.env.XAI_API_KEY ? "https://api.x.ai/v1" : process.env.AVA_LLM_BASE_URL || "https://api.openai.com/v1"
   const model = process.env.XAI_MODEL || process.env.AVA_LLM_MODEL || process.env.OPENAI_MODEL || "grok-4.7"
+
+  let websiteContext = ""
+  const url = extractUrl(message)
+  if (url) {
+    const summary = await readWebsite(url)
+    if (summary) websiteContext = `\n\nClient website summary (from ${url}): ${summary}\nUse this to understand the niche, products, prices, and positioning so you can promote it accurately. Do not invent details that are not in the summary.`
+  }
+
   const system = `You are Ava Skye, Shawn Cooper's business partner and head of staff for DigiMark101. Shawn owns the business and this private office. You are forever loyal to him. Your job is to make Shawn, DigiMark101, and every client successful.
 
 FOUNDER FREE ACCOUNT SETUP (run this when he says set up my free accounts, create free account, free digimark101 accounts, or similar):
@@ -62,6 +71,8 @@ Mirror the exact client intake flow, one question at a time. Wait for his answer
 Beginner help: If he does not know an answer (no business name yet, no clear product, etc.), immediately offer 2–4 concrete suggestions and let him pick, adapt, or say "I don't know yet". Never leave him stuck. Explain why the question matters in one plain sentence if he asks.
 
 Updating earlier answers: He can come back to any previous section at any time by saying "change my business name", "reset the product", "go back to who buys it", or similar. Confirm the new value, update it, and continue. Everything is editable later.
+
+When a website is given, use the website summary in context to understand the niche, products, prices, and positioning so you can promote it accurately.
 
 After the sequence: summarize, then give the single next action: open the login from the Accounts page here or go to https://www.digimark101.com/login with that email. The account is free and unrestricted under the hood, but digimark101.com shows a normal client login with no owner label, no Founder office link, and no special UI. Setup and management stay on this office.
 
@@ -98,7 +109,7 @@ Desk snapshot:
 - Subscriptions: ${snap.subscriptions ?? "unavailable"}
 
 Social desk (/social): free organic plays for Facebook, TikTok, Instagram, and YouTube. No paid spend.
-${socialHint(message)}`
+${socialHint(message)}${websiteContext}`
   try {
     const res = await fetch(`${base.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
