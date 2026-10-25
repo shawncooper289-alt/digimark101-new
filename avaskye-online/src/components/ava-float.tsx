@@ -29,7 +29,7 @@ export function AvaFloat() {
   const [open, setOpen] = useState(false)
   const [visitor, setVisitor] = useState(false)
   const [text, setText] = useState("")
-  const [reply, setReply] = useState("Welcome back. This is Ava's Skye Studio — it stays mine even on your account. I'm Ava. Let's finish onboarding so I can take you through the next steps. What should I call you?")
+  const [reply, setReply] = useState("Hey. What should I call you?")
   const [pending, setPending] = useState(false)
   const [point, setPoint] = useState<Point | null>(null)
   const [voiceOn, setVoiceOn] = useState(true)
@@ -58,10 +58,12 @@ export function AvaFloat() {
   }, [])
 
   useEffect(() => {
-    if (voiceOn && !textOnly && reply) {
-      speakAva(reply)
+    if (!open || !voiceOn || textOnly || !reply) {
+      if (typeof window !== "undefined") window.speechSynthesis?.cancel()
+      return
     }
-  }, [reply, voiceOn, textOnly])
+    speakAva(reply)
+  }, [reply, voiceOn, textOnly, open])
 
   useEffect(() => {
     function onStart(event: Event) {
@@ -79,9 +81,9 @@ export function AvaFloat() {
       })
         .then((response) => response.json())
         .then((data: { reply?: string; error?: string }) => {
-          setReply(data.reply || data.error || "Starting setup.")
+          setReply(data.reply || data.error || "What should I call you?")
         })
-        .catch(() => setReply("I could not start the setup."))
+        .catch(() => setReply("I missed that. Try again?"))
         .finally(() => setPending(false))
     }
     window.addEventListener("ava:start-setup", onStart)
@@ -152,11 +154,11 @@ export function AvaFloat() {
         body: JSON.stringify({ message: content }),
       })
       const data = (await response.json()) as { reply?: string; error?: string }
-      const next = response.ok ? data.reply || "Done." : data.error || "I could not answer that."
+      const next = response.ok ? data.reply || "Okay." : data.error || "I didn't catch that."
       setReply(next)
       if (response.ok) setText("")
     } catch {
-      setReply("I could not reach the office guide.")
+      setReply("I couldn't reach the desk. Try again in a second.")
     } finally {
       setPending(false)
     }
