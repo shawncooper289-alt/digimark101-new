@@ -20,19 +20,58 @@ export function ownerEmails() {
     .filter(Boolean)
 }
 
+function projectRef(url: string) {
+  try {
+    return new URL(url).hostname.split(".")[0]?.toLowerCase() || ""
+  } catch {
+    return ""
+  }
+}
+
+function legacyAnonMatches(key: string, ref: string) {
+  const part = key.split(".")[1]
+  if (!part || !ref) return false
+  try {
+    const padded = part.replace(/-/g, "+").replace(/_/g, "/")
+    const json = JSON.parse(atob(padded)) as { role?: string; ref?: string; v?: string }
+    if (json.v === "v2" || json.role !== "anon") return false
+    return json.ref?.toLowerCase() === ref
+  } catch {
+    return false
+  }
+}
+
+/** Use the publishable key for this URL. Skip anon JWTs minted for a different project. */
+function publicKeyFor(url: string, publishable: string | undefined, anon: string | undefined) {
+  const ref = projectRef(url)
+  const current = publishable?.trim() || ""
+  if (current.startsWith("sb_publishable_")) return current
+  const legacy = anon?.trim() || ""
+  if (legacy.startsWith("sb_publishable_")) return legacy
+  if (legacyAnonMatches(legacy, ref)) return legacy
+  return ""
+}
+
 export function officeConfig() {
-  const url = (
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_URL ||
-    process.env.SUPABASE_URL ||
-    ""
-  ).replace(/\/$/, "")
-  const anon =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_PUBLISHABLE_KEY ||
-    ""
+  const primaryUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim().replace(/\/$/, "")
+  const digimarkUrl = (process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_URL || "").trim().replace(/\/$/, "")
+  const fallbackUrl = (process.env.SUPABASE_URL || "").trim().replace(/\/$/, "")
+  const paired = [
+    [primaryUrl, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY],
+    [digimarkUrl, process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_PUBLISHABLE_KEY, process.env.NEXT_PUBLIC_DIGIMARK_SUPABASE_ANON_KEY],
+    [fallbackUrl, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY],
+  ] as const
+  let url = ""
+  let anon = ""
+  for (const [candidate, publishable, legacy] of paired) {
+    if (!candidate) continue
+    const key = publicKeyFor(candidate, publishable, legacy)
+    if (key) {
+      url = candidate
+      anon = key
+      break
+    }
+  }
   const service =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_SECRET_KEY ||
