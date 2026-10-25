@@ -88,7 +88,7 @@ export function OfficeExperience({
       <CasualAva look={look} />
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted">{compact ? "Appearance" : "Owner office"}</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">{compact ? "Appearance" : "Ava's Skye Studio"}</p>
           {isOwner ? (
             <button
               type="button"
@@ -103,7 +103,7 @@ export function OfficeExperience({
         </div>
         {compact ? null : (
         <h1 className="mt-3 text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>
-          Founder office
+          Ava's Skye Studio
         </h1>
         )}
         <p className="mt-4 max-w-xl text-muted">

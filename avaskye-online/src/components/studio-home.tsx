@@ -127,14 +127,14 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
 
   return (
     <section className="relative min-h-[calc(100dvh-7.5rem)] overflow-hidden bg-bg">
-      <img src={look.src} alt={`Ava Skye ${pose} at the desk in Skye Studio`} className="ava-drift absolute inset-0 h-full w-full object-cover object-[center_25%] opacity-95" />
+      <img src={look.src} alt={`Ava ${pose} at the desk in Ava's Skye Studio`} className="ava-drift absolute inset-0 h-full w-full object-cover object-[center_25%] opacity-95" />
       <div className="absolute inset-0 bg-gradient-to-t from-bg/80 via-bg/30 to-transparent" />
       <div className="pointer-events-none absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 lg:block">
         <img src={PORTRAIT.src} alt="Ava Skye" className="h-[28rem] w-auto rounded-3xl object-cover object-top shadow-2xl ring-1 ring-white/20" />
       </div>
       <div className="relative z-10 flex min-h-[calc(100dvh-7.5rem)] flex-col justify-end gap-4 px-4 py-6 sm:px-8">
         <div className="max-w-3xl">
-          <p className="text-xs uppercase tracking-[0.18em] text-accent">Skye Studio · night city</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-accent">Ava's Skye Studio · night city</p>
           <h1 className="mt-2 max-w-xl text-5xl text-fg" style={{ fontFamily: "var(--font-display-loaded), serif" }}>
             Ava is {pose} at the desk.
           </h1>

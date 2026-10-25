@@ -29,7 +29,7 @@ export function AvaFloat() {
   const [open, setOpen] = useState(false)
   const [visitor, setVisitor] = useState(false)
   const [text, setText] = useState("")
-  const [reply, setReply] = useState("Shawn, welcome back. I'm Ava, your partner. You own DigiMark101 and this office. Let's finish onboarding so I can take you through the next steps. What should I call you? (Example: Shawn.)")
+  const [reply, setReply] = useState("Welcome back. This is Ava's Skye Studio — it stays mine even on your account. I'm Ava. Let's finish onboarding so I can take you through the next steps. What should I call you?")
   const [pending, setPending] = useState(false)
   const [point, setPoint] = useState<Point | null>(null)
   const [voiceOn, setVoiceOn] = useState(true)

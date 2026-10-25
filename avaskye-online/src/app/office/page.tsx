@@ -7,7 +7,7 @@ import { readOfficeOwner, readVisitorMode } from "@/lib/office-store";
 import { SITE } from "@/lib/catalog";
 
 export const metadata: Metadata = {
-  title: "Owner office",
+  title: "Ava's Skye Studio",
   robots: { index: false, follow: false },
 };
 

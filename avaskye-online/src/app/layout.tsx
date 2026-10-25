@@ -6,8 +6,8 @@ const display = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600", 
 const sans = Outfit({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-sans-loaded" });
 
 export const metadata: Metadata = {
-  title: "Owner office",
-  description: "Private back office for DigiMark101.",
+  title: "Ava's Skye Studio",
+  description: "Ava's Skye Studio. The private desk stays Ava's, on every account.",
   metadataBase: new URL("https://avaskye.online"),
   robots: { index: false, follow: false },
 };
