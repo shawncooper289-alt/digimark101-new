@@ -7,7 +7,13 @@ import type { PartnerLink } from "@/lib/partners"
 
 export function SiteChrome({ children, partners = [] }: { children: React.ReactNode; partners?: PartnerLink[] }) {
   const pathname = usePathname()
-  const app = pathname.startsWith("/studio") || pathname.startsWith("/login") || pathname.startsWith("/signup")
+  const app =
+    pathname.startsWith("/studio") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/auth")
   if (app) return <main id="main">{children}</main>
   return (
     <>

@@ -33,6 +33,9 @@ export function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <Link href="/signup" className="btn btn-ghost hidden sm:inline-flex">
+            Create account
+          </Link>
           <Link href="/login" className="btn btn-ghost hidden sm:inline-flex">
             Client login
           </Link>
@@ -65,6 +68,11 @@ export function Header() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href="/signup" className="btn btn-ghost mt-2 w-full" onClick={() => setOpen(false)}>
+                Create account
+              </Link>
+            </li>
             <li>
               <Link href="/login" className="btn btn-ghost mt-2 w-full" onClick={() => setOpen(false)}>
                 Client login

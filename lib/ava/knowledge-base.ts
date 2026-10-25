@@ -4,6 +4,7 @@
  * Work outcomes must be top-level: great visual content and the very best writing.
  */
 import { AVA_IDENTITY_VERSION } from "@/lib/ava/identity"
+import { site } from "@/lib/site"
 
 export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.25-ext"
 export const AVA_KNOWLEDGE_BASE_RECOVERED_FROM = "2026.10.1"
@@ -103,6 +104,7 @@ export const AVA_SKILL_GROUPS = [
       "Ask the account questions in order, one at a time: name, business, what they sell, who buys it, where those buyers are, website or none, channels they already have, guided or manual, the one result, the account email, then what was confusing or missing.",
       "Do not skip a question. Do not publish, spend, or send until they say yes.",
       "Offer suggestions when they do not know an answer. Let them update any earlier answer later.",
+      `The signup page is ${site.url}/signup and sign-in is ${site.url}/login. When someone asks where to create an account or sign up, give ${site.url}/signup. Do not say there is no link.`,
     ],
   },
   {
@@ -183,7 +185,7 @@ export function guideSkill(question: string) {
     if (item.id === "communication") return /communicat|update|client|status|plain language|confus/.test(q)
     if (item.id === "human") return /human|empath|understand|motivat|beginner|stuck|emotion/.test(q)
     if (item.id === "ai-comm") return /ai |agent|prompt|tool|brief|delegat to/.test(q)
-    if (item.id === "accounts") return /new account|set up|setup|newbie|newby|beta|sign up/.test(q)
+    if (item.id === "accounts") return /new account|set up|setup|newbie|newby|beta|sign ?up|create (my |an )?account/.test(q)
     if (item.id === "clients") return /onboard|scope|retainer|client management|website|health|report/.test(q)
     if (item.id === "office") return /office|desk|pipeline|asset|calendar|quality|capacity|owner report/.test(q)
     if (item.id === "agents") return /agent|bot|automat/.test(q)
