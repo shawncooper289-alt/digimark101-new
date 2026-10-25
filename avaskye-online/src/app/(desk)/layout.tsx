@@ -17,7 +17,7 @@ export default async function DeskLayout({ children }: { children: ReactNode }) 
         <div className="relative z-10 mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-5 py-16">
           <p className="text-xs uppercase tracking-[0.18em] text-accent">Ava's Skye Studio</p>
           <h1 className="mt-3 text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Ava's Skye Studio</h1>
-          <p className="mt-4 text-fg/90">Ava is at the night-city desk. This is Ava's studio, even on the founder account. Customer accounts cannot open it.</p>
+          <p className="mt-4 text-fg/90">This is Ava's studio, even on the founder account. Customer accounts cannot open it.</p>
           <OwnerSignIn configured={officeConfig().configured} missing={missingOfficeAuthEnv()} />
           <p className="mt-8 text-sm text-muted">
             <a className="underline" href="https://www.digimark101.com">Back to the customer site</a>

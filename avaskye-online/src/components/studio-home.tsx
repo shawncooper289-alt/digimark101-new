@@ -135,9 +135,6 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
       <div className="relative z-10 flex min-h-[calc(100dvh-7.5rem)] flex-col justify-end gap-4 px-4 py-6 sm:px-8">
         <div className="max-w-3xl">
           <p className="text-xs uppercase tracking-[0.18em] text-accent">Ava's Skye Studio · night city</p>
-          <h1 className="mt-2 max-w-xl text-5xl text-fg" style={{ fontFamily: "var(--font-display-loaded), serif" }}>
-            Ava is {pose} at the desk.
-          </h1>
           <p className="mt-2 max-w-xl text-sm text-fg/90">
             {visitors ? "Visitor mode. Professional suit, same office." : "Dark city office. The glass desk below is the live work table."}
           </p>
