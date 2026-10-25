@@ -28,7 +28,7 @@ const copy: Record<StudioSection, { title: string; lede: string }> = {
   sites: { title: "Funnels", lede: "A record of a site or funnel. The visual builder is a later phase, so nothing here is published." },
   automations: { title: "Automations", lede: "A small set of triggers that run inside this workspace." },
   reports: { title: "Reports", lede: "Counts of your own rows. These are not benchmarks and not client results." },
-  files: { title: "Files", lede: "Files are stored in your Supabase folder. Other clients cannot read them." },
+  files: { title: "Files", lede: "Files are stored in your own private folder. Other clients cannot read them." },
   memory: { title: "Memory", lede: "Facts Ava keeps for this client. They are not shared with any other login." },
 }
 

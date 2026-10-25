@@ -1,3 +1,4 @@
+import { setupReply } from "@/lib/ava/account-setup"
 import { respondToAva, type ChatTurn } from "@/lib/ava/respond"
 import { setOwnerVisitorMode } from "@/lib/office/appearance"
 import { visitorModeIntent, visitorModeReply } from "@/lib/office/intent"
@@ -141,6 +142,8 @@ export async function answerAva(input: {
     const saved = await setOwnerVisitorMode(user, appearance)
     return { text: saved.ok ? visitorModeReply(appearance) : saved.error, mode: "guide", live: false }
   }
+  const scripted = setupReply(input.turns)
+  if (scripted) return { text: scripted, mode: "guide", live: false }
   const roster = user && session ? await rosterFor(session, user.id).catch(() => input.rosterHint) : input.rosterHint
   const found = interpret(latest, input.pageFields, { spoken: input.spoken === true })
   const fromRoster = rosterReply(latest, roster)

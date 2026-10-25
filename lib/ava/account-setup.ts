@@ -34,6 +34,7 @@ const ANSWER_LABELS: Record<(typeof ACCOUNT_SETUP_QUESTIONS)[number]["id"], stri
 }
 
 const EMAIL_IN_TEXT = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i
+const CHANGE_REQUEST = /\b(change|reset|update|go back to)\b.*(name|business|product|sell|buyer|channel|email|website|site)/i
 
 export function signupUrl(email?: string) {
   const address = email?.match(EMAIL_IN_TEXT)?.[0]
@@ -57,6 +58,7 @@ Do not publish, spend, or send until the person says yes. Beta testers are tryin
 export function isExplicitTask(text: string) {
   return /\b(draft|create|start|add|write|build|make)\s+(?:a|an|the|my)?\s*(campaign|automation|contact|deal|task|funnel|site|email list|post|appointment|meeting)\b/i.test(text)
     || /\b(schedule|book)\s+(?:a|an|the|my)?\s*(appointment|meeting|call)\b/i.test(text)
+    || /\b(open|go to|take me to|show me)\s+(?:the\s+|my\s+)?(studio|contacts|pipeline|calendar|inbox|campaigns|automations|reports|media|business setup)\b/i.test(text)
 }
 
 function isAccountLinkQuestion(text: string) {
@@ -66,8 +68,49 @@ function isAccountLinkQuestion(text: string) {
   return asksWhere && aboutAccount
 }
 
-function answersSoFar(turns: { role: string; content: string }[]) {
+type Turn = { role: string; content: string }
+type QuestionId = (typeof ACCOUNT_SETUP_QUESTIONS)[number]["id"]
+
+const CORRECTION = /^\s*(actually|sorry|oops|wait|correction|i meant|i mean|no[,.!]?\s|not\s+\w+[,.]?\s+(?:it'?s|its|it is))/i
+const SKIP = /^\s*(skip|pass|next|skip (?:it|this|that|this one))\s*[.!]*\s*$/i
+const QUESTION_START = /^\s*(why|what|what's|whats|how|who|when|where|can you|could you|can i|should i|do i|does|is it|are you|will you|why do)\b/i
+const CORRECTION_TARGETS: [RegExp, QuestionId][] = [
+  [/\b(e-?mail)\b/i, "email"],
+  [/\b(website|site|url|web ?page)\b/i, "site"],
+  [/\b(business|studio|company|brand|shop|store|agency)\b/i, "business"],
+  [/\b(call me|my name)\b/i, "name"],
+  [/\b(sell|selling|product|service|offer)\b/i, "sells"],
+  [/\b(buyer|customer|client|audience)\b/i, "buyer"],
+  [/\b(city|location|located|based)\b/i, "place"],
+]
+
+function isCorrection(text: string) {
+  return CORRECTION.test(text)
+}
+
+function isQuestionText(text: string) {
+  const trimmed = text.trim()
+  if (EMAIL_IN_TEXT.test(trimmed)) return false
+  if (trimmed.length > 300) return false
+  return /\?\s*$/.test(trimmed) || QUESTION_START.test(trimmed)
+}
+
+function correctionValue(text: string) {
+  const named = text.match(/\b(?:called|named)\s+(.+)$/i) ?? text.match(/\b(?:it'?s|its|is|to|as|be)\s+(.+)$/i)
+  const raw = named ? named[1] : text.replace(CORRECTION, "").replace(/^[\s,.:;-]+/, "")
+  return raw.replace(/[.!\s]+$/, "").trim().slice(0, 300)
+}
+
+function correctionTarget(text: string, answered: QuestionId[]): QuestionId | null {
+  for (const [pattern, id] of CORRECTION_TARGETS) {
+    if (pattern.test(text)) return id
+  }
+  return answered[answered.length - 1] ?? null
+}
+
+function answersSoFar(turns: Turn[]) {
   const answers = new Map<string, string>()
+  const order: QuestionId[] = []
   for (let index = 0; index < turns.length; index += 1) {
     const turn = turns[index]
     if (turn?.role !== "assistant") continue
@@ -75,7 +118,21 @@ function answersSoFar(turns: { role: string; content: string }[]) {
     if (!question) continue
     const reply = turns.slice(index + 1).find((item) => item.role === "user")
     if (!reply || isExplicitTask(reply.content) || isAccountLinkQuestion(reply.content)) continue
-    answers.set(question.id, reply.content.trim())
+    const text = reply.content.trim()
+    if (/\b(stop|cancel|never mind|nevermind)\b/i.test(text)) continue
+    if (isCorrection(text) || CHANGE_REQUEST.test(text)) {
+      const target = correctionTarget(text, order)
+      const value = correctionValue(text)
+      if (target && value) {
+        answers.set(target, value)
+        if (!order.includes(target)) order.push(target)
+      }
+      continue
+    }
+    if (isQuestionText(text)) continue
+    if (question.id === "email" && !EMAIL_IN_TEXT.test(text) && !SKIP.test(text)) continue
+    answers.set(question.id, SKIP.test(text) ? "skipped" : text.slice(0, 300))
+    if (!order.includes(question.id)) order.push(question.id)
   }
   return answers
 }
@@ -89,7 +146,7 @@ function signupDirections(email: string | undefined) {
   return `Create your account here: ${url}\n\nSign in later at ${site.url}/login. After you sign up, check your inbox for the confirmation email, including spam.`
 }
 
-function closingMessage(turns: { role: string; content: string }[]) {
+function closingMessage(turns: Turn[]) {
   const answers = answersSoFar(turns)
   const lines = ACCOUNT_SETUP_QUESTIONS.map((item, index) => {
     const value = answers.get(item.id)
@@ -103,7 +160,7 @@ export function isSetupStart(text: string) {
   return /\b(set up my account|setup my account|new account|i'?m new|im new|newbie|newby|beta tester|help me start|start my account|set up my free account)\b/i.test(text)
 }
 
-export function setupReply(turns: { role: string; content: string }[]): string | null {
+export function setupReply(turns: Turn[]): string | null {
   const latest = turns[turns.length - 1]?.content ?? ""
   const prior = [...turns].reverse().find((turn) => turn.role === "assistant")?.content ?? ""
   const step = ACCOUNT_SETUP_QUESTIONS.findIndex((item) => prior.includes(item.ask))
@@ -112,16 +169,32 @@ export function setupReply(turns: { role: string; content: string }[]): string |
     return "Setup is paused. Say set up my account when you want the next question. You can also say change my business name or go back to any earlier answer."
   }
   if (step >= 0 && !isSetupStart(latest) && isExplicitTask(latest)) return null
+  const current = step >= 0 ? ACCOUNT_SETUP_QUESTIONS[step] : undefined
   if (isAccountLinkQuestion(latest)) {
     const email = answersSoFar(turns).get("email")
-    const again = step >= 0 ? `\n\n${ACCOUNT_SETUP_QUESTIONS[step]?.ask ?? ""}` : ""
+    const again = current ? `\n\n${current.ask}` : ""
     return `${signupDirections(email)}${again}`
-  }
-  if (/\b(change|reset|update|go back to)\b.*(name|business|product|sell|buyer|channel)/i.test(latest)) {
-    return "Got it. Tell me the new value and I will update it. What should it be?"
   }
   if (step < 0) {
     return `I will set the account up one question at a time. Answer in a sentence, or say I don't know and I will give you options. I will not publish anything.\n\n${ACCOUNT_SETUP_QUESTIONS[0].ask}`
+  }
+  if (isCorrection(latest) || CHANGE_REQUEST.test(latest)) {
+    const answers = answersSoFar(turns)
+    const answered = ACCOUNT_SETUP_QUESTIONS.map((item) => item.id).filter((id) => answers.has(id))
+    const target = correctionTarget(latest, answered)
+    const value = correctionValue(latest)
+    const hasValue = value.length > 0 && !/^(my\s+)?(business|name|product|buyer|channels?|email|website|site)(\s+name)?$/i.test(value)
+    if (target && hasValue) {
+      return `Updated ${ANSWER_LABELS[target].toLowerCase()} to: ${value}\n\n${current?.ask ?? ""}`
+    }
+    return `Got it. Tell me the new value, like "change my business name to Flow Haus", and I will update it. For now I am still on this one:\n\n${current?.ask ?? ""}`
+  }
+  if (isQuestionText(latest)) {
+    const help = current?.suggestions.length ? ` Some options: ${current.suggestions.join(", ")}.` : ""
+    return `Good question. I ask this so your first campaign fits your business. You can answer in a sentence, say I don't know yet, or say skip.${help}\n\n${current?.ask ?? ""}`
+  }
+  if (current?.id === "email" && !EMAIL_IN_TEXT.test(latest) && !SKIP.test(latest)) {
+    return `That does not look like an email address. Type it like name@example.com, or say skip.\n\n${current.ask}`
   }
   const next = ACCOUNT_SETUP_QUESTIONS[step + 1]
   if (!next) return closingMessage(turns)

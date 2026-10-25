@@ -161,7 +161,7 @@ function guideReply(question: string): string {
 export function sanitizeTurns(input: unknown): ChatTurn[] | null {
   const raw = Array.isArray(input) ? input : []
   const turns: ChatTurn[] = []
-  for (const item of raw.slice(-8)) {
+  for (const item of raw.slice(-30)) {
     if (!item || typeof item !== "object") return null
     const role = "role" in item ? item.role : undefined
     const content = "content" in item ? item.content : undefined
@@ -208,7 +208,7 @@ export async function respondToAva(
         max_tokens: 700,
         messages: [
           { role: "system", content: `${SYSTEM_PROMPT}\n\n${studioBrief()}${websiteContext}${options?.extra ? `\n\n${options.extra}` : ""}` },
-          ...turns.map((turn) => ({ role: turn.role, content: turn.content })),
+          ...turns.slice(-8).map((turn) => ({ role: turn.role, content: turn.content })),
         ],
         ...(options?.tools ? { tools: options.tools, tool_choice: "auto" } : {}),
       }),
