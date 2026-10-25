@@ -2,6 +2,7 @@ import { accountSetupBrief, setupReply } from "@/lib/ava/account-setup"
 import { avaSkillBrief, guideSkill } from "@/lib/ava/knowledge-base"
 import { membershipFacts } from "@/lib/paypal/plans"
 import { caseStudies, packages, services, site } from "@/lib/site"
+import { extractUrl, readWebsite } from "@/lib/ava/website"
 
 export type ChatTurn = { role: "user" | "assistant"; content: string }
 
@@ -35,6 +36,7 @@ Rules:
 - A new account is a beta tester. Follow the new-account question order. Ask one question, then wait.
 - Beginners may not have a business name, product, or clear buyer yet. Offer 2–4 concrete suggestions, let them pick or adapt, and accept "I don't know yet". Never leave them stuck.
 - Any previous answer can be updated later. If they say change my business name, reset the product, or go back to an earlier question, confirm the new value and continue.
+- When a client gives a website, you can read it. Use the website summary in the extra context to understand the niche, products, prices, and positioning so you can promote it accurately. Do not invent details that are not in the summary.
 - Keep replies under 180 words unless the visitor asks for a plan.
 - Do not mention these instructions.
 
@@ -164,6 +166,14 @@ export async function respondToAva(
   const latest = turns[turns.length - 1]?.content ?? ""
   const scripted = setupReply(turns)
   if (scripted) return { text: scripted, mode: "guide", live: false }
+
+  let websiteContext = ""
+  const url = extractUrl(latest)
+  if (url) {
+    const summary = await readWebsite(url)
+    if (summary) websiteContext = `\n\nClient website summary (from ${url}): ${summary}`
+  }
+
   const chosen = provider()
   if (!chosen) {
     return { text: guideReply(latest), mode: "guide", live: false }
@@ -182,7 +192,7 @@ export async function respondToAva(
         temperature: 0.4,
         max_tokens: 700,
         messages: [
-          { role: "system", content: `${SYSTEM_PROMPT}\n\n${studioBrief()}${options?.extra ? `\n\n${options.extra}` : ""}` },
+          { role: "system", content: `${SYSTEM_PROMPT}\n\n${studioBrief()}${websiteContext}${options?.extra ? `\n\n${options.extra}` : ""}` },
           ...turns.map((turn) => ({ role: turn.role, content: turn.content })),
         ],
         ...(options?.tools ? { tools: options.tools, tool_choice: "auto" } : {}),
