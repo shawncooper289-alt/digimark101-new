@@ -21,13 +21,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Login link can only be sent to an owner mailbox." }, { status: 400 })
   }
   const redirectTo = officeCallbackUrl(request)
-  const response = await fetch(`${url}/auth/v1/otp`, {
+  // This is the Auth REST API, not supabase-js: redirects belong in the query.
+  const endpoint = new URL(`${url}/auth/v1/otp`)
+  endpoint.searchParams.set("redirect_to", redirectTo)
+  const response = await fetch(endpoint.toString(), {
     method: "POST",
     headers: supabaseKeyHeaders(anon, { "Content-Type": "application/json" }),
     body: JSON.stringify({
       email,
       create_user: true,
-      options: { emailRedirectTo: redirectTo },
     }),
     cache: "no-store",
   })
