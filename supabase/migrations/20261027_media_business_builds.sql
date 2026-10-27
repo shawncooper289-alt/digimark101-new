@@ -226,6 +226,77 @@ create index if not exists client_media_owner_idx on public.client_media (owner_
 create index if not exists client_build_assets_owner_idx on public.client_build_assets (owner_id, created_at desc);
 create index if not exists campaign_media_media_idx on public.campaign_media (media_id);
 
+-- The hosted project does not have this function. 20261018 defines it in this repo
+-- as can_access_workspace(target, row_owner), but that file is not what the live
+-- database applied. Postgres refuses CREATE OR REPLACE when the argument names differ,
+-- so replace the existing names in place, and create p_workspace_id / p_owner_id when
+-- the function is missing. Any workspace_members row (owner, admin, or member) counts.
+do $$
+declare
+  existing text;
+begin
+  if to_regprocedure('public.can_access_workspace(uuid,uuid)') is null then
+    existing := 'missing';
+  else
+    existing := pg_get_function_identity_arguments('public.can_access_workspace(uuid,uuid)'::regprocedure);
+  end if;
+
+  if existing = 'target uuid, row_owner uuid' then
+    execute $fn$
+      create or replace function public.can_access_workspace(target uuid, row_owner uuid)
+      returns boolean
+      language sql
+      stable
+      security definer
+      set search_path = public
+      as $body$
+        select
+          public.is_owner()
+          or auth.uid() = row_owner
+          or (
+            target is not null
+            and exists (
+              select 1
+              from public.workspace_members m
+              where m.workspace_id = target
+                and m.user_id = auth.uid()
+            )
+          );
+      $body$
+    $fn$;
+  else
+    execute $fn$
+      create or replace function public.can_access_workspace(p_workspace_id uuid, p_owner_id uuid)
+      returns boolean
+      language sql
+      stable
+      security definer
+      set search_path = public
+      as $body$
+        select
+          public.is_owner()
+          or auth.uid() = p_owner_id
+          or (
+            p_workspace_id is not null
+            and exists (
+              select 1
+              from public.workspace_members m
+              where m.workspace_id = p_workspace_id
+                and m.user_id = auth.uid()
+            )
+          );
+      $body$
+    $fn$;
+  end if;
+end $$;
+
+revoke all on function public.can_access_workspace(uuid, uuid) from public, anon;
+grant execute on function public.can_access_workspace(uuid, uuid) to authenticated, service_role;
+
+-- Live campaigns have owner_id and no workspace_id. The campaign_media policy reads it.
+alter table public.campaigns
+  add column if not exists workspace_id uuid references public.workspaces (id) on delete set null;
+
 alter table public.client_media enable row level security;
 alter table public.campaign_media enable row level security;
 alter table public.client_build_assets enable row level security;
