@@ -2,6 +2,11 @@
 -- Safe to re-run. Apply after 20261027_media_business_builds.sql.
 -- A beta seat is free: source beta, is_beta true, no PayPal id.
 -- client_onboarding stays readable only by the signed-in user.
+--
+-- Dependencies this file uses but does not create, because they already exist
+-- on the hosted project and in earlier repo files: public.is_owner(),
+-- public.seats, public.workspaces, public.workspace_members, and auth.users.
+-- It does not call can_access_workspace. deliver_seat is replaced below.
 
 alter table public.seats add column if not exists is_beta boolean not null default false;
 alter table public.seats add column if not exists beta_consent_at timestamptz;
