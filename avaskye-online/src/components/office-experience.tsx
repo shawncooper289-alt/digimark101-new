@@ -103,7 +103,7 @@ export function OfficeExperience({
         </div>
         {compact ? null : (
         <h1 className="mt-3 text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>
-          Ava's Skye Studio
+          Ava&apos;s Skye Studio
         </h1>
         )}
         <p className="mt-4 max-w-xl text-muted">

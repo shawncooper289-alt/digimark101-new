@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { applyAction } from "@/lib/platform/reduce"
 import { emptyWorkspace, type Action, type Workspace } from "@/lib/platform/types"
 
-const STORAGE_KEY = "digimark101.preview.v1"
+const STORAGE_KEY = "digimark101.preview.v2"
 const WORKSPACE_KEY = "digimark101.ownerWorkspace"
 
 type WorkspaceOption = { id: string; label: string }
@@ -35,6 +35,7 @@ export function usePlatform() {
 
 function readPreview(): Workspace {
   try {
+    localStorage.removeItem("digimark101.preview.v1")
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return emptyWorkspace()
     return { ...emptyWorkspace(), ...JSON.parse(saved) }

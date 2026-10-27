@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
+import { BetaFeedback } from "@/components/studio/beta-feedback"
 import { usePlatform } from "@/components/studio/platform-provider"
 import { createSupabaseBrowser } from "@/lib/supabase/browser"
 
@@ -35,6 +36,9 @@ const groups = [
       { href: "/studio/reports", label: "Reports" },
       { href: "/studio/leads", label: "Leads" },
       { href: "/studio/files", label: "Files" },
+      { href: "/studio/media", label: "Media" },
+      { href: "/studio/builds", label: "Builds" },
+      { href: "/studio/business", label: "Business setup" },
       { href: "/studio/memory", label: "Memory" },
       { href: "/studio/knowledge", label: "Ava skills" },
       { href: "/studio/backend", label: "Backend" },
@@ -119,6 +123,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         {platform.error ? <p className="border-b border-signal/30 bg-mist px-5 py-3 text-sm text-signal">{platform.error}</p> : null}
         <div className="px-5 py-8">{children}</div>
       </div>
+      <BetaFeedback />
     </div>
   )
 }

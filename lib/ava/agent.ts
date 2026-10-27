@@ -1,3 +1,5 @@
+import { setupResult } from "@/lib/ava/onboarding-playbook"
+import { onboardingPatch } from "@/lib/onboarding/fields"
 import { respondToAva, type ChatTurn } from "@/lib/ava/respond"
 import { setOwnerVisitorMode } from "@/lib/office/appearance"
 import { visitorModeIntent, visitorModeReply } from "@/lib/office/intent"
@@ -124,6 +126,41 @@ function draftAction(action: Action): Pick<AvaAnswer, "text" | "pendingActions" 
   }
 }
 
+type ServerClient = NonNullable<Awaited<ReturnType<typeof createSupabaseServer>>>
+
+async function knownOnboarding(session: ServerClient, userId: string) {
+  const { data, error } = await session.from("client_onboarding").select("*").eq("user_id", userId).maybeSingle()
+  if (error || !data) return {}
+  const known: Record<string, string> = {}
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === "string" && value.trim()) known[key] = value.trim()
+  }
+  return known
+}
+
+async function recordOnboarding(
+  session: ServerClient,
+  userId: string,
+  outcomes: { questionId: string; outcome: "completed" | "skipped" | "corrected"; niche: string | null }[],
+  save: Record<string, string> | null,
+) {
+  if (outcomes.length) {
+    await session.from("onboarding_sessions").insert(outcomes.map((item) => ({
+      user_id: userId,
+      question_id: item.questionId.slice(0, 80),
+      outcome: item.outcome,
+      niche: item.niche,
+    })))
+  }
+  const fields = save ? onboardingPatch(save) : {}
+  if (Object.keys(fields).length) {
+    await session.from("client_onboarding").upsert(
+      { user_id: userId, ...fields, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" },
+    )
+  }
+}
+
 export async function answerAva(input: {
   turns: ChatTurn[]
   pageFields: string[]
@@ -140,6 +177,20 @@ export async function answerAva(input: {
     }
     const saved = await setOwnerVisitorMode(user, appearance)
     return { text: saved.ok ? visitorModeReply(appearance) : saved.error, mode: "guide", live: false }
+  }
+  const known = user && session ? await knownOnboarding(session, user.id) : {}
+  const scripted = setupResult(input.turns, known)
+  if (scripted.text) {
+    let text = scripted.text
+    if (user && session) {
+      await recordOnboarding(session, user.id, scripted.outcomes, scripted.save)
+    } else if (scripted.save) {
+      text = scripted.text.replace(
+        "Saved. Those details are on your account.",
+        "Nothing is written yet. Sign in, then say yes again, and I will save these on the account.",
+      )
+    }
+    return { text, mode: "guide", live: false }
   }
   const roster = user && session ? await rosterFor(session, user.id).catch(() => input.rosterHint) : input.rosterHint
   const found = interpret(latest, input.pageFields, { spoken: input.spoken === true })

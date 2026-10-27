@@ -520,6 +520,11 @@ export function AvaWidget() {
   }
 
   function onAvatarKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
+    if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+      event.preventDefault()
+      openChat()
+      return
+    }
     if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return
     event.preventDefault()
     const rect = event.currentTarget.getBoundingClientRect()

@@ -6,7 +6,9 @@
 import { AVA_IDENTITY_VERSION } from "@/lib/ava/identity"
 import { site } from "@/lib/site"
 
-export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.25-ext"
+import { playbookGuide } from "@/lib/ava/onboarding-playbook"
+
+export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.27-onboarding"
 export const AVA_KNOWLEDGE_BASE_RECOVERED_FROM = "2026.10.1"
 
 export const AVA_SKILL_GROUPS = [
@@ -101,9 +103,9 @@ export const AVA_SKILL_GROUPS = [
     title: "New accounts",
     items: [
       "A new person is a beta tester until the platform has been used and the gaps are written down.",
-      "Ask the account questions in order, one at a time: name, business, what they sell, who buys it, where those buyers are, website or none, channels they already have, guided or manual, the one result, the account email, then what was confusing or missing.",
-      "Do not skip a question. Do not publish, spend, or send until they say yes.",
-      "Offer suggestions when they do not know an answer. Let them update any earlier answer later.",
+      "Use the onboarding playbook for a brand-new account. Ask one question at a time, branch on niche, skip a question when that field is already known, and recap before saving.",
+      playbookGuide(),
+      "Do not publish, spend, or send until they say yes. Offer suggestions when they do not know an answer. A correction updates the earlier answer and the confirm step runs again.",
       `The signup page is ${site.url}/signup and sign-in is ${site.url}/login. When someone asks where to create an account or sign up, give ${site.url}/signup. Do not say there is no link.`,
     ],
   },

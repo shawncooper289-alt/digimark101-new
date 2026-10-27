@@ -7,6 +7,7 @@ A seat is a row in `public.seats`. An active seat belongs to a Supabase Auth use
 1. **PayPal.** Pricing shows the subscription button when `NEXT_PUBLIC_PAYPAL_CLIENT_ID` and the plan id for the selected term are set. Checkout sends the signed-in user id as `custom_id`. The webhook `POST /api/webhooks/paypal` verifies the event, upserts `subscriptions`, and on `ACTIVE` calls `deliver_seat`. A magic-link invite goes to `https://www.digimark101.com/auth/callback` (from `NEXT_PUBLIC_SITE_URL`), which opens `/studio`.
 2. **Request access.** If a plan id is missing, the pricing card shows **Request access**. That stores a consented lead and a `pending` seat. It does not send a login until someone grants the seat.
 3. **Grant seat manually.** Owner office → Billing. Confirm the checkbox, then the office calls `deliver_seat` with source `manual` and emails the same studio login link.
+4. **Beta.** `https://www.digimark101.com/beta` sends the same magic link and calls `deliver_seat` with source `beta`. The seat and the personal workspace are flagged `is_beta`. There is no PayPal charge. If `BETA_INVITE_CODE` is set, the form requires it. If it is unset, signup is open. A PayPal seat is not rewritten into a beta seat.
 
 The welcome message is the Supabase Auth magic link. There is no separate mailer. Supabase must be allowed to send email (built-in mailer or custom SMTP).
 

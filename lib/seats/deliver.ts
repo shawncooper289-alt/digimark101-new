@@ -1,7 +1,7 @@
 import { supabaseKeyHeaders } from "@/lib/supabase/headers"
 import { createSupabaseAdmin } from "@/lib/supabase/admin"
 
-export type SeatSource = "paypal" | "manual" | "request"
+export type SeatSource = "paypal" | "manual" | "request" | "beta"
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -31,7 +31,7 @@ export async function ensureAuthUser(email: string) {
   return /already|registered|exists/i.test(error.message)
 }
 
-export async function sendStudioInvite(email: string) {
+export async function sendStudioInvite(email: string, redirectTo?: string) {
   const url = projectUrl()
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
   if (!url || !key || !EMAIL.test(email)) return false
@@ -41,7 +41,7 @@ export async function sendStudioInvite(email: string) {
     body: JSON.stringify({
       email,
       create_user: true,
-      options: { emailRedirectTo: `${siteOrigin()}/auth/callback` },
+      options: { emailRedirectTo: redirectTo || `${siteOrigin()}/auth/callback` },
     }),
     cache: "no-store",
   })

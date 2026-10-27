@@ -37,8 +37,11 @@ export function AvaFloat() {
   const [textOnly, setTextOnly] = useState(false)
   const dragRef = useRef<{ pointerId: number; originX: number; originY: number; startX: number; startY: number; moved: boolean } | null>(null)
   const historyRef = useRef(history)
-  historyRef.current = history
   const look = officeLook(visitor)
+
+  useEffect(() => {
+    historyRef.current = history
+  }, [history])
 
   useEffect(() => {
     fetch("/api/office/appearance")
@@ -48,16 +51,18 @@ export function AvaFloat() {
   }, [])
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(POSITION_KEY)
-      if (!raw) return
-      const parsed = JSON.parse(raw) as { x?: unknown; y?: unknown }
-      if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-        setPoint({ x: parsed.x * window.innerWidth, y: parsed.y * window.innerHeight })
+    queueMicrotask(() => {
+      try {
+        const raw = localStorage.getItem(POSITION_KEY)
+        if (!raw) return
+        const parsed = JSON.parse(raw) as { x?: unknown; y?: unknown }
+        if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+          setPoint({ x: parsed.x * window.innerWidth, y: parsed.y * window.innerHeight })
+        }
+      } catch {
+        // She stays in the corner when storage is blocked.
       }
-    } catch {
-      // She stays in the corner when storage is blocked.
-    }
+    })
   }, [])
 
   useEffect(() => {

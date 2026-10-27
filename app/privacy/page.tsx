@@ -37,18 +37,18 @@ export default function PrivacyPage() {
         </p>
         <h2>Client workspaces</h2>
         <p>
-          When you create an account, your contacts, pipeline, calendar, inbox notes, campaigns, site records, automations, files, and Ava memory are stored under your user id. Row-level security in Supabase allows that login to read and write only its own rows. Ava cannot read memory or records that belong to another client.
+          When you create an account, your contacts, pipeline, calendar, inbox notes, campaigns, site records, automations, files, and Ava memory are stored under your user id. Access rules allow that login to read and write only its own records. Ava cannot read memory or records that belong to another client.
         </p>
         <h2>Membership</h2>
         <p>
-          If you subscribe, PayPal processes the payment. We do not store your card number. We store the PayPal subscription id, plan, status, payer email, and payment times in Supabase. When you are signed in at checkout, that row is linked to your user id. Row-level security lets that login read only its own subscription.
+          If you subscribe, PayPal processes the payment. We do not store your card number. We store the PayPal subscription id, plan, status, payer email, and payment times in our database. When you are signed in at checkout, that row is linked to your user id. Access rules let that login read only its own subscription.
         </p>
         <h2>Where leads are stored</h2>
         <p>
           Leads are stored in Supabase. New notes land in a hidden staging table. A scheduled job scores them and separates them by niche. Only a lead that clears the score threshold, has consent to be contacted, and is not on the suppression list is copied into the premium lead store. Everything else stays in staging, or moves to a hidden rejected table when consent is missing, the address is suppressed, or you ask for deletion.
         </p>
         <p>
-          Name, email, phone, company, and the message text live in a separate table. Row-level security is on, and the anon and signed-in roles are revoked from that table. Only the owner account, checked in the application, and Ava&apos;s server-side service role can read those raw values. Buyers and other visitors get an anonymized preview: niche, region, company size, and score. The public site does not put raw emails in the page bundle or in logs.
+          Name, email, phone, company, and the message text live in a separate table. Access to that table is locked down for visitors and signed-in users. Only the owner account, checked in the application, and Ava&apos;s server-side service role can read those raw values. Buyers and other visitors get an anonymized preview: niche, region, company size, and score. The public site does not put raw emails in the page bundle or in logs.
         </p>
         <p>When Supabase is not configured, the note is not stored. The form says so and offers an email draft instead.</p>
         <h2>Lead sharing</h2>

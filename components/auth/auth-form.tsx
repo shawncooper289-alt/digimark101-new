@@ -69,7 +69,7 @@ export function AuthForm({
       </Link>
       <h1 className="display mt-8 text-4xl">{mode === "login" ? "Sign in" : "Create your workspace"}</h1>
       <p className="mt-3 text-sm text-ink-soft">
-        Each login is one client. Supabase row-level security keeps that workspace private. Signing in does not buy a lead list or start a membership charge.
+        Each login is one client, and your workspace stays private to you. Signing in does not buy a lead list or start a membership charge.
       </p>
       {supabase ? null : (
         <p className="mt-4 rounded-2xl bg-mist px-3 py-3 text-sm">
