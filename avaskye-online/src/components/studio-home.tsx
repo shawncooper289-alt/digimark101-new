@@ -134,7 +134,7 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
       </div>
       <div className="relative z-10 flex min-h-[calc(100dvh-7.5rem)] flex-col justify-end gap-4 px-4 py-6 sm:px-8">
         <div className="max-w-3xl">
-          <p className="text-xs uppercase tracking-[0.18em] text-accent">Ava's Skye Studio · night city</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-accent">Ava&apos;s Skye Studio · night city</p>
           <p className="mt-2 max-w-xl text-sm text-fg/90">
             {visitors ? "Visitor mode. Professional suit, same office." : "Dark city office. The glass desk below is the live work table."}
           </p>
@@ -153,7 +153,6 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
               <button
                 key={item.href}
                 type="button"
-                role="listitem"
                 aria-pressed={item.href === table}
                 onClick={() => setTable(item.href)}
                 className={`rounded-full px-3 py-1 text-sm ${item.href === table ? "bg-accent text-accent-fg" : "border border-border bg-bg/50"}`}

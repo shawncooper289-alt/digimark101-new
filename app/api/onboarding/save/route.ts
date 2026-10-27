@@ -1,31 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { NextRequest, NextResponse } from "next/server"
+import { onboardingPatch } from "@/lib/onboarding/fields"
 import { supabasePublicConfig } from "@/lib/supabase/config"
 import { createSupabaseServer } from "@/lib/supabase/server"
-
-const TEXT_FIELDS = [
-  "client_name",
-  "personal_email",
-  "business_email",
-  "business_name",
-  "personal_phone",
-  "business_phone",
-  "business_address",
-  "business_website",
-  "facebook_url",
-  "instagram_url",
-  "google_business_url",
-  "linkedin_url",
-  "tiktok_url",
-  "youtube_url",
-  "x_url",
-  "legal_name",
-  "dba_name",
-  "business_type",
-  "ein",
-  "privacy_url",
-  "terms_url",
-] as const
 
 type OnboardingWriter = SupabaseClient
 
@@ -56,14 +33,7 @@ async function writerFor(req: NextRequest): Promise<{ supabase: OnboardingWriter
 }
 
 function allowedFields(body: Record<string, unknown>) {
-  const fields: Record<string, string | boolean> = {}
-  for (const key of TEXT_FIELDS) {
-    const value = body[key]
-    if (typeof value !== "string") continue
-    const trimmed = value.trim()
-    if (!trimmed) continue
-    fields[key] = trimmed.slice(0, 2000)
-  }
+  const fields: Record<string, string | boolean> = onboardingPatch(body)
   if (typeof body.onboarding_complete === "boolean") fields.onboarding_complete = body.onboarding_complete
   return fields
 }

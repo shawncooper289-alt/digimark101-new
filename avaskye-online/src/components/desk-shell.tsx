@@ -21,6 +21,7 @@ const links = [
   { href: "/records", label: "Records" },
   { href: "/clients", label: "Clients" },
   { href: "/accounts", label: "Accounts" },
+  { href: "/feedback", label: "Beta notes" },
   { href: "/reports", label: "Reports" },
   { href: "/tools", label: "Tools" },
   { href: "/settings", label: "Settings" },
@@ -66,7 +67,7 @@ export function DeskShell({ children }: { children: ReactNode }) {
         <img src="/ava/desk-sitting.jpg" alt="Ava Skye at the night-city desk" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10 flex min-h-dvh items-end justify-center pb-12">
-          <p className="rounded-full bg-black/60 px-6 py-3 text-sm text-white backdrop-blur">Click to open Ava's Skye Studio</p>
+          <p className="rounded-full bg-black/60 px-6 py-3 text-sm text-white backdrop-blur">Click to open Ava&apos;s Skye Studio</p>
         </div>
         <AvaFloat />
       </div>
@@ -79,7 +80,7 @@ export function DeskShell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-muted">Ava Skye</p>
-            <p className="text-sm">Ava's Skye Studio</p>
+            <p className="text-sm">Ava&apos;s Skye Studio</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <OwnerAccountsButton />

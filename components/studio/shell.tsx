@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
+import { BetaFeedback } from "@/components/studio/beta-feedback"
 import { usePlatform } from "@/components/studio/platform-provider"
 import { createSupabaseBrowser } from "@/lib/supabase/browser"
 
@@ -122,6 +123,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         {platform.error ? <p className="border-b border-signal/30 bg-mist px-5 py-3 text-sm text-signal">{platform.error}</p> : null}
         <div className="px-5 py-8">{children}</div>
       </div>
+      <BetaFeedback />
     </div>
   )
 }

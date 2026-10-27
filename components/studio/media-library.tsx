@@ -6,8 +6,17 @@ import { usePlatform } from "@/components/studio/platform-provider"
 import { useStudioUser } from "@/components/studio/use-studio-user"
 import { createSupabaseBrowser } from "@/lib/supabase/browser"
 
-type Media = { id: string; title: string; media_type: string; url: string | null; storage_path: string | null; notes: string | null }
-type CampaignLink = { id: string; campaign_id: string; media_id: string }
+type Media = { id: string; title: string; kind: string; public_url: string | null; storage_path: string; description: string }
+type CampaignLink = { campaign_id: string; media_id: string }
+
+const KINDS = [
+  { value: "image", label: "Image" },
+  { value: "video", label: "Video" },
+  { value: "creative", label: "Logo" },
+  { value: "document", label: "Document" },
+  { value: "copy", label: "Copy" },
+  { value: "other", label: "Other" },
+] as const
 
 const input = "min-h-11 rounded-2xl border border-ink/15 px-3"
 
@@ -23,8 +32,8 @@ export function MediaLibrary() {
     const supabase = createSupabaseBrowser()
     if (!supabase || !userId) return
     const [media, joined] = await Promise.all([
-      supabase.from("client_media").select("id, title, media_type, url, storage_path, notes").eq("user_id", userId).order("created_at", { ascending: false }),
-      supabase.from("campaign_media").select("id, campaign_id, media_id").eq("user_id", userId),
+      supabase.from("client_media").select("id, title, kind, public_url, storage_path, description").eq("owner_id", userId).order("created_at", { ascending: false }),
+      supabase.from("campaign_media").select("campaign_id, media_id"),
     ])
     if (media.error) setMessage("Could not load your media. Try again in a moment.")
     setItems((media.data ?? []) as Media[])
@@ -51,7 +60,7 @@ export function MediaLibrary() {
     if (upload && upload.size > 5_000_000) return setMessage("Files need to be 5 MB or smaller.")
     setBusy(true)
     setMessage("")
-    let storagePath: string | null = null
+    let storagePath = ""
     if (upload) {
       const safe = upload.name.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 80) || "file"
       storagePath = `${userId}/media-${crypto.randomUUID()}-${safe}`
@@ -61,13 +70,16 @@ export function MediaLibrary() {
         return setMessage("Could not upload that file.")
       }
     }
+    const kind = String(data.get("kind") || "image")
     const { error } = await supabase.from("client_media").insert({
-      user_id: userId,
+      owner_id: userId,
       title,
-      media_type: String(data.get("media_type") || "image"),
-      url: url || null,
+      kind: KINDS.some((item) => item.value === kind) ? kind : "other",
+      public_url: url || null,
       storage_path: storagePath,
-      notes: String(data.get("notes") || "").trim() || null,
+      description: String(data.get("description") || "").trim(),
+      mime_type: upload?.type || null,
+      size_bytes: upload?.size || null,
     })
     setBusy(false)
     if (error) return setMessage("Could not save that media.")
@@ -77,7 +89,7 @@ export function MediaLibrary() {
   }
 
   async function open(item: Media) {
-    if (item.url) return window.open(item.url, "_blank", "noopener,noreferrer")
+    if (item.public_url) return window.open(item.public_url, "_blank", "noopener,noreferrer")
     const supabase = createSupabaseBrowser()
     if (!supabase || !item.storage_path) return
     const { data } = await supabase.storage.from("client-files").createSignedUrl(item.storage_path, 300)
@@ -88,15 +100,15 @@ export function MediaLibrary() {
   async function linkCampaign(mediaId: string, campaignId: string) {
     const supabase = createSupabaseBrowser()
     if (!supabase || !userId || !campaignId) return
-    const { error } = await supabase.from("campaign_media").upsert({ user_id: userId, media_id: mediaId, campaign_id: campaignId }, { onConflict: "campaign_id,media_id" })
+    const { error } = await supabase.from("campaign_media").upsert({ media_id: mediaId, campaign_id: campaignId }, { onConflict: "campaign_id,media_id" })
     setMessage(error ? "Could not link that campaign." : "Linked to the campaign.")
     await load()
   }
 
-  async function unlink(id: string) {
+  async function unlink(link: CampaignLink) {
     const supabase = createSupabaseBrowser()
     if (!supabase || !userId) return
-    await supabase.from("campaign_media").delete().eq("id", id).eq("user_id", userId)
+    await supabase.from("campaign_media").delete().eq("campaign_id", link.campaign_id).eq("media_id", link.media_id)
     await load()
   }
 
@@ -104,7 +116,7 @@ export function MediaLibrary() {
     const supabase = createSupabaseBrowser()
     if (!supabase || !userId) return
     if (item.storage_path) await supabase.storage.from("client-files").remove([item.storage_path])
-    await supabase.from("client_media").delete().eq("id", item.id).eq("user_id", userId)
+    await supabase.from("client_media").delete().eq("id", item.id).eq("owner_id", userId)
     await load()
   }
 
@@ -124,17 +136,15 @@ export function MediaLibrary() {
         <label className="grid gap-1 text-sm"><span className="font-medium">Title</span><input name="title" required className={input} /></label>
         <label className="grid gap-1 text-sm">
           <span className="font-medium">Type</span>
-          <select name="media_type" className={input} defaultValue="image">
-            <option value="image">Image</option>
-            <option value="video">Video</option>
-            <option value="logo">Logo</option>
-            <option value="document">Document</option>
-            <option value="other">Other</option>
+          <select name="kind" className={input} defaultValue="image">
+            {KINDS.map((kind) => (
+              <option key={kind.value} value={kind.value}>{kind.label}</option>
+            ))}
           </select>
         </label>
         <label className="grid gap-1 text-sm"><span className="font-medium">Upload a file</span><input name="file" type="file" className="text-sm" /></label>
         <label className="grid gap-1 text-sm"><span className="font-medium">Or paste a link</span><input name="url" type="url" placeholder="https://" className={input} /></label>
-        <label className="grid gap-1 text-sm"><span className="font-medium">Notes</span><textarea name="notes" className="min-h-20 rounded-2xl border border-ink/15 px-3 py-2" /></label>
+        <label className="grid gap-1 text-sm"><span className="font-medium">Notes</span><textarea name="description" className="min-h-20 rounded-2xl border border-ink/15 px-3 py-2" /></label>
         <button type="submit" className="btn btn-signal" disabled={busy}>{busy ? "Saving…" : "Add to library"}</button>
         {message ? <p className="text-sm">{message}</p> : null}
       </form>
@@ -146,19 +156,19 @@ export function MediaLibrary() {
             return (
               <li key={item.id} className="rounded-2xl border border-ink/10 bg-card px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-medium">{item.title} <span className="text-sm font-normal text-ink-soft">· {item.media_type}</span></p>
+                  <p className="font-medium">{item.title} <span className="text-sm font-normal text-ink-soft">· {KINDS.find((kind) => kind.value === item.kind)?.label ?? item.kind}</span></p>
                   <div className="flex gap-2">
                     <button type="button" className="btn btn-ghost" onClick={() => void open(item)}>Open</button>
                     <button type="button" className="btn btn-ghost" onClick={() => void remove(item)}>Delete</button>
                   </div>
                 </div>
-                {item.notes ? <p className="text-sm text-ink-soft">{item.notes}</p> : null}
+                {item.description ? <p className="text-sm text-ink-soft">{item.description}</p> : null}
                 {attached.length ? (
                   <ul className="mt-2 flex flex-wrap gap-2 text-sm">
                     {attached.map((row) => (
-                      <li key={row.id} className="rounded-full bg-mist px-3 py-1">
+                      <li key={`${row.campaign_id}:${row.media_id}`} className="rounded-full bg-mist px-3 py-1">
                         {campaigns.find((campaign) => campaign.id === row.campaign_id)?.name ?? "Campaign"}{" "}
-                        <button type="button" className="underline" onClick={() => void unlink(row.id)} aria-label="Remove campaign link">remove</button>
+                        <button type="button" className="underline" onClick={() => void unlink(row)} aria-label="Remove campaign link">remove</button>
                       </li>
                     ))}
                   </ul>

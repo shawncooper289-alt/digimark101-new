@@ -6,6 +6,8 @@ The Supabase CLI was not available in this environment. The files were applied w
 
 ## Migration order
 
+Apply with byte order (`LC_ALL=C`), which is what the Supabase CLI uses. `20261024_platform_tokens.sql` runs before `20261024_platform_tokens_linkedin_tiktok.sql` because `.` sorts before `_`. `initial_schema.sql` sorts last.
+
 | File | What it adds |
 | --- | --- |
 | `20261007_workspace.sql` | Early `digimark_workspace` notes |
@@ -17,7 +19,18 @@ The Supabase CLI was not available in this environment. The files were applied w
 | `20261017_office_appearance.sql` | Visitor mode |
 | `20261017_owner_office_access.sql` | Owner read of lead personal details |
 | `20261017_owner_role.sql` | Owner stamp from `OWNER_EMAIL` |
-| `20261018_complete_backend.sql` | Workspaces, CRM extras, pipelines, email, funnels, bookings, lead niches and audit, Ava config, PayPal plans and webhook log, provisioning jobs, affiliate links |
+| `20261018_complete_backend.sql` | Workspaces, CRM extras, pipelines, email, funnels, bookings, lead niches and audit, Ava config, PayPal plans and webhook log, provisioning jobs, affiliate links. `can_access_workspace()` |
+| `20261019_office_records.sql` | Office record tables |
+| `20261019_product_hub.sql` | Product hub rows |
+| `20261021_office_media.sql` | Office media records. This is not the studio `client_media` library |
+| `20261024_client_onboarding.sql` | `client_onboarding`, readable by that user only |
+| `20261024_platform_tokens.sql` | Encrypted social token table |
+| `20261024_platform_tokens_linkedin_tiktok.sql` | LinkedIn and TikTok token platforms |
+| `20261025_seats.sql` | Seats and `deliver_seat` for PayPal, manual, and request |
+| `20261025_social_accounts.sql` | Social status view, scheduled posts, onboarding social URL columns |
+| `20261026_client_onboarding_user_id_unique.sql` | One onboarding row per user, so the save route can upsert |
+| `20261027_media_business_builds.sql` | `client_media`, `campaign_media`, `client_build_assets` with `owner_id`, `kind`, `public_url`, and `is_owner()` / workspace policies. Business columns use `legal_business_name`, `ein_tax_id`, `privacy_policy_url` |
+| `20261028_beta_onboarding.sql` | `seats.is_beta`, source `beta`, `beta_feedback` (user inserts own beta note, owner reads), `onboarding_sessions` (outcome only, owner reads), playbook columns on `client_onboarding`. Replaces `deliver_seat` so a beta seat can open a workspace |
 | `initial_schema.sql` | Profiles and the older Ava conversation tables. Idempotent, and it sorts after the dated files |
 
 ## Who can see what

@@ -6,10 +6,10 @@ import { useStudioUser } from "@/components/studio/use-studio-user"
 import { createSupabaseBrowser } from "@/lib/supabase/browser"
 
 const FIELDS: { name: string; label: string; type?: string; hint?: string }[] = [
-  { name: "legal_name", label: "Legal business name" },
+  { name: "legal_business_name", label: "Legal business name" },
   { name: "dba_name", label: "DBA (doing business as)" },
   { name: "business_type", label: "Business type", hint: "Sole proprietor, LLC, S-corp, nonprofit…" },
-  { name: "ein", label: "EIN", hint: "Format 12-3456789. Only you can read this." },
+  { name: "ein_tax_id", label: "EIN", hint: "Format 12-3456789. Only you can read this." },
   { name: "business_address", label: "Business address" },
   { name: "business_email", label: "Business email", type: "email" },
   { name: "business_phone", label: "Business phone", type: "tel" },
@@ -17,7 +17,7 @@ const FIELDS: { name: string; label: string; type?: string; hint?: string }[] = 
   { name: "facebook_url", label: "Facebook page", type: "url" },
   { name: "instagram_url", label: "Instagram", type: "url" },
   { name: "google_business_url", label: "Google Business Profile", type: "url" },
-  { name: "privacy_url", label: "Privacy policy link", type: "url" },
+  { name: "privacy_policy_url", label: "Privacy policy link", type: "url" },
   { name: "terms_url", label: "Terms link", type: "url" },
 ]
 
@@ -46,7 +46,7 @@ export function BusinessSetup() {
 
   async function save(event: React.FormEvent) {
     event.preventDefault()
-    const ein = (values.ein ?? "").trim()
+    const ein = (values.ein_tax_id ?? "").trim()
     if (ein && !/^\d{2}-?\d{7}$/.test(ein)) return setMessage("An EIN has nine digits, like 12-3456789.")
     setBusy(true)
     setMessage("")

@@ -1,4 +1,4 @@
-import { deskClients, text } from "@/lib/desk"
+import { deskClients } from "@/lib/desk"
 import { officeConfig, ownerEmails, readOfficeOwner } from "@/lib/office-store"
 
 export default async function AccountsPage() {
@@ -39,7 +39,7 @@ export default async function AccountsPage() {
           </a>
         </div>
         <p className="mt-4 text-xs text-muted">
-          Ask Ava to set up a free account. She'll just ask what she needs.
+          Ask Ava to set up a free account. She&apos;ll just ask what she needs.
         </p>
       </div>
 
