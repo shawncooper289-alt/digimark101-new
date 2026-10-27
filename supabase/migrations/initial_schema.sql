@@ -129,3 +129,41 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 20261029_security_hardening.sql sorts before this file. Repeat the advisor
+-- fixes for objects this file creates, so a fresh apply ends in the same state
+-- as applying 20261029 on a database that already has these tables.
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.handle_new_user() TO service_role;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_auth_admin') THEN
+    EXECUTE 'grant execute on function public.handle_new_user() to supabase_auth_admin';
+  END IF;
+END $$;
+
+DROP POLICY IF EXISTS ava_brand_context_access ON public.ava_brand_context;
+CREATE POLICY ava_brand_context_access ON public.ava_brand_context
+  FOR ALL TO authenticated
+  USING (public.is_owner() OR auth.uid() = user_id)
+  WITH CHECK (public.is_owner() OR auth.uid() = user_id);
+
+DROP POLICY IF EXISTS ava_memory_store_access ON public.ava_memory_store;
+CREATE POLICY ava_memory_store_access ON public.ava_memory_store
+  FOR ALL TO authenticated
+  USING (public.is_owner() OR auth.uid() = user_id)
+  WITH CHECK (public.is_owner() OR auth.uid() = user_id);
+
+DROP POLICY IF EXISTS ava_voice_calls_access ON public.ava_voice_calls;
+CREATE POLICY ava_voice_calls_access ON public.ava_voice_calls
+  FOR ALL TO authenticated
+  USING (public.is_owner() OR auth.uid() = user_id)
+  WITH CHECK (public.is_owner() OR auth.uid() = user_id);
+
+REVOKE ALL ON public.ava_brand_context FROM PUBLIC, anon;
+REVOKE ALL ON public.ava_memory_store FROM PUBLIC, anon;
+REVOKE ALL ON public.ava_voice_calls FROM PUBLIC, anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.ava_brand_context TO authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.ava_memory_store TO authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.ava_voice_calls TO authenticated, service_role;
