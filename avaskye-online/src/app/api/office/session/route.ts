@@ -1,3 +1,4 @@
+import { authFailure } from "@/lib/auth-failure"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { missingOfficeAuthEnv } from "@/lib/office-redirect"
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
   const email = body?.email?.trim().toLowerCase() || ""
   const password = body?.password || ""
   if (!email || !password || !emails.includes(email)) {
-    return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
+    return NextResponse.json({ error: "Enter an authorized owner email and your DigiMark101 account password." }, { status: 401 })
   }
   const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
     method: "POST",
@@ -31,7 +32,11 @@ export async function POST(request: Request) {
     cache: "no-store",
   })
   if (!response.ok) {
-    return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
+    const failure = (await response.json().catch(() => null)) as { code?: unknown } | null
+    const result = authFailure(response.status, failure?.code)
+    // No email, password, session token, or raw provider response in runtime logs.
+    console.warn("office_password_auth_rejected", { status: response.status, category: result.status })
+    return NextResponse.json({ error: result.error }, { status: result.status })
   }
   const data = (await response.json()) as { access_token?: string; refresh_token?: string; expires_in?: number; user?: { email?: string } }
   if (!data.access_token || !data.refresh_token || !emails.includes(data.user?.email?.trim().toLowerCase() || "")) {
