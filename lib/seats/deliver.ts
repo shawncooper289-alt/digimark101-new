@@ -35,13 +35,14 @@ export async function sendStudioInvite(email: string, redirectTo?: string) {
   const url = projectUrl()
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
   if (!url || !key || !EMAIL.test(email)) return false
-  const response = await fetch(`${url}/auth/v1/otp`, {
+  const endpoint = new URL(`${url}/auth/v1/otp`)
+  endpoint.searchParams.set("redirect_to", redirectTo || `${siteOrigin()}/auth/callback`)
+  const response = await fetch(endpoint.toString(), {
     method: "POST",
     headers: supabaseKeyHeaders(key, { "Content-Type": "application/json" }),
     body: JSON.stringify({
       email,
       create_user: true,
-      options: { emailRedirectTo: redirectTo || `${siteOrigin()}/auth/callback` },
     }),
     cache: "no-store",
   })

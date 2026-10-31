@@ -1,6 +1,7 @@
 "use client"
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { createSupabaseBrowser } from "@/lib/supabase/browser"
 import { applyAction } from "@/lib/platform/reduce"
 import { emptyWorkspace, type Action, type Workspace } from "@/lib/platform/types"
 
@@ -56,7 +57,10 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
   const [workspaceLabel, setWorkspaceLabel] = useState("Your workspace")
   const [workspaces, setWorkspaces] = useState<WorkspaceOption[]>([])
 
+  const refreshGeneration = useRef(0)
+
   const refresh = useCallback(async (nextWorkspaceId?: string) => {
+    const generation = ++refreshGeneration.current
     let selected = nextWorkspaceId || ""
     if (!selected && typeof window !== "undefined") {
       const fromUrl = new URLSearchParams(window.location.search).get("workspace") || ""
@@ -77,6 +81,7 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
       workspaceLabel?: string
       workspaces?: WorkspaceOption[]
     }
+    if (generation !== refreshGeneration.current) return
     setConfigured(Boolean(data.configured))
     if (data.mode === "account" && data.workspace) {
       setMode("account")
@@ -104,9 +109,42 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
+    let active = true
+    let userId: string | null = null
     const onRefresh = () => {
-      void refresh()
+      void refresh().catch(() => {
+        if (active) setError("Could not load your workspace. Refresh the page to try again.")
+      })
     }
+    let timer = window.setTimeout(onRefresh, 0)
+    const supabase = createSupabaseBrowser()
+    const subscription = supabase?.auth.onAuthStateChange((event, session) => {
+      if (!active) return
+      const nextUserId = session?.user.id ?? null
+      if (event === "INITIAL_SESSION") {
+        userId = nextUserId
+        return
+      }
+      // Supabase also emits SIGNED_IN when the same account refocuses a tab.
+      if (event === "SIGNED_IN" && nextUserId === userId) return
+      userId = nextUserId
+      // Invalidate requests made with the previous session before scheduling a reload.
+      refreshGeneration.current += 1
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        setMode("loading")
+        setEmail(null)
+        setWorkspace(emptyWorkspace())
+        setIsOwner(false)
+        setUnrestricted(false)
+        setWorkspaceId(null)
+        setWorkspaceLabel("Your workspace")
+        setWorkspaces([])
+        sessionStorage.removeItem(WORKSPACE_KEY)
+      }
+      // Do not call back into Auth while its state-change lock is held.
+      window.clearTimeout(timer)
+      timer = window.setTimeout(onRefresh, 0)
+    })
     const onActions = (event: Event) => {
       const detail = (event as CustomEvent<{ actions: Action[]; summaries: string[] }>).detail
       if (!detail?.actions) return
@@ -123,8 +161,10 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
     }
     window.addEventListener("ava:refresh", onRefresh)
     window.addEventListener("ava:client-actions", onActions)
-    const timer = window.setTimeout(onRefresh, 0)
     return () => {
+      active = false
+      refreshGeneration.current += 1
+      subscription?.data.subscription.unsubscribe()
       window.clearTimeout(timer)
       window.removeEventListener("ava:refresh", onRefresh)
       window.removeEventListener("ava:client-actions", onActions)
