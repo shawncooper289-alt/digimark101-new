@@ -13,11 +13,11 @@ export default function AuthCallback() {
       const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : ""
       const params = new URLSearchParams(hash)
       const error = query.get("error_description") || query.get("error") || params.get("error_description") || params.get("error")
+      window.history.replaceState({}, "", "/auth/callback")
       if (error) {
         setStatus("The login link was rejected. Request a new one, or sign in with a password.")
         return
       }
-      window.history.replaceState({}, "", "/auth/callback")
       const tokenHash = query.get("token_hash")
       const type = query.get("type") || "magiclink"
       if (tokenHash) {
