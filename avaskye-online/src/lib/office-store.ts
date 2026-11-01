@@ -20,6 +20,13 @@ export function ownerEmails() {
     .filter(Boolean)
 }
 
+/** Owner is the server mailbox list or a Supabase user stamped role = owner. */
+export function isOwnerIdentity(email: string, role?: string | null) {
+  if (role === "owner") return true
+  const normalized = email.trim().toLowerCase()
+  return Boolean(normalized && ownerEmails().includes(normalized))
+}
+
 function projectRef(url: string) {
   try {
     return new URL(url).hostname.split(".")[0]?.toLowerCase() || ""
@@ -126,9 +133,45 @@ async function authUser(url: string, anon: string, access: string) {
     cache: "no-store",
   })
   if (!response.ok) return null
-  const data = (await response.json()) as { id?: string; email?: string }
+  const data = (await response.json()) as { id?: string; email?: string; app_metadata?: { role?: string } }
   if (!data.id || !data.email) return null
-  return { id: data.id, email: data.email.trim().toLowerCase() }
+  return {
+    id: data.id,
+    email: data.email.trim().toLowerCase(),
+    role: data.app_metadata?.role || "",
+  }
+}
+
+export async function founderAccountEmails() {
+  const found = new Set(ownerEmails())
+  const { url, service } = officeConfig()
+  if (!url || !service) return [...found]
+  const response = await fetch(`${url}/auth/v1/admin/users?page=1&per_page=200`, {
+    headers: supabaseKeyHeaders(service),
+    cache: "no-store",
+  })
+  if (!response.ok) return [...found]
+  const data = (await response.json()) as { users?: { email?: string; app_metadata?: { role?: string } }[] }
+  for (const user of data.users ?? []) {
+    const email = user.email?.trim().toLowerCase() || ""
+    if (email && user.app_metadata?.role === "owner") found.add(email)
+  }
+  return [...found]
+}
+
+export async function mailboxIsOwner(email: string) {
+  const normalized = email.trim().toLowerCase()
+  if (!normalized) return false
+  if (isOwnerIdentity(normalized, null)) return true
+  const { url, service } = officeConfig()
+  if (!url || !service) return false
+  const response = await fetch(`${url}/auth/v1/admin/users?page=1&per_page=200`, {
+    headers: supabaseKeyHeaders(service),
+    cache: "no-store",
+  })
+  if (!response.ok) return false
+  const data = (await response.json()) as { users?: { email?: string; app_metadata?: { role?: string } }[] }
+  return (data.users ?? []).some((user) => user.email?.trim().toLowerCase() === normalized && user.app_metadata?.role === "owner")
 }
 
 export async function readVisitorMode() {
@@ -178,8 +221,7 @@ export async function readOfficeOwner() {
   }
   if (!bag.access) return null
   const user = await authUser(url, anon, bag.access)
-  const emails = ownerEmails()
-  if (!user || !emails.includes(user.email)) return null
+  if (!user || !isOwnerIdentity(user.email, user.role)) return null
   return user
 }
 
