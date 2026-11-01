@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import "./globals.css";
 
@@ -10,6 +10,14 @@ export const metadata: Metadata = {
   description: "Ava's Skye Studio. The private desk stays Ava's, on every account.",
   metadataBase: new URL("https://avaskye.online"),
   robots: { index: false, follow: false },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0b0d0e",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

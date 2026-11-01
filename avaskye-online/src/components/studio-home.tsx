@@ -138,72 +138,74 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
   }
 
   return (
-    <section className="relative min-h-[calc(100dvh-7.5rem)] overflow-hidden bg-bg">
+    <section className="relative min-h-[calc(100dvh-4.5rem)] overflow-hidden bg-bg sm:min-h-[calc(100dvh-7.5rem)]">
       <AvaLiveCharacter
         standing={visitors || standing}
-        className="ava-drift absolute inset-0 h-full w-full object-cover object-[center_25%] opacity-95"
+        className="ava-drift absolute inset-0 h-full w-full object-cover object-center opacity-95 sm:object-[center_25%]"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-bg/80 via-bg/30 to-transparent" />
-      <div className="relative z-10 flex min-h-[calc(100dvh-7.5rem)] flex-col justify-end gap-4 px-4 py-6 sm:px-8">
+      <div className="absolute inset-0 bg-gradient-to-t from-bg/85 via-bg/40 to-transparent" />
+      <div className="relative z-10 flex min-h-[calc(100dvh-4.5rem)] flex-col justify-end gap-3 px-3 py-4 safe-bottom sm:min-h-[calc(100dvh-7.5rem)] sm:gap-4 sm:px-8 sm:py-6">
         <div className="max-w-3xl">
           <p className="text-xs uppercase tracking-[0.18em] text-accent">Ava&apos;s Skye Studio · night city</p>
-          <p className="mt-2 max-w-xl text-sm text-fg/90">
+          <p className="mt-1 max-w-xl text-sm text-fg/90 sm:mt-2">
             {visitors ? "Visitor mode. Professional suit, same office." : "Dark city office. She is live on the floor."}
           </p>
         </div>
-        <div className="grid max-w-5xl gap-4 rounded-3xl border border-white/15 bg-bg/65 p-4 backdrop-blur-sm">
+        <div className="grid max-w-5xl gap-3 rounded-3xl border border-white/15 bg-bg/70 p-3 backdrop-blur-sm sm:gap-4 sm:p-4">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
             {counts.map((item) => (
-              <p key={item.label} className="rounded-2xl border border-border bg-bg/40 px-3 py-2">
-                <span className="block text-[10px] uppercase tracking-[0.14em] text-muted">{item.label}</span>
-                <span className="mt-1 block text-2xl">{item.value === null ? "—" : item.value}</span>
+              <p key={item.label} className="rounded-2xl border border-border bg-bg/40 px-2 py-1.5 sm:px-3 sm:py-2">
+                <span className="block text-[9px] uppercase tracking-[0.14em] text-muted sm:text-[10px]">{item.label}</span>
+                <span className="mt-0.5 block text-xl sm:mt-1 sm:text-2xl">{item.value === null ? "—" : item.value}</span>
               </p>
             ))}
           </div>
-          <div className="flex flex-wrap gap-2" role="list" aria-label="Work tables">
+          <div className="flex flex-wrap gap-1.5" role="list" aria-label="Work tables">
             {TABLES.map((item) => (
               <button
                 key={item.href}
                 type="button"
                 aria-pressed={item.href === table}
                 onClick={() => setTable(item.href)}
-                className={`rounded-full px-3 py-1 text-sm ${item.href === table ? "bg-accent text-accent-fg" : "border border-border bg-bg/50"}`}
+                className={`rounded-full px-2.5 py-1 text-xs sm:px-3 sm:py-1 sm:text-sm ${item.href === table ? "bg-accent text-accent-fg" : "border border-border bg-bg/50"}`}
               >
                 {item.label}
               </button>
             ))}
           </div>
-          <form className="flex flex-wrap gap-2" onSubmit={onSubmit}>
+          <form className="flex flex-col gap-2 sm:flex-row sm:flex-wrap" onSubmit={onSubmit}>
             <input
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
               placeholder={`Ask Ava to run ${current.label}`}
-              className="min-w-0 flex-1 rounded-full border border-border bg-bg/70 px-4 py-2 text-sm"
+              className="min-w-0 w-full flex-1 rounded-full border border-border bg-bg/70 px-4 py-2.5 text-base sm:w-auto sm:py-2 sm:text-sm"
             />
-            <button type="submit" className="rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" disabled={pending}>
-              {pending ? "Working" : "Ask Ava"}
-            </button>
-            <button type="button" className="rounded-full border border-border bg-bg/60 px-4 py-2 text-sm" onClick={() => router.push(current.href)}>
-              Open {current.label}
-            </button>
-            <button type="button" className="rounded-full border border-border bg-bg/60 px-4 py-2 text-sm" disabled={pending || visitors} onClick={() => setStanding((value) => !value)}>
-              {standing ? "Sit her down" : "Have her stand"}
-            </button>
-            <button type="button" className="rounded-full border border-border bg-bg/60 px-4 py-2 text-sm" disabled={pending} onClick={() => void setVisitorMode(!visitors)}>
-              {visitors ? "Back to tonight" : "Office visitors"}
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-border bg-bg/60 px-4 py-2 text-sm"
-              aria-pressed={voice}
-              onClick={() => {
-                const next = !voice
-                setVoice(next)
-                if (!next && typeof window !== "undefined") window.speechSynthesis?.cancel()
-              }}
-            >
-              Voice {voice ? "on" : "off"}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button type="submit" className="rounded-full bg-accent px-4 py-2.5 text-sm text-accent-fg" disabled={pending}>
+                {pending ? "Working" : "Ask Ava"}
+              </button>
+              <button type="button" className="rounded-full border border-border bg-bg/60 px-4 py-2.5 text-sm" onClick={() => router.push(current.href)}>
+                Open {current.label}
+              </button>
+              <button type="button" className="rounded-full border border-border bg-bg/60 px-4 py-2.5 text-sm" disabled={pending || visitors} onClick={() => setStanding((value) => !value)}>
+                {standing ? "Sit her down" : "Have her stand"}
+              </button>
+              <button type="button" className="rounded-full border border-border bg-bg/60 px-4 py-2.5 text-sm" disabled={pending} onClick={() => void setVisitorMode(!visitors)}>
+                {visitors ? "Back to tonight" : "Office visitors"}
+              </button>
+              <button
+                type="button"
+                className="rounded-full border border-border bg-bg/60 px-4 py-2.5 text-sm"
+                aria-pressed={voice}
+                onClick={() => {
+                  const next = !voice
+                  setVoice(next)
+                  if (!next && typeof window !== "undefined") window.speechSynthesis?.cancel()
+                }}
+              >
+                Voice {voice ? "on" : "off"}
+              </button>
+            </div>
           </form>
           <p className="max-w-3xl text-sm">{reply}</p>
           {draft ? (
@@ -213,10 +215,10 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
                 {draft.email ? ` · ${draft.email}` : ""}
                 {draft.company ? ` · ${draft.company}` : ""}
               </p>
-              <button type="button" className="rounded-full bg-accent px-3 py-1 text-accent-fg" disabled={pending} onClick={() => void confirmDraft()}>
+              <button type="button" className="rounded-full bg-accent px-3 py-1.5 text-accent-fg" disabled={pending} onClick={() => void confirmDraft()}>
                 Confirm save
               </button>
-              <button type="button" className="rounded-full border border-border px-3 py-1" onClick={() => setDraft(null)}>
+              <button type="button" className="rounded-full border border-border px-3 py-1.5" onClick={() => setDraft(null)}>
                 Discard
               </button>
             </div>

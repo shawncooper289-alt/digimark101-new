@@ -19,9 +19,11 @@ function officeLook(visitor: boolean) {
 }
 
 function clamp(point: Point, width: number, height: number): Point {
+  const safeRight = Math.max(8, window.innerWidth - width - 8)
+  const safeBottom = Math.max(8, window.innerHeight - height - Math.max(8, window.innerHeight * 0.02))
   return {
-    x: Math.min(window.innerWidth - width - 8, Math.max(8, point.x)),
-    y: Math.min(window.innerHeight - height - 8, Math.max(8, point.y)),
+    x: Math.min(safeRight, Math.max(8, point.x)),
+    y: Math.min(safeBottom, Math.max(8, point.y)),
   }
 }
 
@@ -113,7 +115,7 @@ export function AvaFloat() {
   }
 
   function onPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
-    if (event.button !== 0) return
+    if (event.button !== 0 && event.pointerType !== "touch") return
     const rect = event.currentTarget.getBoundingClientRect()
     dragRef.current = {
       pointerId: event.pointerId,
@@ -135,7 +137,7 @@ export function AvaFloat() {
     if (!drag || drag.pointerId !== event.pointerId) return
     const dx = event.clientX - drag.originX
     const dy = event.clientY - drag.originY
-    if (!drag.moved && Math.hypot(dx, dy) < 6) return
+    if (!drag.moved && Math.hypot(dx, dy) < 8) return
     drag.moved = true
     const rect = event.currentTarget.getBoundingClientRect()
     setPoint(clamp({ x: drag.startX + dx, y: drag.startY + dy }, rect.width, rect.height))
@@ -187,23 +189,23 @@ export function AvaFloat() {
   if (open) {
     return (
       <section
-        className={`fixed z-50 flex w-[min(20rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-3xl border border-border bg-surface p-4 shadow-2xl ${point ? "" : "bottom-3 right-3"}`}
-        style={point ? { left: Math.max(8, Math.min(point.x, window.innerWidth - 340)), top: Math.max(8, point.y - 200) } : undefined}
+        className={`fixed z-50 flex w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-3xl border border-border bg-surface p-4 shadow-2xl safe-bottom ${point ? "" : "bottom-[max(0.75rem,env(safe-area-inset-bottom))] right-3"}`}
+        style={point ? { left: Math.max(8, Math.min(point.x, window.innerWidth - 340)), top: Math.max(8, point.y - 220) } : undefined}
         aria-label="Ask Ava"
       >
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm">Ava Skye <span className="text-muted">· {look.label}</span></p>
           <div className="flex gap-1">
-            <button type="button" className="rounded-full border border-border px-2 py-1 text-xs" onClick={silence}>Silence</button>
-            <button type="button" className="rounded-full border border-border px-2 py-1 text-xs" onClick={() => { setTextOnly(!textOnly); if (!textOnly) setVoiceOn(false); }}>{textOnly ? "Voice" : "Text only"}</button>
-            <button type="button" className="rounded-full border border-border px-2 py-1 text-xs" onClick={() => setOpen(false)}>Close</button>
+            <button type="button" className="rounded-full border border-border px-3 py-1.5 text-xs" onClick={silence}>Silence</button>
+            <button type="button" className="rounded-full border border-border px-3 py-1.5 text-xs" onClick={() => { setTextOnly(!textOnly); if (!textOnly) setVoiceOn(false); }}>{textOnly ? "Voice" : "Text only"}</button>
+            <button type="button" className="rounded-full border border-border px-3 py-1.5 text-xs" onClick={() => setOpen(false)}>Close</button>
           </div>
         </div>
         <p className="text-sm text-muted">{reply}</p>
         <form className="flex gap-2" onSubmit={send}>
           <label className="sr-only" htmlFor="ava-float-help">Ask Ava</label>
-          <input id="ava-float-help" value={text} onChange={(event) => setText(event.target.value)} placeholder="Answer or ask anything" className="min-w-0 flex-1 rounded-full border border-border bg-transparent px-3 py-2 text-sm" />
-          <button type="submit" className="rounded-full bg-accent px-3 py-2 text-sm text-accent-fg" disabled={pending || !text.trim()}>{pending ? "…" : "Send"}</button>
+          <input id="ava-float-help" value={text} onChange={(event) => setText(event.target.value)} placeholder="Answer or ask anything" className="min-w-0 flex-1 rounded-full border border-border bg-transparent px-3 py-2.5 text-base" />
+          <button type="submit" className="rounded-full bg-accent px-4 py-2.5 text-sm text-accent-fg" disabled={pending || !text.trim()}>{pending ? "…" : "Send"}</button>
         </form>
       </section>
     )
@@ -212,7 +214,7 @@ export function AvaFloat() {
   return (
     <button
       type="button"
-      className={`fixed z-50 w-24 cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing sm:w-28 ${point ? "" : "bottom-2 right-2"}`}
+      className={`fixed z-50 w-20 cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing sm:w-24 md:w-28 ${point ? "" : "bottom-[max(0.5rem,env(safe-area-inset-bottom))] right-2"}`}
       style={placed}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
