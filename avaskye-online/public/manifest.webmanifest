@@ -1,0 +1,20 @@
+{
+  "name": "Ava's Skye Studio",
+  "short_name": "Ava Studio",
+  "description": "Ava's private office desk",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0d0e",
+  "theme_color": "#0b0d0e",
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "/ava/professional.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
