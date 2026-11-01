@@ -3,10 +3,11 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useState, type FormEvent } from "react"
 import { visitorModeIntent } from "@/lib/appearance-command"
+import { speakAva } from "@/lib/ava-speech"
+import { AvaLiveCharacter } from "@/components/ava-live-character"
 
 const SITTING = { id: "sitting", label: "At the desk", src: "/ava/desk-sitting.jpg" }
 const PROFESSIONAL = { id: "professional", label: "Professional", src: "/ava/desk-standing.jpg" }
-const PORTRAIT = { id: "portrait", src: "/ava/professional.jpg" }
 
 const TABLES = [
   { href: "/products", label: "Hub" },
@@ -32,6 +33,7 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
   const [reply, setReply] = useState("Tell me which table to run. I open it. I do not publish or save until you say yes.")
   const [pending, setPending] = useState(false)
   const [draft, setDraft] = useState<{ name: string; email?: string; company?: string } | null>(null)
+  const [voice, setVoice] = useState(true)
   const current = TABLES.find((item) => item.href === table) ?? TABLES[0]
   const look = visitors || standing ? PROFESSIONAL : SITTING
   const pose = look.id === "professional" ? "standing" : "sitting"
@@ -42,6 +44,10 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
       .then((data: { visitorMode?: boolean }) => setVisitors(Boolean(data.visitorMode)))
       .catch(() => undefined)
   }, [])
+
+  function speak(line: string) {
+    if (voice) speakAva(line)
+  }
 
   async function setVisitorMode(next: boolean) {
     setPending(true)
@@ -57,7 +63,9 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
         return
       }
       setVisitors(Boolean(data.visitorMode))
-      setReply(data.reply || (next ? "Professional outfit is on." : "Back to today’s look."))
+      const nextReply = data.reply || (next ? "Professional outfit is on." : "Back to today’s look.")
+      setReply(nextReply)
+      speak(nextReply)
     } finally {
       setPending(false)
     }
@@ -89,7 +97,9 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
         setReply(data.error || "I could not run that.")
         return
       }
-      setReply(data.reply || "Done.")
+      const nextReply = data.reply || "Done."
+      setReply(nextReply)
+      speak(nextReply)
       setDraft(data.draft ?? null)
       setPrompt("")
       if (data.href) router.push(data.href)
@@ -110,7 +120,9 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
         body: JSON.stringify({ action: "create_contact", confirmed: true, ...draft }),
       })
       const data = (await response.json()) as { error?: string }
-      setReply(response.ok ? `Saved ${draft.name} in the CRM.` : data.error || "Nothing was saved.")
+      const saved = response.ok ? `Saved ${draft.name} in the CRM.` : data.error || "Nothing was saved."
+      setReply(saved)
+      if (response.ok) speak(saved)
       if (response.ok) {
         setDraft(null)
         router.refresh()
@@ -127,16 +139,16 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
 
   return (
     <section className="relative min-h-[calc(100dvh-7.5rem)] overflow-hidden bg-bg">
-      <img src={look.src} alt={`Ava ${pose} at the desk in Ava's Skye Studio`} className="ava-drift absolute inset-0 h-full w-full object-cover object-[center_25%] opacity-95" />
+      <AvaLiveCharacter
+        standing={visitors || standing}
+        className="ava-drift absolute inset-0 h-full w-full object-cover object-[center_25%] opacity-95"
+      />
       <div className="absolute inset-0 bg-gradient-to-t from-bg/80 via-bg/30 to-transparent" />
-      <div className="pointer-events-none absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 lg:block">
-        <img src={PORTRAIT.src} alt="Ava Skye" className="h-[28rem] w-auto rounded-3xl object-cover object-top shadow-2xl ring-1 ring-white/20" />
-      </div>
       <div className="relative z-10 flex min-h-[calc(100dvh-7.5rem)] flex-col justify-end gap-4 px-4 py-6 sm:px-8">
         <div className="max-w-3xl">
           <p className="text-xs uppercase tracking-[0.18em] text-accent">Ava&apos;s Skye Studio · night city</p>
           <p className="mt-2 max-w-xl text-sm text-fg/90">
-            {visitors ? "Visitor mode. Professional suit, same office." : "Dark city office. The glass desk below is the live work table."}
+            {visitors ? "Visitor mode. Professional suit, same office." : "Dark city office. She is live on the floor."}
           </p>
         </div>
         <div className="grid max-w-5xl gap-4 rounded-3xl border border-white/15 bg-bg/65 p-4 backdrop-blur-sm">
@@ -179,6 +191,18 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
             </button>
             <button type="button" className="rounded-full border border-border bg-bg/60 px-4 py-2 text-sm" disabled={pending} onClick={() => void setVisitorMode(!visitors)}>
               {visitors ? "Back to tonight" : "Office visitors"}
+            </button>
+            <button
+              type="button"
+              className="rounded-full border border-border bg-bg/60 px-4 py-2 text-sm"
+              aria-pressed={voice}
+              onClick={() => {
+                const next = !voice
+                setVoice(next)
+                if (!next && typeof window !== "undefined") window.speechSynthesis?.cancel()
+              }}
+            >
+              Voice {voice ? "on" : "off"}
             </button>
           </form>
           <p className="max-w-3xl text-sm">{reply}</p>
