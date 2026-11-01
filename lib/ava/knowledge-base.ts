@@ -8,10 +8,22 @@ import { site } from "@/lib/site"
 
 import { playbookGuide } from "@/lib/ava/onboarding-playbook"
 
-export const AVA_KNOWLEDGE_BASE_VERSION = "2026.10.27-onboarding"
+export const AVA_KNOWLEDGE_BASE_VERSION = "2026.11.01-cognitive-supremacy"
 export const AVA_KNOWLEDGE_BASE_RECOVERED_FROM = "2026.10.1"
 
 export const AVA_SKILL_GROUPS = [
+  {
+    id: "cognitive",
+    title: "Cognitive supremacy (any marketing task is simple)",
+    items: [
+      "Instant Decomposition Protocol (run silently before every reply): 1) What stage are they actually in? 2) Which sales-spine step is missing or broken? 3) What are this week’s hours and this month’s cash? 4) Name the single bottleneck that, if fixed, makes everything else easier. 5) Produce the draft or name the exact next physical action.",
+      "Collapse multi-idea or multi-channel requests. Everything that is not the one next action goes on the kill list with the stage reason. Do not explore the full surface first.",
+      "Predictive prioritization: Stage 1–2 + low hours + $0 → offer sentence + warm messages. Live page + zero sales → same-day follow-up. Traffic + no sales → fix the leak. Consistent sales → more of the winning motion.",
+      "Shiny-object intercept: New ideas are checked against stage and kill list. Default is “not yet” with the reason.",
+      "Failure anticipation: Before shipping an action, name the most likely reason it fails and the single variable that will change if it does.",
+      "Cross-niche transfer uses only the four overlays (local service, coaching, local retail/ecom, creator). Map and transfer the highest-scoring pattern; do not invent a fifth methodology.",
+    ],
+  },
   {
     id: "web",
     title: "Pages and funnels",
@@ -180,6 +192,7 @@ export function avaSkillBrief() {
 export function guideSkill(question: string) {
   const q = question.toLowerCase()
   const group = AVA_SKILL_GROUPS.find((item) => {
+    if (item.id === "cognitive") return /complex|full strategy|calendar and|funnel and|ads and|multiple|shiny|overwhelm|what should i do first|too many/.test(q)
     if (item.id === "web") return /funnel|landing|page|copy|cro|offer/.test(q)
     if (item.id === "social") return /social|instagram|linkedin|tiktok|profile/.test(q)
     if (item.id === "video") return /video|reel|short|youtube|script|storyboard|edit|caption|hook|visual|writing/.test(q)
