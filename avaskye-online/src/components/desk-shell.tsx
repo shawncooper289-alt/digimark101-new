@@ -27,7 +27,7 @@ const links = [
   { href: "/settings", label: "Settings" },
 ]
 
-export function DeskShell({ children }: { children: ReactNode }) {
+export function DeskShell({ children, founderEmails }: { children: ReactNode; founderEmails: string[] }) {
   const pathname = usePathname()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -83,7 +83,7 @@ export function DeskShell({ children }: { children: ReactNode }) {
             <p className="text-sm">Ava&apos;s Skye Studio</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
-            <OwnerAccountsButton />
+            <OwnerAccountsButton emails={founderEmails} />
             <button type="button" className="rounded-full border border-border px-3 py-1" onClick={() => setMenuOpen(false)}>Hide menu</button>
             <a href="https://www.digimark101.com">Customer site</a>
             <button type="button" className="rounded-full border border-border px-3 py-1" onClick={() => void signOut()}>Sign out</button>

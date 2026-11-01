@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { encodeOfficeSession, officeConfig, officeCookieOptions, supabaseKeyHeaders } from "@/lib/office-store"
+import { encodeOfficeSession, isOwnerIdentity, officeConfig, officeCookieOptions, ownerEmails, supabaseKeyHeaders } from "@/lib/office-store"
 
 const TYPES = new Set(["magiclink", "email", "signup", "invite", "recovery"])
 
@@ -24,14 +24,24 @@ export async function POST(request: Request) {
   if (!response.ok) {
     return NextResponse.json({ error: "Login link expired. Request a new one." }, { status: 401 })
   }
-  const data = (await response.json()) as { access_token?: string; refresh_token?: string; expires_in?: number; user?: { email?: string } }
-  const email = data.user?.email?.trim().toLowerCase() || ""
-  if (!data.access_token || !data.refresh_token || !emails.includes(email)) {
+  const data = (await response.json()) as { access_token?: string; refresh_token?: string; expires_in?: number }
+  if (!data.access_token || !data.refresh_token) {
+    return NextResponse.json({ error: "Not an owner mailbox." }, { status: 403 })
+  }
+  const userResponse = await fetch(`${url}/auth/v1/user`, {
+    headers: { apikey: anon, Authorization: `Bearer ${data.access_token}` },
+    cache: "no-store",
+  })
+  const user = userResponse.ok
+    ? (await userResponse.json()) as { email?: string; app_metadata?: { role?: string } }
+    : null
+  const email = user?.email?.trim().toLowerCase() || ""
+  if (!isOwnerIdentity(email, user?.app_metadata?.role)) {
     return NextResponse.json({ error: "Not an owner mailbox." }, { status: 403 })
   }
   const jar = await cookies()
   jar.set("ava_office", encodeOfficeSession(data.access_token, data.refresh_token, data.expires_in || 3600), officeCookieOptions(data.expires_in || 3600))
-  if (service) {
+  if (service && ownerEmails().includes(email)) {
     await fetch(`${url}/rest/v1/rpc/sync_owner_email`, {
       method: "POST",
       headers: supabaseKeyHeaders(service, { "Content-Type": "application/json" }),

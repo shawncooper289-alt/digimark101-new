@@ -2,14 +2,7 @@
 
 import { useState } from "react"
 
-const OWNER_EMAILS = [
-  "shawncooper289@gmail.com",
-  "digimark101s@gmail.com",
-  "dailydollar101@gmail.com",
-  "earndaily101@mail.com",
-]
-
-export function OwnerAccountsButton() {
+export function OwnerAccountsButton({ emails }: { emails: string[] }) {
   const [open, setOpen] = useState(false)
 
   function startSetup(email: string) {
@@ -29,23 +22,27 @@ export function OwnerAccountsButton() {
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setOpen(false)}>
-          <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <p className="text-xs uppercase tracking-[0.18em] text-accent">Free founder accounts</p>
             <h2 className="mt-2 text-2xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Choose an email</h2>
-            <p className="mt-2 text-sm text-muted">Pick an email and she&apos;ll get it started.</p>
-            <ul className="mt-5 grid gap-2">
-              {OWNER_EMAILS.map((email) => (
-                <li key={email}>
-                  <button
-                    type="button"
-                    className="w-full rounded-2xl border border-border px-4 py-3 text-left text-sm hover:bg-accent/10"
-                    onClick={() => startSetup(email)}
-                  >
-                    {email}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <p className="mt-2 text-sm text-muted">These mailboxes come from the server owner list and from accounts stamped owner.</p>
+            {emails.length === 0 ? (
+              <p className="mt-5 text-sm text-muted">No founder mailbox is available from this server.</p>
+            ) : (
+              <ul className="mt-5 grid gap-2">
+                {emails.map((email) => (
+                  <li key={email}>
+                    <button
+                      type="button"
+                      className="w-full rounded-2xl border border-border px-4 py-3 text-left text-sm hover:bg-accent/10"
+                      onClick={() => startSetup(email)}
+                    >
+                      {email}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
             <button type="button" className="mt-5 text-sm text-muted underline" onClick={() => setOpen(false)}>
               Close
             </button>

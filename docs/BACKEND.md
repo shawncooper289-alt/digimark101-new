@@ -32,7 +32,8 @@ Apply with byte order (`LC_ALL=C`), which is what the Supabase CLI uses. `202610
 | `20261027_media_business_builds.sql` | `client_media`, `campaign_media`, `client_build_assets` with `owner_id`, `kind`, `public_url`, and `is_owner()` / workspace policies. Business columns use `legal_business_name`, `ein_tax_id`, `privacy_policy_url` |
 | `20261028_beta_onboarding.sql` | `seats.is_beta`, source `beta`, `beta_feedback` (user inserts own beta note, owner reads), `onboarding_sessions` (outcome only, owner reads), playbook columns on `client_onboarding`. Replaces `deliver_seat` so a beta seat can open a workspace |
 | `20261029_security_hardening.sql` | `social_account_status` as `security_invoker`, `search_path` on `is_owner` and the updated-at triggers, `handle_new_user` execute revoked from anon, owner policies for `leads` and the older Ava tables |
-| `initial_schema.sql` | Profiles and the older Ava conversation tables. Idempotent, and it sorts after the dated files. Repeats the Ava policies and the `handle_new_user` revoke from `20261029` because those objects are created here |
+| `20261101_owner_profile_role.sql` | Owner signup writes `profiles.role = owner`. `z_mark_owner_profile` runs after `handle_new_user`, and existing owner profiles are corrected |
+| `initial_schema.sql` | Profiles and the older Ava conversation tables. Idempotent, and it sorts after the dated files. Repeats the Ava policies, the `handle_new_user` revoke, and the owner role on insert |
 
 ## Who can see what
 

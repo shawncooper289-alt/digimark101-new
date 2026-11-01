@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
-import { encodeOfficeSession, officeConfig, officeCookieOptions, supabaseKeyHeaders } from "@/lib/office-store"
+import { encodeOfficeSession, isOwnerIdentity, officeConfig, officeCookieOptions, ownerEmails, supabaseKeyHeaders } from "@/lib/office-store"
 
 export async function POST(request: Request) {
   const { url, anon, emails, service } = officeConfig()
@@ -25,14 +25,14 @@ export async function POST(request: Request) {
   if (!userResponse.ok) {
     return NextResponse.json({ error: "Invalid session." }, { status: 401 })
   }
-  const user = (await userResponse.json()) as { email?: string }
+  const user = (await userResponse.json()) as { email?: string; app_metadata?: { role?: string } }
   const email = user.email?.trim().toLowerCase() || ""
-  if (!emails.includes(email)) {
+  if (!isOwnerIdentity(email, user.app_metadata?.role)) {
     return NextResponse.json({ error: "Not an owner mailbox." }, { status: 403 })
   }
   const jar = await cookies()
   jar.set("ava_office", encodeOfficeSession(access, refresh, expiresIn), officeCookieOptions(expiresIn))
-  if (service) {
+  if (service && ownerEmails().includes(email)) {
     await fetch(`${url}/rest/v1/rpc/sync_owner_email`, {
       method: "POST",
       headers: supabaseKeyHeaders(service, { "Content-Type": "application/json" }),

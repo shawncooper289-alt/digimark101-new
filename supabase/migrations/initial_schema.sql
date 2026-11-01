@@ -112,15 +112,33 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  next_role text := 'member';
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name, avatar_url)
+  -- mark_owner_metadata is BEFORE INSERT, so the owner stamp is already on NEW.
+  IF coalesce(NEW.raw_app_meta_data ->> 'role', '') = 'owner'
+     OR (
+       to_regclass('private.owner_settings') IS NOT NULL
+       AND EXISTS (
+         SELECT 1 FROM private.owner_settings s
+         WHERE s.key = 'owner_email'
+           AND lower(s.value) = lower(coalesce(NEW.email, ''))
+       )
+     ) THEN
+    next_role := 'owner';
+  END IF;
+
+  INSERT INTO public.profiles (id, email, full_name, avatar_url, role)
   VALUES (
     NEW.id,
     NEW.email,
     NEW.raw_user_meta_data->>'full_name',
-    NEW.raw_user_meta_data->>'avatar_url'
+    NEW.raw_user_meta_data->>'avatar_url',
+    next_role
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE
+    SET role = excluded.role
+    WHERE excluded.role = 'owner';
   RETURN NEW;
 END;
 $$;

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { missingOfficeAuthEnv } from "@/lib/office-redirect"
-import { encodeOfficeSession, officeConfig, officeCookieOptions, officeSignInAllowed, supabaseKeyHeaders } from "@/lib/office-store"
+import { encodeOfficeSession, isOwnerIdentity, officeConfig, officeCookieOptions, officeSignInAllowed, ownerEmails, supabaseKeyHeaders } from "@/lib/office-store"
 
 const COOKIE = "ava_office"
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { email?: string; password?: string } | null
   const email = body?.email?.trim().toLowerCase() || ""
   const password = body?.password || ""
-  if (!email || !password || !emails.includes(email)) {
+  if (!email || !password) {
     return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
   }
   const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
@@ -33,18 +33,29 @@ export async function POST(request: Request) {
   if (!response.ok) {
     return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
   }
-  const data = (await response.json()) as { access_token?: string; refresh_token?: string; expires_in?: number; user?: { email?: string } }
-  if (!data.access_token || !data.refresh_token || !emails.includes(data.user?.email?.trim().toLowerCase() || "")) {
+  const data = (await response.json()) as { access_token?: string; refresh_token?: string; expires_in?: number }
+  if (!data.access_token || !data.refresh_token) {
+    return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
+  }
+  const userResponse = await fetch(`${url}/auth/v1/user`, {
+    headers: { apikey: anon, Authorization: `Bearer ${data.access_token}` },
+    cache: "no-store",
+  })
+  const user = userResponse.ok
+    ? (await userResponse.json()) as { email?: string; app_metadata?: { role?: string } }
+    : null
+  const signedIn = user?.email?.trim().toLowerCase() || ""
+  if (!isOwnerIdentity(signedIn, user?.app_metadata?.role)) {
     return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
   }
   const jar = await cookies()
   jar.set(COOKIE, encodeOfficeSession(data.access_token, data.refresh_token, data.expires_in || 3600), officeCookieOptions(data.expires_in || 3600))
   const { url: projectUrl, service } = officeConfig()
-  if (projectUrl && service) {
+  if (projectUrl && service && ownerEmails().includes(signedIn)) {
     await fetch(`${projectUrl}/rest/v1/rpc/sync_owner_email`, {
       method: "POST",
       headers: supabaseKeyHeaders(service, { "Content-Type": "application/json" }),
-      body: JSON.stringify({ owner_email: email }),
+      body: JSON.stringify({ owner_email: signedIn }),
       cache: "no-store",
     }).catch(() => null)
   }

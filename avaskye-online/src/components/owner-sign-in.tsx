@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
 
-export function OwnerSignIn({ configured, missing = [] }: { configured: boolean; missing?: string[] }) {
+export function OwnerSignIn({ configured, missing = [], next }: { configured: boolean; missing?: string[]; next?: string }) {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -28,6 +28,7 @@ export function OwnerSignIn({ configured, missing = [] }: { configured: boolean;
         return
       }
       setPassword("")
+      if (next) router.replace(next)
       router.refresh()
     } catch {
       setError("Owner sign-in failed.")

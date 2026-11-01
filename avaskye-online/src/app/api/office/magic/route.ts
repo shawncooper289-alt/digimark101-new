@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { missingOfficeAuthEnv, officeCallbackUrl } from "@/lib/office-redirect"
-import { officeConfig, officeSignInAllowed, supabaseKeyHeaders } from "@/lib/office-store"
+import { mailboxIsOwner, officeConfig, officeSignInAllowed, supabaseKeyHeaders } from "@/lib/office-store"
 
 function clientIp(request: Request) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local"
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   }
   const body = (await request.json().catch(() => null)) as { email?: string } | null
   const email = body?.email?.trim().toLowerCase() || ""
-  if (!email || !emails.includes(email)) {
+  if (!email || !(await mailboxIsOwner(email))) {
     return NextResponse.json({ error: "Login link can only be sent to an owner mailbox." }, { status: 400 })
   }
   const redirectTo = officeCallbackUrl(request)
