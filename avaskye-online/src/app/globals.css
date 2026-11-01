@@ -29,3 +29,27 @@
   from { transform: scale(1.04) translate3d(0, 0, 0); }
   to { transform: scale(1.12) translate3d(-2%, -1.2%, 0); }
 }
+
+.ava-character {
+  transition: transform 0.4s ease, filter 0.4s ease;
+  transform-origin: center bottom;
+}
+
+.ava-character.speaking {
+  animation: ava-whole-speak 0.55s ease-in-out infinite alternate;
+}
+
+@keyframes ava-whole-speak {
+  0% { transform: scale(1) translateY(0) rotate(0deg); }
+  50% { transform: scale(1.015) translateY(-6px) rotate(-0.4deg); }
+  100% { transform: scale(1.02) translateY(-3px) rotate(0.3deg); }
+}
+
+.ava-character.idle {
+  animation: ava-breathe 4.2s ease-in-out infinite alternate;
+}
+
+@keyframes ava-breathe {
+  from { transform: scale(1) translateY(0); }
+  to { transform: scale(1.008) translateY(-2px); }
+}

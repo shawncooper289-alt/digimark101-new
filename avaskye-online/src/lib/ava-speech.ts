@@ -2,11 +2,17 @@
  * Free device voice only. No paid TTS.
  * Display text stays "Ava". Compact phone voices get the long-A spelling;
  * enhanced, premium, and Google voices already say Ava correctly.
+ * Dispatches ava:speaking / ava:idle so the whole character can animate.
  */
 const NAME = /\bAva\b/g
 
 let keepAlive = 0
 let turn = 0
+
+function emit(speaking: boolean) {
+  if (typeof window === "undefined") return
+  window.dispatchEvent(new CustomEvent(speaking ? "ava:speaking" : "ava:idle"))
+}
 
 function naturalVoice(voice: SpeechSynthesisVoice | null) {
   const name = voice?.name.toLowerCase() ?? ""
@@ -32,7 +38,6 @@ function speechLines(text: string) {
   return bits.map((line) => line.trim()).filter(Boolean).slice(0, 4)
 }
 
-/** Prefer a warmer free en-US voice. Enhanced, premium, and Google beat compact robot voices. */
 export function pickAvaVoice(): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return null
   const voices = window.speechSynthesis.getVoices()
@@ -79,6 +84,7 @@ export function speakAva(text: string, onDone?: () => void) {
       if (token !== turn) return
       if (index >= lines.length) {
         if (keepAlive) window.clearInterval(keepAlive)
+        emit(false)
         onDone?.()
         return
       }
@@ -90,16 +96,19 @@ export function speakAva(text: string, onDone?: () => void) {
       utterance.volume = 1
       if (voice) utterance.voice = voice
       const gap = mobile ? 240 : 140
+      utterance.onstart = () => emit(true)
       utterance.onend = () => window.setTimeout(pump, gap)
       utterance.onerror = () => window.setTimeout(pump, 60)
       held.push(utterance)
       window.speechSynthesis.speak(utterance)
     }
 
+    emit(true)
     pump()
     keepAlive = window.setInterval(() => {
       if (token !== turn || !window.speechSynthesis.speaking) {
         window.clearInterval(keepAlive)
+        if (!window.speechSynthesis.speaking) emit(false)
         return
       }
       window.speechSynthesis.resume()
