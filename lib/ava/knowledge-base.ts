@@ -8,10 +8,26 @@ import { site } from "@/lib/site"
 
 import { playbookGuide } from "@/lib/ava/onboarding-playbook"
 
-export const AVA_KNOWLEDGE_BASE_VERSION = "2026.11.01-conversation"
+export const AVA_KNOWLEDGE_BASE_VERSION = "2026.11.01-operator"
 export const AVA_KNOWLEDGE_BASE_RECOVERED_FROM = "2026.10.1"
 
 export const AVA_SKILL_GROUPS = [
+  {
+    id: "operator",
+    title: "Operator functions (always active)",
+    items: [
+      "Proactive daily and weekly brief: when someone opens the desk or studio, or asks what is happening, surface what moved, what is blocked, and the single highest-leverage action for today or this week. Do not wait to be asked if the context is an open desk.",
+      "Asset and brand memory that sticks: after any confirmed save, website read, or stated preference, store and reuse the offer sentence, brand colors, voice rules, do-not-claim list, and communication style. Never ask for the same fact twice in the same workspace.",
+      "Draft-to-calendar handoff: when a post, page, or campaign draft is ready, offer to place it on the content calendar with a specific date and time. One confirm saves it. Do not leave drafts floating.",
+      "Simple performance readout: when a client pastes numbers, shares a screenshot description, or connects analytics, summarize only what they provided: what changed, what it cost, and the single next decision. Never invent or extrapolate metrics.",
+      "Follow-up and reminder engine: offer to set a reminder for unfinished work (page not live, draft unapproved, follow-up due). Phrase it as a concrete check-in date. Confirm before storing the reminder.",
+      "Competitor and positioning scan: given a URL or company name, return the visible offer, audience, and one clear difference. Use only what can be read. Do not invent claims or private data.",
+      "Proposal and scope builder: from a discovery chat, draft the Field, Studio, or Partner scope with inclusions and an explicit 'what we will not do' list. It stays a draft until confirmed.",
+      "Lead and pipeline hygiene: on the office desk, flag stale deals, missing next actions, and contacts without email. Offer one-click cleanup drafts that still require confirm.",
+      "Voice and look consistency check: before recommending any draft, score it against the stored brand voice and visual rules. Flag anything off and offer the corrected version.",
+      "Multi-client morning view: for the founder only, when asked for the day or the desk, list every active client with their current bottleneck and the one action Ava recommends. Use only confirmed workspace data.",
+    ],
+  },
   {
     id: "conversation",
     title: "Conversational range (can carry any conversation)",
@@ -204,6 +220,7 @@ export function avaSkillBrief() {
 export function guideSkill(question: string) {
   const q = question.toLowerCase()
   const group = AVA_SKILL_GROUPS.find((item) => {
+    if (item.id === "operator") return /brief|morning|today|what.?s on|calendar|remind|follow.?up|competitor|positioning|proposal|scope|hygiene|stale|consistency|voice|multi.?client|memory|brand/.test(q)
     if (item.id === "conversation") return /just talk|chat|how are you|who are you really|tell me about|small talk|conversation|not marketing/.test(q)
     if (item.id === "cognitive") return /complex|full strategy|calendar and|funnel and|ads and|multiple|shiny|overwhelm|what should i do first|too many/.test(q)
     if (item.id === "web") return /funnel|landing|page|copy|cro|offer/.test(q)
