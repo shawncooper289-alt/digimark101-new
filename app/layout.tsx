@@ -28,6 +28,7 @@ export const viewport: Viewport = {
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 }
 
 export const metadata: Metadata = {
@@ -49,6 +50,12 @@ export const metadata: Metadata = {
     "Ava Skye",
     "marketing analytics",
   ],
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "DigiMark101",
+    statusBarStyle: "black-translucent",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -69,6 +76,14 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${fraunces.variable} ${outfit.variable} h-full`}>
+      <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="DigiMark101" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body className="flex min-h-full flex-col antialiased">
         <a className="skip-link" href="#main">
           Skip to content
@@ -78,6 +93,17 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <AvaWidget />
         </PlatformProvider>
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}
+`,
+          }}
+        />
       </body>
     </html>
   )
