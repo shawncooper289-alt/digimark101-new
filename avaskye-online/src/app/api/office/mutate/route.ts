@@ -11,6 +11,7 @@ const recordKinds = new Set(["invoice", "expense", "record", "legal"])
 const recordStatuses = new Set(["open", "paid", "filed"])
 const mediaKinds = new Set(["image", "video", "copy", "creative", "document", "other"])
 const mediaStatuses = new Set(["planned", "used", "archived"])
+const sequenceStatuses = new Set(["draft", "ready", "archived"])
 
 async function rest(path: string, init: RequestInit) {
   const { url, service, configured } = officeConfig()
@@ -163,6 +164,7 @@ export async function POST(request: Request) {
     const status = typeof body.status === "string" && mediaStatuses.has(body.status) ? body.status : "planned"
     if (title.length < 2) return NextResponse.json({ error: "An asset needs a title." }, { status: 400 })
     const product = typeof body.product === "string" && isHubProduct(body.product) ? body.product : "digimark101"
+    const accountId = typeof body.accountId === "string" && /^[0-9a-f-]{36}$/i.test(body.accountId) ? body.accountId : owner.id
     const payload = {
       kind,
       title: title.slice(0, 160),
@@ -170,8 +172,14 @@ export async function POST(request: Request) {
       notes: typeof body.notes === "string" ? body.notes.trim().slice(0, 2000) : "",
       status,
       product_key: product,
+      account_id: accountId,
     }
-    const saved = await rest("office_media", { method: "POST", body: JSON.stringify(payload) })
+    let saved = await rest("office_media", { method: "POST", body: JSON.stringify(payload) })
+    if (!saved.ok) {
+      const { account_id, ...withoutAccount } = payload
+      void account_id
+      saved = await rest("office_media", { method: "POST", body: JSON.stringify(withoutAccount) })
+    }
     return NextResponse.json(saved.ok ? { ok: true } : { error: "The asset was not saved. The media table may not be installed yet." }, { status: saved.ok ? 200 : 503 })
   }
 
@@ -183,6 +191,26 @@ export async function POST(request: Request) {
     }
     const saved = await rest(`office_media?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ status }) })
     return NextResponse.json(saved.ok ? { ok: true } : { error: "The asset status was not updated." }, { status: saved.ok ? 200 : 503 })
+  }
+
+  if (action === "create_sequence") {
+    const name = typeof body.name === "string" ? body.name.trim() : ""
+    const steps = typeof body.steps === "string" ? body.steps.trim() : ""
+    const status = typeof body.status === "string" && sequenceStatuses.has(body.status) ? body.status : "draft"
+    if (name.length < 2 || steps.length < 2) return NextResponse.json({ error: "A sequence needs a name and the emails." }, { status: 400 })
+    const product = typeof body.product === "string" && isHubProduct(body.product) ? body.product : "digimark101"
+    const accountId = typeof body.accountId === "string" && /^[0-9a-f-]{36}$/i.test(body.accountId) ? body.accountId : owner.id
+    const saved = await rest("office_sequences", {
+      method: "POST",
+      body: JSON.stringify({
+        account_id: accountId,
+        product_key: product,
+        name: name.slice(0, 160),
+        steps: steps.slice(0, 8000),
+        status,
+      }),
+    })
+    return NextResponse.json(saved.ok ? { ok: true } : { error: "The sequence was not saved. The mail table may not be installed yet." }, { status: saved.ok ? 200 : 503 })
   }
 
   return NextResponse.json({ error: "Unknown action." }, { status: 400 })

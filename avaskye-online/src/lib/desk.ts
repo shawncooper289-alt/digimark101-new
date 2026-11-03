@@ -86,6 +86,18 @@ export async function deskSnapshot() {
   return { premium, staging, rejected, contacts, deals, automations, subscriptions, orders, missing: missingOfficeEnv() }
 }
 
+export async function deskInsert(table: string, row: Record<string, unknown>) {
+  const { url, service, configured } = officeConfig()
+  if (!configured || !service) return false
+  const response = await fetch(`${url}/rest/v1/${table}`, {
+    method: "POST",
+    headers: supabaseKeyHeaders(service, { "Content-Type": "application/json", Prefer: "return=minimal" }),
+    body: JSON.stringify(row),
+    cache: "no-store",
+  })
+  return response.ok
+}
+
 export function text(row: Row, key: string) {
   const value = row[key]
   return typeof value === "string" || typeof value === "number" ? String(value) : ""

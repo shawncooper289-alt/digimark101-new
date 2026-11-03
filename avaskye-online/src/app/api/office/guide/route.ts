@@ -10,6 +10,7 @@ const routes: { phrase: RegExp; href: string; label: string }[] = [
   { phrase: /\bcampaigns?\b/, href: "/campaigns", label: "Campaigns" },
   { phrase: /\bsocial\b|\b(facebook|tiktok|instagram|youtube|reels?|shorts?|posts?|banners?)\b/, href: "/social", label: "Social" },
   { phrase: /\bmedia\b|\bassets?\b/, href: "/media", label: "Media" },
+  { phrase: /\b(mail|sequences?|emails?)\b/, href: "/sequences", label: "Mail" },
   { phrase: /\bleads?\b/, href: "/leads", label: "Leads" },
   { phrase: /\bcrm\b|\bcontacts?\b/, href: "/crm", label: "CRM" },
   { phrase: /\bpipeline\b|\bdeals?\b/, href: "/pipeline", label: "Pipeline" },
@@ -209,7 +210,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     reply: route
       ? `${route.label} is right here if you want it.`
-      : "Want to set up a free account, or open DigiMark?",
+      : "Want to set up a free account, or open DigiMark? I can also open mail sequences and media for any client.",
     href: route?.href,
   })
 }

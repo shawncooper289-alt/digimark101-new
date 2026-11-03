@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { HUB_PRODUCTS, hubProduct } from "@/lib/products"
 
+export type StoreAccount = { id: string; label: string }
+
 export type MediaRow = {
   id: string
   kind: string
@@ -12,6 +14,7 @@ export type MediaRow = {
   notes: string
   status: string
   productKey: string
+  accountId: string
   usedOn: string
 }
 
@@ -22,12 +25,19 @@ const NEXT: Record<string, string> = { planned: "used", used: "archived", archiv
 export function MediaDesk({
   items,
   productKey,
+  accounts,
+  accountId,
+  ownerId,
 }: {
   items: MediaRow[]
   productKey: string
+  accounts: StoreAccount[]
+  accountId: string
+  ownerId: string
 }) {
   const router = useRouter()
   const product = hubProduct(productKey)
+  const account = accounts.find((item) => item.id === accountId) ?? accounts[0]
   const [title, setTitle] = useState("")
   const [kind, setKind] = useState<(typeof KINDS)[number]>("image")
   const [url, setUrl] = useState("")
@@ -35,7 +45,11 @@ export function MediaDesk({
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("planned")
   const [notice, setNotice] = useState("")
   const [pending, setPending] = useState(false)
-  const visible = items.filter((item) => !item.productKey || item.productKey === product.key)
+  const visible = items.filter((item) => {
+    const sameProduct = !item.productKey || item.productKey === product.key
+    const sameAccount = item.accountId ? item.accountId === account?.id : account?.id === ownerId
+    return sameProduct && sameAccount
+  })
 
   async function save(body: Record<string, unknown>) {
     setPending(true)
@@ -65,15 +79,29 @@ export function MediaDesk({
     <section>
       <h1 className="text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Media & Assets</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        Save media, creatives, copy, links, and anything already used or planned for {product.name}. These stay on this office. They do not publish anywhere.
+        Save media, creatives, copy, and file links for {account?.label || product.name}. Each client account has its own media space. These stay in the office. They do not publish anywhere.
       </p>
+      {accounts.length > 1 ? (
+        <label className="mt-6 grid max-w-sm gap-1 text-sm">
+          Account
+          <select
+            className="rounded-full border border-border bg-transparent px-4 py-2"
+            value={account?.id || ""}
+            onChange={(event) => router.push(`/media?product=${product.key}&account=${event.target.value}`)}
+          >
+            {accounts.map((item) => (
+              <option key={item.id} value={item.id}>{item.label}</option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       {HUB_PRODUCTS.length > 1 ? (
         <label className="mt-6 grid max-w-sm gap-1 text-sm">
           Product
           <select
             className="rounded-full border border-border bg-transparent px-4 py-2"
             value={product.key}
-            onChange={(event) => router.push(`/media?product=${event.target.value}`)}
+            onChange={(event) => router.push(`/media?product=${event.target.value}&account=${account?.id || ""}`)}
           >
             {HUB_PRODUCTS.map((item) => (
               <option key={item.key} value={item.key}>{item.name}</option>
@@ -93,6 +121,7 @@ export function MediaDesk({
             notes,
             status,
             product: product.key,
+            accountId: account?.id,
           })
         }}
       >

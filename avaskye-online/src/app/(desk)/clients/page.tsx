@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { deskClients, deskRows, text } from "@/lib/desk"
 
 export default async function ClientsPage() {
@@ -16,7 +17,11 @@ export default async function ClientsPage() {
           {clients.map((client) => (
             <li key={client.id} className="rounded-3xl border border-border bg-surface p-4">
               <p className="font-medium">{client.email}</p>
-              <p className="text-sm text-muted">{client.role} · {counts.get(client.id) || 0} contacts in the latest thousand · {client.id}</p>
+              <p className="text-sm text-muted">{client.role} · {counts.get(client.id) || 0} contacts in the latest thousand</p>
+              <p className="mt-2 flex gap-3 text-sm">
+                <Link className="underline" href={`/sequences?account=${client.id}`}>Mail</Link>
+                <Link className="underline" href={`/media?account=${client.id}`}>Media</Link>
+              </p>
             </li>
           ))}
         </ul>

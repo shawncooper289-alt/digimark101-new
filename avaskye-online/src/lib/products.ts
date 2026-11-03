@@ -16,7 +16,8 @@ export const HUB_PRODUCTS: HubProduct[] = [
     opens: [
       { href: "/campaigns?product=digimark101", label: "Campaigns" },
       { href: "/social", label: "Social" },
-      { href: "/media", label: "Media" },
+      { href: "/media?product=digimark101", label: "Media" },
+      { href: "/sequences?product=digimark101", label: "Mail" },
       { href: "/records?product=digimark101", label: "Records" },
       { href: "https://www.digimark101.com/studio", label: "Studio" },
     ],
