@@ -8,7 +8,8 @@ export function createSupabaseBrowser(options?: { detectSessionInUrl?: boolean }
   if (!config) return null
   return createBrowserClient(config.url, config.key, {
     auth: {
-      detectSessionInUrl: options?.detectSessionInUrl ?? true,
+      // Callback and reset pages explicitly exchange the one-time URL credentials.
+      detectSessionInUrl: options?.detectSessionInUrl ?? false,
       flowType: "pkce",
     },
   })
