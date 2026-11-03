@@ -14,9 +14,12 @@ if (!url || !key || emails.length === 0) {
 }
 
 const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
-const { error } = await admin.rpc("sync_owner_emails", { owner_emails: emails.join(",") })
-if (error) {
-  console.error("Could not grant the owner role. Run the multi-owner migration first.", error.message)
-  process.exit(1)
+
+for (const email of emails) {
+  const { error } = await admin.rpc("sync_owner_email", { owner_email: email })
+  if (error) {
+    console.error(`Could not grant owner role for ${email}:`, error.message)
+    process.exit(1)
+  }
+  console.log(`Owner role synced for: ${email}`)
 }
-console.log(`Owner role synced for: ${emails.join(", ")}`)
