@@ -8,7 +8,7 @@ const sans = Outfit({ subsets: ["latin"], weight: ["400", "500", "600"], variabl
 export const metadata: Metadata = {
   title: "Ava's Skye Studio",
   description: "Ava's Skye Studio. The private desk stays Ava's, on every account.",
-  metadataBase: new URL("https://avaskye.online"),
+  metadataBase: new URL("https://www.avaskye.online"),
   robots: { index: false, follow: false },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -26,10 +26,13 @@ export const viewport: Viewport = {
   themeColor: "#0b0d0e",
 };
 
+const authCatcher = `(function(){var p=location.pathname;if(p==="/auth/callback")return;var q=location.search,h=location.hash,s=q+h;if(!/[?&#](code|token_hash|access_token|refresh_token|error_description|error_code)=/.test(s))return;location.replace("/auth/callback"+q+h);})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`}>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: authCatcher }} />
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -39,17 +42,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-full" style={{ fontFamily: "var(--font-sans-loaded), var(--font-sans)" }}>
         {children}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {})
-  })
-}
-`,
-          }}
-        />
       </body>
     </html>
   );

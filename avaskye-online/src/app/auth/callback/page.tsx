@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 
 export default function AuthCallback() {
   const router = useRouter()
-  const [status, setStatus] = useState("Signing you in…")
+  const [status, setStatus] = useState("Signing you in\u2026")
 
   useEffect(() => {
     async function finish() {
@@ -13,13 +13,17 @@ export default function AuthCallback() {
       const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : ""
       const params = new URLSearchParams(hash)
       const error = query.get("error_description") || query.get("error") || params.get("error_description") || params.get("error")
+      const tokenHash = query.get("token_hash") || params.get("token_hash")
+      const type = query.get("type") || params.get("type") || "magiclink"
+      const code = query.get("code") || params.get("code")
+      const access_token = params.get("access_token") || query.get("access_token")
+      const refresh_token = params.get("refresh_token") || query.get("refresh_token")
+      const expires_in = params.get("expires_in") || query.get("expires_in")
+      window.history.replaceState({}, "", "/auth/callback")
       if (error) {
         setStatus("The login link was rejected. Request a new one, or sign in with a password.")
         return
       }
-      window.history.replaceState({}, "", "/auth/callback")
-      const tokenHash = query.get("token_hash")
-      const type = query.get("type") || "magiclink"
       if (tokenHash) {
         try {
           const verified = await fetch("/api/office/session/verify", {
@@ -38,9 +42,24 @@ export default function AuthCallback() {
         }
         return
       }
-      const access_token = params.get("access_token") || query.get("access_token")
-      const refresh_token = params.get("refresh_token") || query.get("refresh_token")
-      const expires_in = params.get("expires_in") || query.get("expires_in")
+      if (code) {
+        try {
+          const exchanged = await fetch("/api/office/session/exchange", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code }),
+          })
+          if (!exchanged.ok) {
+            setStatus("Could not finish sign-in. Request a new login link in this browser.")
+            return
+          }
+          router.replace("/")
+          router.refresh()
+        } catch {
+          setStatus("Could not finish sign-in.")
+        }
+        return
+      }
       if (!access_token || !refresh_token) {
         setStatus("This login link did not include a session. Request a new one, or sign in with a password.")
         return

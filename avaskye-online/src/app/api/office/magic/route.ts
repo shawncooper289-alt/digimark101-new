@@ -1,6 +1,8 @@
+import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { missingOfficeAuthEnv, officeCallbackUrl } from "@/lib/office-redirect"
 import { mailboxIsOwner, officeConfig, officeSignInAllowed, supabaseKeyHeaders } from "@/lib/office-store"
+import { createPkcePair, pkceCookieOptions } from "../session/exchange/route"
 
 function clientIp(request: Request) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local"
@@ -21,7 +23,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Login link can only be sent to an owner mailbox." }, { status: 400 })
   }
   const redirectTo = officeCallbackUrl(request)
-  // This is the Auth REST API, not supabase-js: redirects belong in the query.
+  const { verifier, challenge } = createPkcePair()
+  const jar = await cookies()
+  jar.set("ava_pkce", verifier, pkceCookieOptions())
   const endpoint = new URL(`${url}/auth/v1/otp`)
   endpoint.searchParams.set("redirect_to", redirectTo)
   const response = await fetch(endpoint.toString(), {
@@ -30,10 +34,13 @@ export async function POST(request: Request) {
     body: JSON.stringify({
       email,
       create_user: true,
+      code_challenge: challenge,
+      code_challenge_method: "s256",
     }),
     cache: "no-store",
   })
   if (!response.ok) {
+    jar.delete("ava_pkce")
     const text = await response.text().catch(() => "")
     return NextResponse.json({ error: text || "Could not send login link." }, { status: 400 })
   }

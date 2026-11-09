@@ -58,8 +58,8 @@ export function AuthForm({
       setMessage(`We sent a confirmation email to ${email.trim()}. Open it to confirm your account. If you don't see it, check spam.`)
       return
     }
-    router.push(nextPath.startsWith("/start") ? nextPath : "/studio")
-    router.refresh()
+    const destination = nextPath.startsWith("/start") ? nextPath : "/studio"
+    window.location.assign(destination)
   }
 
   return (

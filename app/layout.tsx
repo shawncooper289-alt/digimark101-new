@@ -34,8 +34,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "DigiMark101 — Marketing, built as a system",
-    template: "%s · DigiMark101",
+    default: "DigiMark101 \u2014 Marketing, built as a system",
+    template: "%s \u00b7 DigiMark101",
   },
   description: site.description,
   applicationName: site.name,
@@ -61,22 +61,25 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: site.url,
     siteName: site.name,
-    title: "DigiMark101 — Marketing, built as a system",
+    title: "DigiMark101 \u2014 Marketing, built as a system",
     description: site.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "DigiMark101 — Marketing, built as a system",
+    title: "DigiMark101 \u2014 Marketing, built as a system",
     description: site.description,
   },
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
 }
 
+const authCatcher = `(function(){var p=location.pathname;if(p==="/auth/callback"||p==="/reset-password")return;var q=location.search,h=location.hash,s=q+h;if(!/[?&#](code|token_hash|access_token|refresh_token|error_description|error_code)=/.test(s))return;location.replace("/auth/callback"+q+h);})();`
+
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${fraunces.variable} ${outfit.variable} h-full`}>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: authCatcher }} />
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -93,17 +96,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <AvaWidget />
         </PlatformProvider>
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {})
-  })
-}
-`,
-          }}
-        />
       </body>
     </html>
   )
