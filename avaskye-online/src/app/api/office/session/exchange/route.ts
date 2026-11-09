@@ -1,25 +1,9 @@
-import { createHash, randomBytes } from "crypto"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
+import { pkceCookieOptions } from "@/lib/pkce"
 import { encodeOfficeSession, isOwnerIdentity, officeConfig, officeCookieOptions, ownerEmails, supabaseKeyHeaders } from "@/lib/office-store"
 
 const VERIFIER = "ava_pkce"
-
-export function createPkcePair() {
-  const verifier = randomBytes(32).toString("base64url")
-  const challenge = createHash("sha256").update(verifier).digest("base64url")
-  return { verifier, challenge }
-}
-
-export function pkceCookieOptions() {
-  return {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 10,
-  }
-}
 
 export async function POST(request: Request) {
   const { url, anon, emails, service } = officeConfig()
@@ -30,7 +14,7 @@ export async function POST(request: Request) {
   const code = body?.code || ""
   const jar = await cookies()
   const verifier = jar.get(VERIFIER)?.value || ""
-  jar.delete(VERIFIER)
+  jar.set(VERIFIER, "", { ...pkceCookieOptions(), maxAge: 0 })
   if (!code || code.length > 2048 || !verifier) {
     return NextResponse.json({ error: "Login link expired. Request a new one." }, { status: 401 })
   }
@@ -58,7 +42,11 @@ export async function POST(request: Request) {
   if (!isOwnerIdentity(email, user?.app_metadata?.role)) {
     return NextResponse.json({ error: "Not an owner mailbox." }, { status: 403 })
   }
-  jar.set("ava_office", encodeOfficeSession(data.access_token, data.refresh_token, data.expires_in || 3600), officeCookieOptions(data.expires_in || 3600))
+  jar.set(
+    "ava_office",
+    encodeOfficeSession(data.access_token, data.refresh_token, data.expires_in || 3600),
+    officeCookieOptions(data.expires_in || 3600),
+  )
   if (service && ownerEmails().includes(email)) {
     await fetch(`${url}/rest/v1/rpc/sync_owner_email`, {
       method: "POST",

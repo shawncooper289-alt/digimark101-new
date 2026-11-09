@@ -31,10 +31,12 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 }
 
+const pageTitle = "DigiMark101 \u2014 Marketing, built as a system"
+
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "DigiMark101 \u2014 Marketing, built as a system",
+    default: pageTitle,
     template: "%s \u00b7 DigiMark101",
   },
   description: site.description,
@@ -61,12 +63,12 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: site.url,
     siteName: site.name,
-    title: "DigiMark101 \u2014 Marketing, built as a system",
+    title: pageTitle,
     description: site.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "DigiMark101 \u2014 Marketing, built as a system",
+    title: pageTitle,
     description: site.description,
   },
   robots: { index: true, follow: true },

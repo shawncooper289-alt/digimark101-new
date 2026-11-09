@@ -2,10 +2,11 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { missingOfficeAuthEnv, officeCallbackUrl } from "@/lib/office-redirect"
 import { mailboxIsOwner, officeConfig, officeSignInAllowed, supabaseKeyHeaders } from "@/lib/office-store"
-import { createPkcePair, pkceCookieOptions } from "../session/exchange/route"
+import { createPkcePair, pkceCookieOptions } from "@/lib/pkce"
 
 function clientIp(request: Request) {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local"
+  const forwarded = request.headers.get("x-forwarded-for") || ""
+  return forwarded.split(",")[0]?.trim() || "local"
 }
 
 export async function POST(request: Request) {

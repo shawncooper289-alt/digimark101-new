@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useAvaForm } from "@/components/ava/use-ava-form"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
@@ -18,7 +17,6 @@ export function AuthForm({
   nextPath?: string
   initialEmail?: string
 }) {
-  const router = useRouter()
   const [email, setEmail] = useState(() => (EMAIL_PATTERN.test(initialEmail.trim()) ? initialEmail.trim() : ""))
   const [password, setPassword] = useState("")
   const [emailError, setEmailError] = useState("")
@@ -58,8 +56,7 @@ export function AuthForm({
       setMessage(`We sent a confirmation email to ${email.trim()}. Open it to confirm your account. If you don't see it, check spam.`)
       return
     }
-    const destination = nextPath.startsWith("/start") ? nextPath : "/studio"
-    window.location.assign(destination)
+    window.location.assign(nextPath.startsWith("/start") ? nextPath : "/studio")
   }
 
   return (
