@@ -1,3 +1,4 @@
+import { authFetch } from "@/lib/auth-fetch"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { missingOfficeAuthEnv } from "@/lib/office-redirect"
@@ -19,17 +20,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Owner sign-in is missing ${missing.join(", ") || "Supabase settings"}.` }, { status: 503 })
   }
   const body = (await request.json().catch(() => null)) as { email?: string; password?: string } | null
-  const email = body?.email?.trim().toLowerCase() || ""
-  const password = body?.password || ""
+  const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : ""
+  const password = typeof body?.password === "string" ? body.password : ""
   if (!email || !password) {
     return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
   }
-  const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+  const response = await authFetch(`${url}/auth/v1/token?grant_type=password`, {
     method: "POST",
     headers: supabaseKeyHeaders(anon, { "Content-Type": "application/json" }),
     body: JSON.stringify({ email, password }),
     cache: "no-store",
   })
+  if (response.status >= 500) return NextResponse.json({ error: "The shared login service is unavailable. Please try again shortly." }, { status: 503 })
   if (!response.ok) {
     return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
   }
@@ -37,10 +39,11 @@ export async function POST(request: Request) {
   if (!data.access_token || !data.refresh_token) {
     return NextResponse.json({ error: "Owner sign-in failed." }, { status: 401 })
   }
-  const userResponse = await fetch(`${url}/auth/v1/user`, {
+  const userResponse = await authFetch(`${url}/auth/v1/user`, {
     headers: { apikey: anon, Authorization: `Bearer ${data.access_token}` },
     cache: "no-store",
   })
+  if (userResponse.status >= 500) return NextResponse.json({ error: "The shared login service is unavailable. Please try again shortly." }, { status: 503 })
   const user = userResponse.ok
     ? (await userResponse.json()) as { email?: string; app_metadata?: { role?: string } }
     : null
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
   jar.set(COOKIE, encodeOfficeSession(data.access_token, data.refresh_token, data.expires_in || 3600), officeCookieOptions(data.expires_in || 3600))
   const { url: projectUrl, service } = officeConfig()
   if (projectUrl && service && ownerEmails().includes(signedIn)) {
-    await fetch(`${projectUrl}/rest/v1/rpc/sync_owner_email`, {
+    await authFetch(`${projectUrl}/rest/v1/rpc/sync_owner_email`, {
       method: "POST",
       headers: supabaseKeyHeaders(service, { "Content-Type": "application/json" }),
       body: JSON.stringify({ owner_email: signedIn }),

@@ -7,11 +7,13 @@ const ts = require('typescript')
 function setup() {
   const calls = []
   const mocks = {
+    '@/lib/auth-fetch': { authFetch: async (url, options) => { calls.push({ url: String(url), options }); return Response.json({}) } },
     'next/server': { NextResponse: { json: (data, options) => Response.json(data, options) } },
     '@/lib/office-redirect': { missingOfficeAuthEnv: () => [], officeCallbackUrl: () => 'https://www.avaskye.online/auth/callback' },
     '@/lib/office-store': {
       officeConfig: () => ({ url: 'https://example.supabase.co', anon: 'test-public-key', emails: ['owner@example.com'] }),
       officeSignInAllowed: () => true,
+      mailboxIsOwner: async email => email === 'owner@example.com',
       supabaseKeyHeaders: (key, extra) => ({ apikey: key, ...extra }),
     },
   }

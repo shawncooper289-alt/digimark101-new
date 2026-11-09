@@ -1,13 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
 export default function AuthCallback() {
   const router = useRouter()
   const [status, setStatus] = useState("Signing you in…")
 
+  const started = useRef(false)
+
   useEffect(() => {
+    if (started.current) return
+    started.current = true
     async function finish() {
       const query = new URLSearchParams(window.location.search)
       const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : ""
@@ -67,7 +71,7 @@ export default function AuthCallback() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-5">
-      <p className="text-sm text-muted">{status}</p>
+      <div><p role="status" className="text-sm text-muted">{status}</p><a href="/login" className="mt-4 block underline">Back to owner sign-in</a></div>
     </main>
   )
 }
