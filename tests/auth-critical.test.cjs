@@ -95,3 +95,26 @@ test("office callback scrubs rejected link details without exposing provider tex
   assert.match(status, /rejected/)
   assert.doesNotMatch(status, /private-provider-detail/)
 })
+
+test("office seat grants send a canonical customer invitation via the REST redirect parameter", async () => {
+  const calls = []
+  const { grantSeat } = load("avaskye-online/src/lib/grant-seat.ts", {
+    "@/lib/office-store": {
+      officeConfig: () => ({ url: "https://example.supabase.co", service: "test-only" }),
+      supabaseKeyHeaders: () => ({}),
+    },
+  }, {
+    process: { env: { NODE_ENV: "production", NEXT_PUBLIC_SITE_URL: "https://preview.example.com" } },
+    fetch: async (url, options) => {
+      calls.push({ url: String(url), options })
+      if (String(url).includes("/rpc/deliver_seat")) return Response.json({ ok: true, seat_id: "seat" })
+      return Response.json({})
+    },
+  })
+  const result = await grantSeat({ email: "tester@example.com", planKey: "monthly", grantedBy: "owner" })
+  assert.equal(result.invited, true)
+  const invite = calls.find((call) => call.url.includes("/auth/v1/otp"))
+  assert.equal(new URL(invite.url).searchParams.get("redirect_to"), "https://www.digimark101.com/auth/callback")
+  assert.equal(JSON.parse(invite.options.body).options, undefined)
+  assert.ok(invite.options.signal)
+})

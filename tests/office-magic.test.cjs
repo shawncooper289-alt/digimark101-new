@@ -4,16 +4,16 @@ const fs = require('node:fs')
 const vm = require('node:vm')
 const ts = require('typescript')
 
-function setup() {
+function setup({ providerResponse = () => Response.json({}), mailboxIsOwner = async email => email === 'owner@example.com' } = {}) {
   const calls = []
   const mocks = {
-    '@/lib/auth-fetch': { authFetch: async (url, options) => { calls.push({ url: String(url), options }); return Response.json({}) } },
+    '@/lib/auth-fetch': { authFetch: async (url, options) => { calls.push({ url: String(url), options }); return providerResponse() } },
     'next/server': { NextResponse: { json: (data, options) => Response.json(data, options) } },
     '@/lib/office-redirect': { missingOfficeAuthEnv: () => [], officeCallbackUrl: () => 'https://www.avaskye.online/auth/callback' },
     '@/lib/office-store': {
       officeConfig: () => ({ url: 'https://example.supabase.co', anon: 'test-public-key', emails: ['owner@example.com'] }),
       officeSignInAllowed: () => true,
-      mailboxIsOwner: async email => email === 'owner@example.com',
+      mailboxIsOwner,
       supabaseKeyHeaders: (key, extra) => ({ apikey: key, ...extra }),
     },
   }
@@ -40,6 +40,20 @@ test('office magic link sends redirect_to in the REST query, not SDK options', a
   assert.equal(body.email, 'owner@example.com')
   assert.equal(body.create_user, true)
   assert.equal(body.options, undefined)
+})
+
+test('provider and owner lookup failures return controlled errors', async () => {
+  const request = () => new Request('https://www.avaskye.online/api/office/magic', {
+    method: 'POST', body: JSON.stringify({ email: 'owner@example.com' }),
+  })
+  const rejected = setup({ providerResponse: () => Response.json({ error: 'private-provider-details' }, { status: 400 }) })
+  const response = await rejected.POST(request())
+  assert.equal(response.status, 400)
+  assert.doesNotMatch(JSON.stringify(await response.json()), /private-provider-details/)
+  const unavailable = setup({ mailboxIsOwner: async () => { throw new Error('private-provider-details') } })
+  const failure = await unavailable.POST(request())
+  assert.equal(failure.status, 503)
+  assert.doesNotMatch(JSON.stringify(await failure.json()), /private-provider-details/)
 })
 
 test('non-owner cannot request a magic link', async () => {
