@@ -25,6 +25,7 @@ export function AuthForm({
   const [passwordError, setPasswordError] = useState("")
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
+  const [pending, setPending] = useState(false)
   const supabase = createSupabaseBrowser()
   useAvaForm((fills) => {
     if (fills.email) setEmail(fills.email)
@@ -32,6 +33,7 @@ export function AuthForm({
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
+    if (pending) return
     setError("")
     setMessage("")
     const nextEmailError = emailFieldError(email)
@@ -43,23 +45,32 @@ export function AuthForm({
       setError("Add the Supabase URL and anon key, then restart.")
       return
     }
-    const result = mode === "login"
-      ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
-      : await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: { emailRedirectTo: authCallbackUrl() },
-        })
-    if (result.error) {
-      setError(result.error.message)
-      return
+    setPending(true)
+    try {
+      const result = mode === "login"
+        ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
+        : await supabase.auth.signUp({
+            email: email.trim(),
+            password,
+            options: { emailRedirectTo: authCallbackUrl() },
+          })
+      if (result.error) {
+        setError(mode === "login"
+          ? "Sign-in failed. Check your email and password, or try again later."
+          : "Could not create your account. Please try again later.")
+        return
+      }
+      if (mode === "signup" && !result.data.session) {
+        setMessage(`We sent a confirmation email to ${email.trim()}. Open it to confirm your account. If you don't see it, check spam.`)
+        return
+      }
+      router.push(nextPath.startsWith("/start") ? nextPath : "/studio")
+      router.refresh()
+    } catch {
+      setError("Could not reach the sign-in service. Please try again.")
+    } finally {
+      setPending(false)
     }
-    if (mode === "signup" && !result.data.session) {
-      setMessage(`We sent a confirmation email to ${email.trim()}. Open it to confirm your account. If you don't see it, check spam.`)
-      return
-    }
-    router.push(nextPath.startsWith("/start") ? nextPath : "/studio")
-    router.refresh()
   }
 
   return (
@@ -128,8 +139,8 @@ export function AuthForm({
         ) : null}
         {error ? <p className="text-sm text-signal" role="alert">{error}</p> : null}
         {message ? <p className="text-sm">{message}</p> : null}
-        <button type="submit" className="btn btn-signal">
-          {mode === "login" ? "Sign in" : "Create account"}
+        <button type="submit" disabled={pending} className="btn btn-signal">
+          {pending ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
         </button>
       </form>
       <p className="mt-4 text-sm">

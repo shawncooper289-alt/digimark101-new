@@ -13,6 +13,7 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
 
   async function submit(event: FormEvent) {
     event.preventDefault()
+    if (pending) return
     setPending(true)
     setError(null)
     setMessage(null)
@@ -21,6 +22,7 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        signal: AbortSignal.timeout(28000),
       })
       const data = (await response.json()) as { error?: string }
       if (!response.ok) {
@@ -38,6 +40,7 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
   }
 
   async function sendMagicLink() {
+    if (pending) return
     setPending(true)
     setError(null)
     setMessage(null)
@@ -46,6 +49,7 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
+        signal: AbortSignal.timeout(20000),
       })
       const data = (await response.json()) as { error?: string; message?: string }
       if (!response.ok) {

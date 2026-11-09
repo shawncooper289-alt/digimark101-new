@@ -1,14 +1,9 @@
-/** Public site origin for auth emails. Prefer the configured site URL, then the browser. */
+/** Email links use the public production domain, never a temporary deployment URL. */
 export function publicSiteOrigin() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim()
-  if (configured) {
-    try {
-      return new URL(configured).origin
-    } catch {
-      // Fall through to the browser origin when the env value is not a URL.
-    }
+  if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
+    const url = new URL(window.location.origin)
+    if (["localhost", "127.0.0.1"].includes(url.hostname)) return url.origin
   }
-  if (typeof window !== "undefined" && window.location?.origin) return window.location.origin
   return "https://www.digimark101.com"
 }
 

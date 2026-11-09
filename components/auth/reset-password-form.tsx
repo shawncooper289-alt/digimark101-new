@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
 import { establishSessionFromUrl } from "@/lib/auth/establish-session"
 import { PASSWORD_RULE, signupPasswordError } from "@/lib/auth/password"
@@ -17,8 +17,11 @@ export function ResetPasswordForm() {
   const [confirmError, setConfirmError] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  const started = useRef(false)
 
   useEffect(() => {
+    if (started.current) return
+    started.current = true
     async function open() {
       const result = await establishSessionFromUrl()
       if (result.ok) {
@@ -37,11 +40,12 @@ export function ResetPasswordForm() {
       const user = supabase ? (await supabase.auth.getUser()).data.user : null
       setPhase(user ? "ready" : "invalid")
     }
-    void open()
+    void open().catch(() => setPhase("invalid"))
   }, [])
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
+    if (pending) return
     setError("")
     const nextPasswordError = signupPasswordError(password)
     const nextConfirmError = password !== confirm ? "Those passwords do not match." : ""
@@ -54,13 +58,15 @@ export function ResetPasswordForm() {
       return
     }
     setPending(true)
-    const { error: updateError } = await supabase.auth.updateUser({ password })
-    setPending(false)
-    if (updateError) {
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password })
+      if (updateError) throw updateError
+      setPhase("saved")
+    } catch {
       setError("Could not update the password. Request a new reset link and try again.")
-      return
+    } finally {
+      setPending(false)
     }
-    setPhase("saved")
   }
 
   if (phase === "working") {

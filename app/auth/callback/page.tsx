@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { establishSessionFromUrl, safeNextPath } from "@/lib/auth/establish-session"
 
 type Phase = "working" | "error" | "unconfigured"
@@ -11,7 +11,11 @@ export default function StudioAuthCallback() {
   const router = useRouter()
   const [phase, setPhase] = useState<Phase>("working")
 
+  const started = useRef(false)
+
   useEffect(() => {
+    if (started.current) return
+    started.current = true
     const query = new URLSearchParams(window.location.search)
     const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : ""
     const hashType = new URLSearchParams(hash).get("type")
@@ -28,7 +32,7 @@ export default function StudioAuthCallback() {
       router.replace(destination)
       router.refresh()
     }
-    void finish()
+    void finish().catch(() => setPhase("error"))
   }, [router])
 
   if (phase === "working") {
