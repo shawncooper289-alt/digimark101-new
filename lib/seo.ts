@@ -71,6 +71,30 @@ export function websiteJsonLd() {
   }
 }
 
+export function platformJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: site.name,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: site.url,
+    description: site.description,
+    featureList: [
+      "Ava Skye setup assistant",
+      "Contacts and pipeline",
+      "Calendar and inbox notes",
+      "Email drafts",
+      "Funnel and site records",
+      "Social drafts",
+      "Workspace automations",
+      "Leads engine",
+      "White-label managed backend",
+      "Beta tester seats",
+    ],
+  }
+}
+
 export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
   return {
     "@context": "https://schema.org",

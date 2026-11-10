@@ -16,16 +16,16 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink/10 bg-paper/95 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-5">
         <Link href="/" aria-label="DigiMark101 home" onClick={() => setOpen(false)}>
-          <DigiMarkLogo variant="paper" />
+          <DigiMarkLogo variant="paper" compact />
         </Link>
-        <nav className="hidden items-center gap-6 lg:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-3 xl:gap-5 lg:flex" aria-label="Primary">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`text-sm ${isActive(pathname, item.href) ? "text-signal" : "text-ink-soft hover:text-ink"}`}
+              className={`whitespace-nowrap text-[0.8125rem] xl:text-sm ${isActive(pathname, item.href) ? "text-signal" : "text-ink-soft hover:text-ink"}`}
               aria-current={isActive(pathname, item.href) ? "page" : undefined}
             >
               {item.label}
@@ -39,8 +39,8 @@ export function Header() {
           <Link href="/login" className="btn btn-ghost hidden sm:inline-flex">
             Client login
           </Link>
-          <Link href="/start" className="btn btn-signal hidden sm:inline-flex">
-            Start the first campaign
+          <Link href="/start" className="btn btn-signal hidden xl:inline-flex">
+            First campaign
           </Link>
           <button
             type="button"

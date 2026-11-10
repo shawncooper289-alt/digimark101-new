@@ -8,15 +8,16 @@ export const site = {
   name: "DigiMark101",
   url: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.digimark101.com").replace(/\/$/, ""),
   email: "hello@digimark101.com",
-  tagline: "Marketing, built as a system.",
+  tagline: "Build your own dynasty.",
   description:
-    "DigiMark101 is a digital marketing studio and a simple client workspace for contacts, pipeline, calendar, campaigns, and Ava Skye.",
+    "DigiMark101 is the all-in-one marketing platform you own. Ava Skye sets it up with you. You confirm. Contacts, pipeline, email drafts, pages, and automations live in one studio.",
 } as const
 
 export const nav = [
   { href: "/services", label: "Services" },
   { href: "/work", label: "Work" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/beta", label: "Beta" },
   { href: "/about", label: "About" },
   { href: "/blog", label: "Journal" },
   { href: "/studio", label: "Studio" },
@@ -585,38 +586,7 @@ export function getPost(slug: string) {
   return posts.find((post) => post.slug === slug)
 }
 
-export const homeFaqs = [
-  {
-    question: "What does DigiMark101 do?",
-    answer:
-      "We plan, make, and measure digital marketing across eight disciplines: SEO, paid ads, social, content, web design, email, analytics, and AI automation. Engagements are scoped as Field, Studio, or Partner.",
-  },
-  {
-    question: "Do you publish client results?",
-    answer:
-      "Not on this site. The work pages are labeled placeholders so we never present invented client names or statistics as real. A story goes up only after a partner approves the facts.",
-  },
-  {
-    question: "Who is Ava Skye?",
-    answer:
-      "Ava is the studio assistant. She can talk through services, packages, and a starting brief. With an API key she uses a live language model. Without one, she answers from a studio guide. She does not invent proof or change your accounts.",
-  },
-  {
-    question: "How do we start?",
-    answer:
-      "Send a note through the contact form with your site, the channel that feels stuck, and what a good quarter would look like. If lead storage is not connected yet, the form tells you and offers email instead of pretending the note was saved.",
-  },
-  {
-    question: "Do you work in one channel or the whole system?",
-    answer:
-      "Either. Field is one discipline. Studio connects up to three. Partner scopes the wider system. We would rather run a small system well than launch everything at once.",
-  },
-  {
-    question: "Where do leads and chats go?",
-    answer:
-      "Leads are stored in Supabase when the service role key is configured. Ava's live replies are produced by xAI or OpenAI, depending on which key you add. Neither is contacted when the keys are absent.",
-  },
-] as const
+export { homeFaqs } from "@/lib/home-content"
 
 export const method = [
   {

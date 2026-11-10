@@ -6,7 +6,7 @@ This is the owner manual for DigiMark101 and the founder office. The public site
 
 DigiMark101 is the marketing platform a serious agency would rather own than rent. The bar is a system that goes past a rented CRM: one dark site, one studio, and Ava Skye guiding the work. Navigation stays plain. A person can move from the offer, to the studio, to a confirmed save, without a tour.
 
-The public promise on the homepage is **Own the system. Build the dynasty.** That line stays. So do the transparent gold logo, Ava’s portrait on the first screen, Hear Ava, and the small semi-transparent photo that opens her chat.
+The public promise on the homepage is **Build your own dynasty. Own the system. Grow it with Ava.** That line stays. So do the transparent gold logo, Ava’s portrait on the first screen, Hear Ava, and the small semi-transparent photo that opens her chat.
 
 ## Run locally
 
@@ -50,7 +50,7 @@ Dark theme. Services, placeholder work structures, packages, pricing, journal, a
 
 The homepage hero is the current redesign:
 
-- Headline: Own the system. Build the dynasty.
+- Headline: Build your own dynasty. Own the system. Grow it with Ava.
 - Transparent gold DigiMark101 lockup. No cream plate. No circle smiley.
 - Ava’s photograph in the first screen, with Hear Ava under the headline. Hear Ava never autoplays.
 - A small semi-transparent photo of Ava that can be dragged. The position is remembered in the browser, and under the signed-in email when there is one. Voice on speaks her replies and then listens. Typing always works.

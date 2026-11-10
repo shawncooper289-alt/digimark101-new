@@ -31,7 +31,7 @@ export function AvaAvatar({
         )}
       >
         <Image
-          src="/media/ava-skye-hero.jpg"
+          src="/media/ava-city.jpg"
           alt=""
           fill
           sizes="96px"

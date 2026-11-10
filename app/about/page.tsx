@@ -4,14 +4,14 @@ import { pageMetadata } from "@/lib/seo"
 
 export const metadata = pageMetadata({
   title: "About",
-  description: "DigiMark101 is a digital marketing studio. The work is planned, made, and measured without invented proof.",
+  description: "DigiMark101 is an all-in-one marketing platform and a studio. Ava Skye sets it up with you. You keep the system.",
   path: "/about",
 })
 
 const principles = [
   {
     title: "One thing at a time",
-    body: "A company rarely needs eight channels on Monday. It needs the page, the event, or the channel that is currently lying.",
+    body: "You rarely need all eight kinds of marketing on Monday. You need the page, the measurement, or the channel that is stuck. We start there.",
   },
   {
     title: "A person stays accountable",
@@ -31,28 +31,39 @@ export default function AboutPage() {
   return (
     <>
       <PageHeader
-        eyebrow="05 — Studio"
-        title="A studio for the work, and the system under it."
-        lede="DigiMark101 is a digital marketing agency. We plan, make, and measure search, media, content, sites, email, and the automations that keep a team moving."
+        eyebrow="About"
+        title="A platform you own, and a studio when you want help."
+        lede="DigiMark101 is the all-in-one marketing platform for people who want to make money online. Studio is the workspace. Ava Skye is the assistant who sets it up with you. You confirm before anything is saved."
       />
       <div className="mx-auto grid max-w-6xl gap-12 px-5 py-14 md:grid-cols-12">
         <div className="prose-studio md:col-span-7">
           <p>
-            The name is the stance. Marketing 101 is not beginner work. It is the unglamorous sequence that makes the rest of the spend intelligible: an offer, a page, a trusted event, and a channel that can learn.
+            The name is the stance. Marketing 101 is the sequence that makes the rest of the work understandable: an offer, a page, a next step you can count, and one channel you can keep up with.
           </p>
           <p>
-            Ava Skye is the studio assistant and the public face of that stance. She will talk through a brief. She will not decorate the site with a client we do not have.
+            Beginners, side hustlers, creators, local businesses, and agencies can use the same login. Contacts, a pipeline, email drafts, page plans, social drafts, files, and automations live in Studio. The eight disciplines — search, paid ads, social, content, web design, email, analytics, and AI automation — are the map of the work.
+          </p>
+          <p>
+            Ava Skye asks one question at a time and fills the forms. That is the time saver: you review the setup instead of retyping it. She will not invent a client or a result to make the work sound larger than it is.
           </p>
           <h2>How a project is staffed</h2>
           <p>
-            A strategist names the one thing slowing the business down. A maker builds the page, the campaign, or the sequence. An analyst keeps the readout honest. Ava holds the brief so the team is not starting from zero between meetings. The proposal says which of those seats are in the room.
+            When you want the studio in the work, a strategist names the one thing slowing the business down. A maker builds the page, the campaign, or the sequence. An analyst keeps the readout honest. Ava holds the brief so the team is not starting from zero between meetings. The proposal says which of those seats are in the room. Field, Studio, and Partner are quoted there. Membership prices are on the pricing page.
           </p>
           <p>
-            This page does not invent a founder biography, a headcount, or an office we have not published. The work is the introduction. If you want the studio on a real account, start with a note.
+            This page does not invent a founder biography, a headcount, or an office we have not published. The work is the introduction.
           </p>
-          <Link href="/contact" className="btn btn-signal mt-6">
-            Write to the studio
-          </Link>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link href="/signup" className="btn btn-signal">
+              Create your account
+            </Link>
+            <Link href="/beta" className="btn btn-ghost">
+              Join the beta
+            </Link>
+            <Link href="/contact" className="btn btn-ghost">
+              Write to the studio
+            </Link>
+          </div>
         </div>
         <div className="md:col-span-5">
           <ol className="grid gap-4">

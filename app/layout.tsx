@@ -31,7 +31,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 }
 
-const pageTitle = "DigiMark101 \u2014 Marketing, built as a system"
+const pageTitle = "DigiMark101 \u2014 Build your own dynasty"
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -46,11 +46,12 @@ export const metadata: Metadata = {
   category: "marketing",
   keywords: [
     "DigiMark101",
-    "digital marketing agency",
-    "SEO agency",
-    "paid media",
+    "all-in-one marketing platform",
     "Ava Skye",
-    "marketing analytics",
+    "marketing for beginners",
+    "CRM",
+    "email marketing",
+    "digital marketing agency",
   ],
   manifest: "/manifest.webmanifest",
   appleWebApp: {

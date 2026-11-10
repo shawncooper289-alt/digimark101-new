@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
 import type { PartnerLink } from "@/lib/partners"
+import { earningsDisclaimer } from "@/lib/home-content"
 import { nav, services, site } from "@/lib/site"
 
 export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
@@ -10,8 +11,9 @@ export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
         <div className="md:col-span-5">
           <DigiMarkLogo variant="paper" />
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-ink-soft">
-            A digital marketing studio. Eight disciplines, one operating rhythm, and Ava Skye when you want a straight answer.
+            The all-in-one marketing platform you own. Eight kinds of marketing work, one workspace, and Ava Skye to set it up with you.
           </p>
+          <p className="mt-4 max-w-sm text-xs leading-relaxed text-ink-soft">{earningsDisclaimer}</p>
           <a className="mt-4 inline-block text-sm underline decoration-ink/30 underline-offset-4" href={`mailto:${site.email}`}>
             {site.email}
           </a>
