@@ -1,13 +1,17 @@
 /**
- * Free device voice only. No paid TTS.
- * Display text stays "Ava". Compact phone voices get the long-A spelling;
- * enhanced, premium, and Google voices already say Ava correctly.
+ * Ava's spoken voice. Server TTS is preferred. The device voice is only the fallback.
+ * Display text stays "Ava". Speech receives the long-A spelling.
  * Dispatches ava:speaking / ava:idle so the whole character can animate.
  */
 const NAME = /\bAva\b/g
 
 let keepAlive = 0
 let turn = 0
+let context: AudioContext | null = null
+let source: AudioBufferSourceNode | null = null
+let htmlAudio: HTMLAudioElement | null = null
+let objectUrl: string | null = null
+const SILENCE = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="
 
 function emit(speaking: boolean) {
   if (typeof window === "undefined") return
@@ -66,10 +70,130 @@ export function pickAvaVoice(): SpeechSynthesisVoice | null {
 }
 
 export function speakAva(text: string, onDone?: () => void) {
+  const token = ++turn
+  stopPlayback()
+  if (typeof window === "undefined" || !text.trim()) {
+    emit(false)
+    return
+  }
+  void speakFromServer(text, token, onDone)
+}
+
+function stopPlayback() {
+  try {
+    source?.stop()
+  } catch {
+    // The previous clip already ended.
+  }
+  source = null
+  if (htmlAudio) {
+    htmlAudio.onended = null
+    htmlAudio.pause()
+  }
+  if (objectUrl) {
+    URL.revokeObjectURL(objectUrl)
+    objectUrl = null
+  }
+  if (typeof window !== "undefined") window.speechSynthesis?.cancel()
+  if (keepAlive) window.clearInterval(keepAlive)
+}
+
+export function prepareAvaSpeech() {
+  if (typeof window === "undefined") return
+  const audio = htmlAudio ?? new Audio()
+  htmlAudio = audio
+  audio.preload = "auto"
+  audio.setAttribute("playsinline", "true")
+  if (!audio.getAttribute("src")) audio.src = SILENCE
+  void audio.play()?.then(() => audio.pause()).catch(() => undefined)
+  const Ctor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  if (!Ctor) return
+  context = context ?? new Ctor()
+  if (context.state === "suspended") void context.resume()
+}
+
+export function stopAvaSpeech() {
+  turn += 1
+  stopPlayback()
+  emit(false)
+}
+
+async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void) {
+  const Ctor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  if (Ctor) {
+    try {
+      context = context ?? new Ctor()
+      if (context.state === "suspended") await context.resume()
+      if (token !== turn) return true
+      if (context.state === "running") {
+        const buffer = await context.decodeAudioData(bytes.slice(0))
+        if (token !== turn) return true
+        const node = context.createBufferSource()
+        node.buffer = buffer
+        node.connect(context.destination)
+        node.onended = () => {
+          if (token !== turn) return
+          source = null
+          emit(false)
+          onDone?.()
+        }
+        source = node
+        emit(true)
+        node.start()
+        return true
+      }
+    } catch {
+      // Try the media element next.
+    }
+  }
+  if (token !== turn) return true
+  const url = URL.createObjectURL(new Blob([bytes], { type: "audio/mpeg" }))
+  objectUrl = url
+  const audio = htmlAudio ?? new Audio()
+  htmlAudio = audio
+  audio.preload = "auto"
+  audio.setAttribute("playsinline", "true")
+  audio.src = url
+  audio.onended = () => {
+    if (token !== turn) return
+    emit(false)
+    onDone?.()
+  }
+  try {
+    emit(true)
+    await audio.play()
+    return true
+  } catch {
+    emit(false)
+    return false
+  }
+}
+
+async function speakFromServer(text: string, token: number, onDone?: () => void) {
+  try {
+    const response = await fetch("/api/ava/speak", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+      signal: AbortSignal.timeout(20000),
+    })
+    if (token !== turn) return
+    const type = response.headers.get("content-type") || ""
+    if (response.ok && type.includes("audio")) {
+      const bytes = await response.arrayBuffer()
+      if (token !== turn) return
+      if (bytes.byteLength > 64 && (await playMp3(bytes, token, onDone))) return
+    }
+  } catch {
+    // The device voice speaks this turn instead.
+  }
+  if (token !== turn) return
+  speakInBrowser(text, token, onDone)
+}
+
+function speakInBrowser(text: string, token: number, onDone?: () => void) {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || !text.trim()) return
   window.speechSynthesis.cancel()
-  if (keepAlive) window.clearInterval(keepAlive)
-  const token = ++turn
   const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
   const start = () => {

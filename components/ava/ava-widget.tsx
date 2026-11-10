@@ -4,8 +4,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 import { AvaAvatar } from "@/components/branding/ava-avatar"
-import { AVA_IDENTITY } from "@/lib/ava/identity"
-import { spokenText } from "@/lib/ava/speech"
+import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava/speech"
 import { applySetupSnapshot, readSetupDraft } from "@/lib/onboarding/setup-draft"
 import { usePlatform } from "@/components/studio/platform-provider"
 import { rosterFrom, type Action } from "@/lib/platform/types"
@@ -325,24 +324,21 @@ export function AvaWidget() {
   }
 
   function speak(text: string) {
-    if (!voiceRef.current || !text || !("speechSynthesis" in window)) {
+    if (!voiceRef.current || !text.trim()) {
       holdListen.current = false
       if (shouldListen()) startListen()
       return
     }
     holdListen.current = true
     stopListen()
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(spokenText(text))
-    utterance.lang = AVA_IDENTITY.speech.browserLang
-    utterance.rate = AVA_IDENTITY.speech.browserRate
+    prepareAvaSpeech()
     const resume = () => {
       holdListen.current = false
       if (shouldListen()) startListen()
     }
-    utterance.onend = resume
-    utterance.onerror = resume
-    window.speechSynthesis.speak(utterance)
+    void speakAva(text, resume).then((result) => {
+      if (result === "failed") resume()
+    })
   }
 
   useEffect(() => {
@@ -398,7 +394,7 @@ export function AvaWidget() {
   useEffect(() => {
     if (!open) {
       stopListenRef.current()
-      window.speechSynthesis?.cancel()
+      stopAvaSpeech()
       return
     }
     if (!voiceRef.current) inputRef.current?.focus()
@@ -416,13 +412,14 @@ export function AvaWidget() {
   useEffect(() => {
     return () => {
       recognitionRef.current?.stop()
-      window.speechSynthesis?.cancel()
+      stopAvaSpeech()
     }
   }, [])
 
   async function send(text: string, source: "voice" | "typed" = "typed") {
     const content = text.trim()
     if (!content || pendingRef.current) return
+    prepareAvaSpeech()
     pendingRef.current = true
     holdListen.current = true
     stopListen()
@@ -493,18 +490,20 @@ export function AvaWidget() {
     writeVoice(identityRef.current, next)
     if (!next) {
       holdListen.current = false
-      window.speechSynthesis?.cancel()
+      stopAvaSpeech()
       stopListen()
       setNotice(null)
       return
     }
     silenceRef.current = 0
     holdListen.current = false
+    prepareAvaSpeech()
     setNotice(canListen ? "Voice is on. Ava will speak, then listen. You can still type." : "Voice can play replies here. This browser has no microphone, so type instead.")
     if (openRef.current) startListen()
   }
 
   function openChat() {
+    prepareAvaSpeech()
     setOpen(true)
     openRef.current = true
     if (voiceRef.current) {
@@ -678,6 +677,7 @@ export function AvaWidget() {
                     type="button"
                     className="btn btn-signal"
                     onClick={() => {
+                      prepareAvaSpeech()
                       void (async () => {
                         try {
                           const summaries: string[] = []
@@ -760,6 +760,7 @@ export function AvaWidget() {
                 type="button"
                 className="btn btn-ghost"
                 onClick={() => {
+                  prepareAvaSpeech()
                   if (listening) {
                     stopListen()
                     return

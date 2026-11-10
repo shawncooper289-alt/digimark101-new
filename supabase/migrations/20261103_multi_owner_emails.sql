@@ -61,7 +61,7 @@ set search_path = public, private, auth
 as $$
 declare
   clean text := lower(trim(coalesce(owner_emails, '')));
-  email text;
+  owner_email text;
 begin
   if clean = '' then
     raise exception 'owner_emails cannot be empty';
@@ -71,25 +71,25 @@ begin
   values ('owner_emails', clean)
   on conflict (key) do update set value = excluded.value;
 
-  foreach email in array string_to_array(clean, ',')
+  foreach owner_email in array string_to_array(clean, ',')
   loop
-    email := trim(email);
-    if email = '' or position('@' in email) = 0 then
+    owner_email := trim(owner_email);
+    if owner_email = '' or position('@' in owner_email) = 0 then
       continue;
     end if;
 
-    update auth.users
-    set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
+    update auth.users as u
+    set raw_app_meta_data = coalesce(u.raw_app_meta_data, '{}'::jsonb)
       || jsonb_build_object('role', 'owner')
-    where lower(email) = email
-      and coalesce(raw_app_meta_data ->> 'role', '') is distinct from 'owner';
+    where lower(u.email) = owner_email
+      and coalesce(u.raw_app_meta_data ->> 'role', '') is distinct from 'owner';
 
     if to_regclass('public.profiles') is not null
        and exists (
          select 1 from information_schema.columns
          where table_schema = 'public' and table_name = 'profiles' and column_name = 'role'
        ) then
-      update public.profiles set role = 'owner' where lower(email) = email;
+      update public.profiles as p set role = 'owner' where lower(p.email) = owner_email;
     end if;
   end loop;
 end;

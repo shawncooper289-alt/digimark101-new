@@ -3,11 +3,8 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useState, type FormEvent } from "react"
 import { visitorModeIntent } from "@/lib/appearance-command"
-import { speakAva } from "@/lib/ava-speech"
+import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava-speech"
 import { AvaLiveCharacter } from "@/components/ava-live-character"
-
-const SITTING = { id: "sitting", label: "At the desk", src: "/ava/desk-sitting.jpg" }
-const PROFESSIONAL = { id: "professional", label: "Professional", src: "/ava/desk-standing.jpg" }
 
 const TABLES = [
   { href: "/products", label: "Hub" },
@@ -35,8 +32,6 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
   const [draft, setDraft] = useState<{ name: string; email?: string; company?: string } | null>(null)
   const [voice, setVoice] = useState(true)
   const current = TABLES.find((item) => item.href === table) ?? TABLES[0]
-  const look = visitors || standing ? PROFESSIONAL : SITTING
-  const pose = look.id === "professional" ? "standing" : "sitting"
 
   useEffect(() => {
     void fetch("/api/office/appearance")
@@ -50,6 +45,7 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
   }
 
   async function setVisitorMode(next: boolean) {
+    prepareAvaSpeech()
     setPending(true)
     try {
       const response = await fetch("/api/office/appearance", {
@@ -74,6 +70,7 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
   async function ask(message: string) {
     const content = message.trim()
     if (!content) return
+    prepareAvaSpeech()
     const appearance = visitorModeIntent(content)
     if (appearance !== null) {
       setPrompt("")
@@ -112,6 +109,7 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
 
   async function confirmDraft() {
     if (!draft) return
+    prepareAvaSpeech()
     setPending(true)
     try {
       const response = await fetch("/api/office/mutate", {
@@ -200,7 +198,7 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
                 onClick={() => {
                   const next = !voice
                   setVoice(next)
-                  if (!next && typeof window !== "undefined") window.speechSynthesis?.cancel()
+                  if (!next) stopAvaSpeech()
                 }}
               >
                 Voice {voice ? "on" : "off"}

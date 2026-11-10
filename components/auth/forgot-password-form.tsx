@@ -17,6 +17,7 @@ export function ForgotPasswordForm() {
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault()
+    if (pending) return
     setMessage("")
     setError("")
     const nextEmailError = emailFieldError(email)
@@ -27,15 +28,17 @@ export function ForgotPasswordForm() {
       return
     }
     setPending(true)
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: resetPasswordUrl(),
-    })
-    setPending(false)
-    if (resetError) {
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: resetPasswordUrl(),
+      })
+      if (resetError) throw resetError
+      setMessage(`Check ${email.trim()} for a link to choose a new password. It expires soon. Look in spam if it is not in your inbox.`)
+    } catch {
       setError("Could not send the reset email. Wait a minute and try again.")
-      return
+    } finally {
+      setPending(false)
     }
-    setMessage(`Check ${email.trim()} for a link to choose a new password. It expires soon. Look in spam if it is not in your inbox.`)
   }
 
   return (

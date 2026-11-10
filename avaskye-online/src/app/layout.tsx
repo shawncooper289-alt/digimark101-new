@@ -26,7 +26,7 @@ export const viewport: Viewport = {
   themeColor: "#0b0d0e",
 };
 
-const authCatcher = `(function(){var p=location.pathname;if(p==="/auth/callback")return;var q=location.search,h=location.hash,s=q+h;if(!/[?&#](code|token_hash|access_token|refresh_token|error_description|error_code)=/.test(s))return;location.replace("/auth/callback"+q+h);})();`;
+const authCatcher = `(function(){var p=location.pathname;if(p==="/auth/callback"||p==="/reset-password")return;var q=location.search,h=location.hash,s=q+h;if(!/[?&#](code|token_hash|access_token|refresh_token|error_description|error_code)=/.test(s))return;location.replace("/auth/callback"+q+h);})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -86,9 +86,7 @@ None. The marketing pages, guide-mode Ava, sitemap, and robots file build withou
 
 Provider order in code: `AVA_LLM_API_KEY`, then `XAI_API_KEY`, then `OPENAI_API_KEY`, then the studio guide. If the live call fails, Ava still answers from the guide and the widget says the model did not respond.
 
-Voice input and spoken replies in the chat use the browser Web Speech API. They do not need a key. Phone calling is not connected.
-
-The homepage introduction is also browser speech by default. Set `AVA_TTS_API_KEY` to play a generated MP3 instead. Optional `AVA_TTS_BASE_URL` (default `https://api.openai.com/v1`), `AVA_TTS_MODEL` (default `tts-1`), and `AVA_TTS_VOICE` (default `nova`). The button never autoplays. If the key is missing or the provider fails, the browser speaks the same script.
+Voice input uses the browser. Spoken replies, including the homepage introduction and the office, go through `POST /api/ava/speak`. Set `AVA_TTS_API_KEY` on each Vercel project (or `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID`, which take priority). Defaults are `AVA_TTS_BASE_URL=https://api.openai.com/v1`, `AVA_TTS_MODEL=gpt-4o-mini-tts`, and `AVA_TTS_VOICE=coral`. The button never autoplays. If the key is missing or the provider fails, the browser speaks the same script. Phone calling is not connected.
 
 ### Owner
 

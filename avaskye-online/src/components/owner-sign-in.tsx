@@ -13,6 +13,7 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
 
   async function submit(event: FormEvent) {
     event.preventDefault()
+    if (pending) return
     setPending(true)
     setError(null)
     setMessage(null)
@@ -21,6 +22,7 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        signal: AbortSignal.timeout(28000),
       })
       const data = (await response.json()) as { error?: string }
       if (!response.ok) {
@@ -38,6 +40,7 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
   }
 
   async function sendMagicLink() {
+    if (pending) return
     setPending(true)
     setError(null)
     setMessage(null)
@@ -46,6 +49,7 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
+        signal: AbortSignal.timeout(20000),
       })
       const data = (await response.json()) as { error?: string; message?: string }
       if (!response.ok) {
@@ -55,6 +59,31 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
       setMessage(data.message || "Login link sent. Check your inbox.")
     } catch {
       setError("Could not send login link.")
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function sendReset() {
+    if (pending) return
+    setPending(true)
+    setError(null)
+    setMessage(null)
+    try {
+      const response = await fetch("/api/office/recover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+        signal: AbortSignal.timeout(20000),
+      })
+      const data = (await response.json()) as { error?: string; message?: string }
+      if (!response.ok) {
+        setError(data.error || "Could not send the reset link.")
+        return
+      }
+      setMessage(data.message || "Reset link sent. Open it in this browser.")
+    } catch {
+      setError("Could not send the reset link.")
     } finally {
       setPending(false)
     }
@@ -72,13 +101,16 @@ export function OwnerSignIn({ configured, missing = [], next }: { configured: bo
       <button type="button" onClick={() => void sendMagicLink()} className="w-fit rounded-full border border-border px-4 py-2 text-sm" disabled={pending || !configured || !email}>
         {pending ? "Sending…" : "Email me a login link"}
       </button>
+      <button type="button" onClick={() => void sendReset()} className="w-fit rounded-full border border-border px-4 py-2 text-sm" disabled={pending || !configured || !email}>
+        {pending ? "Sending…" : "Email me a reset link"}
+      </button>
       {configured ? null : (
         <p className="text-sm text-muted" role="status">
           Sign-in is off until this server has {missing.length ? missing.join(", ") : "NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and OWNER_EMAIL"}.
         </p>
       )}
       {message ? <p className="text-sm text-muted">{message}</p> : null}
-      {error ? <p className="text-sm">{error}</p> : null}
+      {error ? <p className="text-sm" role="alert">{error}</p> : null}
     </form>
   )
 }

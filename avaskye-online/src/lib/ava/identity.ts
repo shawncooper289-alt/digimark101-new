@@ -3,7 +3,7 @@
  * pronunciation changes. docs/AVA_IDENTITY.md mirrors it for people.
  * Spoken audio must use lib/ava/speech.ts so the display spelling stays "Ava".
  */
-export const AVA_IDENTITY_VERSION = "2026.10.17"
+export const AVA_IDENTITY_VERSION = "2026.11.10"
 
 export const AVA_IDENTITY = {
   version: AVA_IDENTITY_VERSION,
@@ -20,8 +20,8 @@ export const AVA_IDENTITY = {
   speech: {
     browserLang: "en-US",
     browserRate: 1,
-    ttsModel: "tts-1",
-    ttsVoice: "nova",
+    ttsModel: "gpt-4o-mini-tts",
+    ttsVoice: "coral",
   },
   referenceImages: [
     { src: "/media/ava-brand.jpg", use: "Primary portrait. Hero, widget, and avatar." },

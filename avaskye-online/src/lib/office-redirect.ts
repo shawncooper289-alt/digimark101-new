@@ -1,21 +1,19 @@
-const OFFICE_HOSTS = new Set(["www.avaskye.online", "avaskye.online", "localhost", "127.0.0.1"])
+const OFFICE_ORIGIN = "https://www.avaskye.online"
 
-function hostnameOf(host: string) {
-  return host.split(":")[0].trim().toLowerCase()
+function developmentOrigin(request: Request) {
+  if (process.env.NODE_ENV !== "development") return null
+  const url = new URL(request.url)
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return url.origin
+  return null
 }
 
-/** Magic-link redirect for the host that asked, limited to the founder office. */
+/** Always return email links to the real office, never a deployment or forwarded host. */
 export function officeCallbackUrl(request: Request) {
-  const requestUrl = new URL(request.url)
-  const forwarded = request.headers.get("x-forwarded-host") || request.headers.get("host") || requestUrl.host
-  const hostname = hostnameOf(forwarded)
-  const proto = (request.headers.get("x-forwarded-proto") || requestUrl.protocol.replace(":", "")).split(",")[0].trim()
-  const allowed = OFFICE_HOSTS.has(hostname) || hostname.endsWith(".vercel.app")
-  if (allowed && (proto === "https" || hostname === "localhost" || hostname === "127.0.0.1")) {
-    return `${proto}://${forwarded.split(",")[0].trim()}/auth/callback`
-  }
-  const configured = (process.env.OFFICE_PUBLIC_URL || "https://www.avaskye.online").replace(/\/$/, "")
-  return `${configured}/auth/callback`
+  return `${developmentOrigin(request) || OFFICE_ORIGIN}/auth/callback`
+}
+
+export function officeResetUrl(request: Request) {
+  return `${developmentOrigin(request) || OFFICE_ORIGIN}/reset-password`
 }
 
 export function missingOfficeAuthEnv() {

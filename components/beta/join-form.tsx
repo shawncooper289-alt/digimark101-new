@@ -13,6 +13,7 @@ export function BetaJoinForm({ inviteRequired }: { inviteRequired: boolean }) {
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
+    if (busy) return
     setError("")
     setMessage("")
     if (!consent) {
@@ -25,6 +26,7 @@ export function BetaJoinForm({ inviteRequired }: { inviteRequired: boolean }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, consent, inviteCode }),
+        signal: AbortSignal.timeout(30000),
       })
       const body = (await response.json()) as { error?: string }
       if (!response.ok) setError(body.error || "Could not send the sign-in email.")
