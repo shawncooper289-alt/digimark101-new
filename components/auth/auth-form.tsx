@@ -56,7 +56,8 @@ export function AuthForm({
       setMessage(`We sent a confirmation email to ${email.trim()}. Open it to confirm your account. If you don't see it, check spam.`)
       return
     }
-    window.location.assign(nextPath.startsWith("/start") ? nextPath : "/studio")
+    const destination = nextPath.startsWith("/start") || nextPath.startsWith("/studio") ? nextPath : "/studio"
+    window.location.assign(destination)
   }
 
   return (

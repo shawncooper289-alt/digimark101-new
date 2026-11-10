@@ -316,7 +316,7 @@ export const packages: Package[] = [
     name: "Field",
     eyebrow: "One channel",
     summary: "For a team that needs a single discipline made serious.",
-    fits: "You can name the bottleneck.",
+    fits: "You can name the one thing slowing you down.",
     includes: [
       "One primary service",
       "A written monthly plan",
@@ -551,7 +551,7 @@ export const posts: JournalPost[] = [
       { type: "h2", text: "1. The offer and the page" },
       {
         type: "p",
-        text: "If a stranger cannot tell who the work is for and what to do next, every channel will tax that confusion. Web and content come first when the site is the bottleneck. This is often a smaller project than a company expects.",
+        text: "If a stranger cannot tell who the work is for and what to do next, every channel will tax that confusion. Web and content come first when the site is what's holding people back. This is often a smaller project than a company expects.",
       },
       { type: "h2", text: "2. The measurement" },
       {
@@ -561,7 +561,7 @@ export const posts: JournalPost[] = [
       { type: "h2", text: "3. The channel that can learn this month" },
       {
         type: "p",
-        text: "Paid media learns quickly when the page and the event are sound. SEO learns slowly and compounds. Email learns whenever someone has already raised a hand. We pick one of these as the Field engagement, based on the bottleneck, not on what is fashionable.",
+        text: "Paid media learns quickly when the page and the event are sound. SEO learns slowly and compounds. Email learns whenever someone has already raised a hand. We pick one of these as the Field engagement, based on what's slowing growth, not on what is fashionable.",
       },
       { type: "h2", text: "4. The supporting voice" },
       {
@@ -621,7 +621,7 @@ export const homeFaqs = [
 export const method = [
   {
     index: "01",
-    title: "Name the bottleneck",
+    title: "Name what's slowing you down",
     body: "A page, a channel, a measurement gap, or a team that cannot see the week. We pick one.",
   },
   {

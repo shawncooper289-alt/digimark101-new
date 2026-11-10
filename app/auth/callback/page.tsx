@@ -16,7 +16,8 @@ export default function StudioAuthCallback() {
     const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : ""
     const hashType = new URLSearchParams(hash).get("type")
     const type = (query.get("type") || hashType || "").toLowerCase()
-    const nextPath = safeNextPath(query.get("next"), type === "recovery" ? "/reset-password" : "/studio")
+    const fallback = type === "recovery" ? "/reset-password" : type === "signup" ? "/studio/setup" : "/studio"
+    const nextPath = safeNextPath(query.get("next"), fallback)
 
     async function finish() {
       const result = await establishSessionFromUrl()

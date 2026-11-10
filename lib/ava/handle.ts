@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { answerAva } from "@/lib/ava/agent"
+import { sanitizeSetupDraft } from "@/lib/ava/onboarding-playbook"
 import { sanitizeTurns } from "@/lib/ava/respond"
 import { clientIp, sameOrigin, tooManyRequests } from "@/lib/http"
 import { intakeFromAva } from "@/lib/leads/engine"
@@ -35,7 +36,13 @@ export async function handleAvaPost(request: Request) {
 
   const pageFields = Array.isArray(record.pageFields) ? record.pageFields.filter((item): item is string => typeof item === "string").slice(0, 20) : []
   const rosterHint = rosterFromClient(record.roster)
-  const reply = await answerAva({ turns, pageFields, rosterHint, spoken: record.spoken === true })
+  const reply = await answerAva({
+    turns,
+    pageFields,
+    rosterHint,
+    spoken: record.spoken === true,
+    setupDraft: sanitizeSetupDraft(record.setupDraft),
+  })
   const userText = turns
     .filter((turn) => turn.role === "user")
     .map((turn) => turn.content)
@@ -57,6 +64,7 @@ export async function handleAvaPost(request: Request) {
     clientActions: reply.clientActions ?? null,
     pendingActions: reply.pendingActions ?? null,
     refresh: reply.refresh ?? false,
+    setup: reply.setup ?? null,
   })
 }
 

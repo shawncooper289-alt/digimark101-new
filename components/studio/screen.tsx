@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 import { useAvaForm } from "@/components/ava/use-ava-form"
 import { usePlatform } from "@/components/studio/platform-provider"
 import type { Action, Stage } from "@/lib/platform/types"
@@ -92,6 +93,37 @@ function Today() {
         ))}
       </dl>
       <p className="mt-4 text-sm text-ink-soft">Counts are this workspace only.</p>
+      <SetupNudge />
+    </div>
+  )
+}
+
+function SetupNudge() {
+  const [needed, setNeeded] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/onboarding/save")
+      .then((response) => response.json())
+      .then((data: { complete?: boolean }) => {
+        if (!cancelled) setNeeded(data.complete !== true)
+      })
+      .catch(() => {
+        if (!cancelled) setNeeded(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  if (!needed) return null
+  return (
+    <div className="mt-6 max-w-xl rounded-3xl border border-ink/10 bg-card p-5">
+      <h2 className="font-serif text-2xl">New here?</h2>
+      <p className="mt-2 text-sm text-ink-soft">
+        Set up your account with a short form, or just talk with Ava. You can switch between them. Nothing is saved until you say yes.
+      </p>
+      <Link href="/studio/setup" className="btn btn-signal mt-4">
+        Set up your account
+      </Link>
     </div>
   )
 }

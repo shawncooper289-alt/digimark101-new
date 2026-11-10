@@ -10,7 +10,10 @@ import { createSupabaseBrowser } from "@/lib/supabase/browser"
 const groups = [
   {
     label: "Today",
-    items: [{ href: "/studio", label: "Today" }],
+    items: [
+      { href: "/studio", label: "Today" },
+      { href: "/studio/setup", label: "Account setup" },
+    ],
   },
   {
     label: "People",

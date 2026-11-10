@@ -5,5 +5,5 @@ export const metadata: Metadata = { title: "Create account", robots: { index: fa
 
 export default async function SignupPage({ searchParams }: { searchParams: Promise<{ next?: string; email?: string }> }) {
   const { next, email } = await searchParams
-  return <AuthForm mode="signup" nextPath={next?.startsWith("/start") ? next : "/studio"} initialEmail={email ?? ""} />
+  return <AuthForm mode="signup" nextPath={next?.startsWith("/start") ? next : "/studio/setup"} initialEmail={email ?? ""} />
 }

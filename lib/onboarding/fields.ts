@@ -34,6 +34,8 @@ export const ONBOARDING_TEXT_FIELDS = [
   "lead_sources",
   "compliance_notes",
   "social_profiles",
+  "main_roadblock",
+  "growth_plan",
 ] as const
 
 export type OnboardingTextField = (typeof ONBOARDING_TEXT_FIELDS)[number]

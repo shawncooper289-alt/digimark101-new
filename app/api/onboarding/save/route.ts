@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { NextRequest, NextResponse } from "next/server"
-import { onboardingPatch } from "@/lib/onboarding/fields"
+import { ONBOARDING_TEXT_FIELDS, onboardingPatch } from "@/lib/onboarding/fields"
+import { isMissingSetupColumn, upsertClientOnboarding, withGrowthPlan } from "@/lib/onboarding/save-row"
 import { supabasePublicConfig } from "@/lib/supabase/config"
 import { createSupabaseServer } from "@/lib/supabase/server"
 
@@ -33,9 +34,35 @@ async function writerFor(req: NextRequest): Promise<{ supabase: OnboardingWriter
 }
 
 function allowedFields(body: Record<string, unknown>) {
-  const fields: Record<string, string | boolean> = onboardingPatch(body)
-  if (typeof body.onboarding_complete === "boolean") fields.onboarding_complete = body.onboarding_complete
-  return fields
+  const complete = body.onboarding_complete === true
+  const fields = complete ? withGrowthPlan(onboardingPatch(body)) : onboardingPatch(body)
+  return { fields, complete }
+}
+
+export async function GET() {
+  const supabase = await createSupabaseServer()
+  if (!supabase) return NextResponse.json({ signedIn: false, complete: false, fields: {} })
+  const { data, error } = await supabase.auth.getUser()
+  if (error || !data.user) return NextResponse.json({ signedIn: false, complete: false, fields: {} })
+
+  const columns = [...ONBOARDING_TEXT_FIELDS, "onboarding_complete"].join(",")
+  const first = await supabase.from("client_onboarding").select(columns).eq("user_id", data.user.id).maybeSingle()
+  const fallback = first.error && isMissingSetupColumn(first.error)
+    ? await supabase
+        .from("client_onboarding")
+        .select([...ONBOARDING_TEXT_FIELDS.filter((field) => field !== "main_roadblock" && field !== "growth_plan"), "onboarding_complete"].join(","))
+        .eq("user_id", data.user.id)
+        .maybeSingle()
+    : first
+  if (fallback.error || !fallback.data) return NextResponse.json({ signedIn: true, complete: false, fields: {} })
+
+  const row = fallback.data as unknown as Record<string, unknown>
+  const fields: Record<string, string> = {}
+  for (const key of ONBOARDING_TEXT_FIELDS) {
+    const value = row[key]
+    if (typeof value === "string" && value.trim()) fields[key] = value.trim()
+  }
+  return NextResponse.json({ signedIn: true, complete: row.onboarding_complete === true, fields })
 }
 
 export async function POST(req: NextRequest) {
@@ -57,18 +84,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "You can only save your own account setup." }, { status: 403 })
   }
 
-  const { data, error } = await writer.supabase
-    .from("client_onboarding")
-    .upsert(
-      {
-        user_id: writer.userId,
-        ...allowedFields(record),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" },
-    )
-    .select()
-    .single()
+  const payload = allowedFields(record)
+  const { data, error } = await upsertClientOnboarding(writer.supabase, writer.userId, payload.fields, { complete: payload.complete })
 
   if (error) {
     console.error("onboarding save failed", error.code)

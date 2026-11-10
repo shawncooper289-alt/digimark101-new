@@ -23,7 +23,7 @@ export function Coach() {
       const response = await fetch('/api/ava/voice-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
-        body: JSON.stringify({ message: `My marketing bottleneck is ${stage}. My goal: ${goal}` }),
+        body: JSON.stringify({ message: `What's slowing my marketing down is ${stage}. My goal: ${goal}` }),
       })
       const reply = await response.json()
       if (!response.ok) throw new Error(reply.error || 'Ava could not respond.')
@@ -36,7 +36,7 @@ export function Coach() {
 
   return <form onSubmit={submit}>
     <p className="status">Grok-powered planning for signed-in accounts. Responses are suggestions, not completed actions. <Link href="/account">Account / sign in</Link></p>
-    <label htmlFor="stage">Current bottleneck</label>
+    <label htmlFor="stage">What is slowing things down?</label>
     <select id="stage" value={stage} onChange={e => setStage(e.target.value)}>{['Offer', 'Leads', 'Conversion', 'Delivery'].map(s => <option key={s}>{s}</option>)}</select>
     <label htmlFor="goal">What do you want to move forward?</label>
     <textarea id="goal" required maxLength={2000} value={goal} onChange={e => setGoal(e.target.value)} />

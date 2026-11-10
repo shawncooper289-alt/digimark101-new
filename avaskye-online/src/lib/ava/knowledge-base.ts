@@ -22,7 +22,7 @@ export const AVA_SKILL_GROUPS = [
       "Proposal and scope builder: from a discovery chat, draft the Field, Studio, or Partner scope with inclusions and an explicit 'what we will not do' list. It stays a draft until confirmed.",
       "Lead and pipeline hygiene: on this desk, flag stale deals, missing next actions, and contacts without email. Offer one-click cleanup drafts that still require confirm.",
       "Voice and look consistency check: before recommending any draft, score it against the stored brand voice and visual rules. Flag anything off and offer the corrected version.",
-      "Multi-client morning view: when asked for the day or the desk, list every active client with their current bottleneck and the one action Ava recommends. Use only confirmed workspace data.",
+      "Multi-client morning view: when asked for the day or the desk, list every active client with the one thing slowing that business down and the one action Ava recommends. Use only confirmed workspace data.",
     ],
   },
   {
@@ -41,7 +41,7 @@ export const AVA_SKILL_GROUPS = [
     id: "cognitive",
     title: "Cognitive supremacy (any marketing task is simple)",
     items: [
-      "Instant Decomposition Protocol (run silently before every marketing reply): 1) What stage are they actually in? 2) Which sales-spine step is missing or broken? 3) What are this week’s hours and this month’s cash? 4) Name the single bottleneck that, if fixed, makes everything else easier. 5) Produce the draft or name the exact next physical action.",
+      "Instant Decomposition Protocol (run silently before every marketing reply): 1) What stage are they actually in? 2) Which sales-spine step is missing or broken? 3) What are this week’s hours and this month’s cash? 4) Name the single thing slowing the business down. If they have none, build the next step from their goal. 5) Produce the draft or name the exact next physical action.",
       "Collapse multi-idea or multi-channel requests. Everything that is not the one next action goes on the kill list with the stage reason.",
       "Predictive prioritization: Stage 1–2 + low hours + $0 → offer sentence + warm messages. Live page + zero sales → same-day follow-up. Traffic + no sales → fix the leak. Consistent sales → more of the winning motion.",
       "Shiny-object intercept: New ideas are checked against stage and kill list. Default is “not yet” with the reason.",

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore }
 import { AvaAvatar } from "@/components/branding/ava-avatar"
 import { AVA_IDENTITY } from "@/lib/ava/identity"
 import { spokenText } from "@/lib/ava/speech"
+import { applySetupSnapshot, readSetupDraft } from "@/lib/onboarding/setup-draft"
 import { usePlatform } from "@/components/studio/platform-provider"
 import { rosterFrom, type Action } from "@/lib/platform/types"
 
@@ -236,6 +237,9 @@ export function AvaWidget() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<RecognitionLike | null>(null)
   const sendRef = useRef<(text: string, source?: "voice" | "typed") => Promise<void>>(async () => {})
+  const speakRef = useRef<(text: string) => void>(() => {})
+  const voiceModeRef = useRef<(next: boolean) => void>(() => {})
+  const messagesRef = useRef<Turn[]>([])
   const voiceRef = useRef(false)
   const openRef = useRef(false)
   const pendingRef = useRef(false)
@@ -347,8 +351,35 @@ export function AvaWidget() {
       openRef.current = true
       if (voiceRef.current) startListenRef.current()
     }
+    const onAsk = (event: Event) => {
+      const text = String((event as CustomEvent<string>).detail || "set up my account").trim()
+      setOpen(true)
+      openRef.current = true
+      const chosen = (() => {
+        try {
+          const stored = window.localStorage.getItem(voiceKey(identityRef.current))
+          return stored === "0" || stored === "1"
+        } catch {
+          return false
+        }
+      })()
+      if (!chosen) voiceModeRef.current(true)
+      const history = messagesRef.current
+      const started = history.some((item) => item.role === "user" && /set up my account|setup my account|just talk with ava/i.test(item.content))
+      if (started && history.some((item) => item.role === "assistant")) {
+        const last = [...history].reverse().find((item) => item.role === "assistant")
+        if (last) speakRef.current(last.content)
+        else if (voiceRef.current) startListenRef.current()
+        return
+      }
+      if (text) void sendRef.current(text, voiceRef.current ? "voice" : "typed")
+    }
     window.addEventListener("ava:open", onOpen)
-    return () => window.removeEventListener("ava:open", onOpen)
+    window.addEventListener("ava:ask", onAsk)
+    return () => {
+      window.removeEventListener("ava:open", onOpen)
+      window.removeEventListener("ava:ask", onAsk)
+    }
   }, [])
 
   useEffect(() => {
@@ -356,7 +387,10 @@ export function AvaWidget() {
     openRef.current = open
     pendingRef.current = pending
     voiceRef.current = voice
+    messagesRef.current = messages
     sendRef.current = send
+    speakRef.current = speak
+    voiceModeRef.current = setVoiceMode
     startListenRef.current = startListen
     stopListenRef.current = stopListen
   })
@@ -406,6 +440,7 @@ export function AvaWidget() {
           pageFields: visibleFields(),
           roster: platform.mode === "preview" ? rosterFrom(platform.workspace) : null,
           spoken: source === "voice",
+          setupDraft: readSetupDraft(),
         }),
       })
       const data = (await response.json()) as {
@@ -418,8 +453,10 @@ export function AvaWidget() {
         clientActions?: Action[] | null
         pendingActions?: Action[] | null
         refresh?: boolean
+        setup?: unknown
       }
       if (!response.ok || !data.text) throw new Error(data.error || "Ava could not answer.")
+      if (data.setup) applySetupSnapshot(data.setup)
       if (data.fills) window.dispatchEvent(new CustomEvent("ava:fill", { detail: data.fills }))
       let reply = data.text
       if (data.clientActions?.length) {

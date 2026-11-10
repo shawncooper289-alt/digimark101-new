@@ -25,13 +25,13 @@ export default function KnowledgePage() {
       <section className="mt-8 rounded-[1.4rem] border border-ink/10 p-5">
         <h2 className="font-serif text-2xl">New-account interview</h2>
         <p className="mt-3 text-sm text-ink-soft">
-          Ava asks these in order. A niche answer changes which later questions appear. A field that is already saved is skipped. She reads the list back and waits for yes before writing it to the account.
+          On Account setup, a new client can fill in a form or just talk with Ava. She asks one friendly question at a time, in everyday words. She follows what they said and skips anything she already knows. She reads the answers and a first growth plan back, and waits for a yes before saving. If they have nothing slowing the business down, she says so and still writes that plan from their goal.
         </p>
         <ol className="mt-3 space-y-2 text-sm text-ink-soft">
           {ONBOARDING_PLAYBOOK.map((item, index) => (
             <li key={item.id}>
-              <span className="text-ink">{index + 1}. {item.ask}</span> Fills {item.fields.join(", ")}
-              {item.when ? ` when the niche is ${item.when.join(", ")}` : ""}.
+              <span className="text-ink">{index + 1}. {item.ask}</span>
+              {item.when ? ` Only when the business sounds like ${item.when.join(", ")}.` : ""}
             </li>
           ))}
         </ol>

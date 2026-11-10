@@ -10,7 +10,7 @@ export const metadata = pageMetadata({
 
 const principles = [
   {
-    title: "One bottleneck at a time",
+    title: "One thing at a time",
     body: "A company rarely needs eight channels on Monday. It needs the page, the event, or the channel that is currently lying.",
   },
   {
@@ -45,7 +45,7 @@ export default function AboutPage() {
           </p>
           <h2>How a project is staffed</h2>
           <p>
-            A strategist names the bottleneck. A maker builds the page, the campaign, or the sequence. An analyst keeps the readout honest. Ava holds the brief so the team is not starting from zero between meetings. The proposal says which of those seats are in the room.
+            A strategist names the one thing slowing the business down. A maker builds the page, the campaign, or the sequence. An analyst keeps the readout honest. Ava holds the brief so the team is not starting from zero between meetings. The proposal says which of those seats are in the room.
           </p>
           <p>
             This page does not invent a founder biography, a headcount, or an office we have not published. The work is the introduction. If you want the studio on a real account, start with a note.

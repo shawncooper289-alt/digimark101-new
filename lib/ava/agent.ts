@@ -1,5 +1,6 @@
-import { setupResult } from "@/lib/ava/onboarding-playbook"
+import { sanitizeSetupDraft, setupResult, type SetupDraftInput, type SetupSnapshot } from "@/lib/ava/onboarding-playbook"
 import { onboardingPatch } from "@/lib/onboarding/fields"
+import { upsertClientOnboarding } from "@/lib/onboarding/save-row"
 import { respondToAva, type ChatTurn } from "@/lib/ava/respond"
 import { setOwnerVisitorMode } from "@/lib/office/appearance"
 import { visitorModeIntent, visitorModeReply } from "@/lib/office/intent"
@@ -20,6 +21,7 @@ export type AvaAnswer = {
   clientActions?: Action[]
   pendingActions?: Action[]
   refresh?: boolean
+  setup?: SetupSnapshot | null
 }
 
 type ToolCall = { id: string; function: { name: string; arguments: string } }
@@ -154,10 +156,7 @@ async function recordOnboarding(
   }
   const fields = save ? onboardingPatch(save) : {}
   if (Object.keys(fields).length) {
-    await session.from("client_onboarding").upsert(
-      { user_id: userId, ...fields, updated_at: new Date().toISOString() },
-      { onConflict: "user_id" },
-    )
+    await upsertClientOnboarding(session, userId, fields, { complete: true })
   }
 }
 
@@ -166,6 +165,7 @@ export async function answerAva(input: {
   pageFields: string[]
   rosterHint: Roster | null
   spoken?: boolean
+  setupDraft?: SetupDraftInput
 }): Promise<AvaAnswer> {
   const latest = input.turns[input.turns.length - 1]?.content ?? ""
   const session = await createSupabaseServer()
@@ -179,18 +179,34 @@ export async function answerAva(input: {
     return { text: saved.ok ? visitorModeReply(appearance) : saved.error, mode: "guide", live: false }
   }
   const known = user && session ? await knownOnboarding(session, user.id) : {}
-  const scripted = setupResult(input.turns, known)
+  const draft = sanitizeSetupDraft(input.setupDraft ?? {})
+  if (user?.email && !draft.answers?.email && !known.personal_email) {
+    draft.answers = { ...draft.answers, email: user.email }
+  }
+  const scripted = setupResult(input.turns, known, draft)
   if (scripted.text) {
     let text = scripted.text
+    let setup = scripted.setup
     if (user && session) {
-      await recordOnboarding(session, user.id, scripted.outcomes, scripted.save)
+      if (scripted.save) {
+        const saved = await upsertClientOnboarding(session, user.id, onboardingPatch(scripted.save), { complete: true })
+        if (saved.error) {
+          text = "I have the summary, but I couldn't save it just now. Nothing was written. You can press Confirm on Account setup, or say yes again."
+          setup = setup ? { ...setup, phase: "confirm" } : setup
+        } else if (scripted.outcomes.length) {
+          await recordOnboarding(session, user.id, scripted.outcomes, null)
+        }
+      } else if (scripted.outcomes.length) {
+        await recordOnboarding(session, user.id, scripted.outcomes, null)
+      }
     } else if (scripted.save) {
       text = scripted.text.replace(
-        "Saved. Those details are on your account.",
+        "Saved. Your setup and the first growth plan are on your account.",
         "Nothing is written yet. Sign in, then say yes again, and I will save these on the account.",
       )
+      setup = setup ? { ...setup, phase: "confirm" } : setup
     }
-    return { text, mode: "guide", live: false }
+    return { text, mode: "guide", live: false, setup }
   }
   const roster = user && session ? await rosterFor(session, user.id).catch(() => input.rosterHint) : input.rosterHint
   const found = interpret(latest, input.pageFields, { spoken: input.spoken === true })
