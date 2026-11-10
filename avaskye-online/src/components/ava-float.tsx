@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react"
-import { speakAva } from "@/lib/ava-speech"
+import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava-speech"
 
 const RELAXED = [
   { id: "satin", src: "/ava/float-satin.png", label: "Black satin" },
@@ -69,7 +69,7 @@ export function AvaFloat() {
 
   useEffect(() => {
     if (!open || !voiceOn || textOnly || !reply) {
-      if (typeof window !== "undefined") window.speechSynthesis?.cancel()
+      stopAvaSpeech()
       return
     }
     speakAva(reply)
@@ -77,6 +77,7 @@ export function AvaFloat() {
 
   useEffect(() => {
     function onStart(event: Event) {
+      prepareAvaSpeech()
       const detail = (event as CustomEvent<{ email?: string }>).detail
       const email = detail?.email
       if (!email) return
@@ -94,7 +95,7 @@ export function AvaFloat() {
         .then((data: { reply?: string; error?: string }) => {
           const next = data.reply || data.error || "What should I call you?"
           setReply(next)
-          setHistory((prev) => [...prev, starterTurn, { role: "assistant", content: next }].slice(-8))
+          setHistory((prev) => [...prev, starterTurn, { role: "assistant" as const, content: next }].slice(-8))
         })
         .catch(() => setReply("I missed that. Try again?"))
         .finally(() => setPending(false))
@@ -152,6 +153,7 @@ export function AvaFloat() {
       remember({ x: rect.left, y: rect.top }, rect.width, rect.height)
       return
     }
+    prepareAvaSpeech()
     setOpen(true)
   }
 
@@ -159,6 +161,7 @@ export function AvaFloat() {
     event.preventDefault()
     const content = text.trim()
     if (!content || pending) return
+    prepareAvaSpeech()
     setPending(true)
     try {
       const response = await fetch("/api/office/guide", {
@@ -169,7 +172,7 @@ export function AvaFloat() {
       const data = (await response.json()) as { reply?: string; error?: string }
       const next = response.ok ? data.reply || "Okay." : data.error || "I didn't catch that."
       setReply(next)
-      setHistory((prev) => [...prev, { role: "user", content }, { role: "assistant", content: next }].slice(-8))
+      setHistory((prev) => [...prev, { role: "user" as const, content }, { role: "assistant" as const, content: next }].slice(-8))
       if (response.ok) setText("")
     } catch {
       setReply("I couldn't reach the desk. Try again in a second.")
@@ -181,7 +184,7 @@ export function AvaFloat() {
   function silence() {
     setVoiceOn(false)
     setTextOnly(true)
-    if (typeof window !== "undefined") window.speechSynthesis?.cancel()
+    stopAvaSpeech()
   }
 
   const placed = point ? { left: point.x, top: point.y } : undefined

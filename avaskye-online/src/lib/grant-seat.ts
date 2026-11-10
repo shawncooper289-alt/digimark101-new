@@ -4,12 +4,15 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PLANS = new Set(["starter", "monthly", "quarterly", "semiannual"])
 
 export function studioInviteOrigin() {
-  const raw = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.digimark101.com").trim()
-  try {
-    return new URL(raw).origin
-  } catch {
-    return "https://www.digimark101.com"
+  if (process.env.NODE_ENV === "development") {
+    try {
+      const url = new URL(process.env.NEXT_PUBLIC_SITE_URL || "")
+      if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return url.origin
+    } catch {
+      // Production invites stay on the public customer domain.
+    }
   }
+  return "https://www.digimark101.com"
 }
 
 export async function grantSeat(input: { email: string; planKey: string; grantedBy: string }) {
@@ -42,17 +45,19 @@ export async function grantSeat(input: { email: string; planKey: string; granted
     const detail = data?.error || "The seat was not saved. Apply supabase/migrations/20261025_seats.sql."
     return { ok: false as const, error: detail }
   }
-  const invite = await fetch(`${url}/auth/v1/otp`, {
+  const endpoint = new URL(`${url}/auth/v1/otp`)
+  endpoint.searchParams.set("redirect_to", `${studioInviteOrigin()}/auth/callback`)
+  const invite = await fetch(endpoint.toString(), {
     method: "POST",
     headers: supabaseKeyHeaders(service, { "Content-Type": "application/json" }),
     body: JSON.stringify({
       email: data.email || email,
       create_user: true,
-      options: { emailRedirectTo: `${studioInviteOrigin()}/auth/callback` },
     }),
     cache: "no-store",
-  })
-  if (invite.ok && data.seat_id) {
+    signal: AbortSignal.timeout(8000),
+  }).catch(() => null)
+  if (invite?.ok && data.seat_id) {
     await fetch(`${url}/rest/v1/seats?id=eq.${data.seat_id}`, {
       method: "PATCH",
       headers: supabaseKeyHeaders(service, { "Content-Type": "application/json", Prefer: "return=minimal" }),
@@ -60,5 +65,5 @@ export async function grantSeat(input: { email: string; planKey: string; granted
       cache: "no-store",
     }).catch(() => null)
   }
-  return { ok: true as const, invited: invite.ok, status: data.status || "pending" }
+  return { ok: true as const, invited: Boolean(invite?.ok), status: data.status || "pending" }
 }

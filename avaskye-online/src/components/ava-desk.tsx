@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
-import { speakAva } from "@/lib/ava-speech"
+import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava-speech"
 
 export function AvaDesk() {
   const router = useRouter()
@@ -21,6 +21,7 @@ export function AvaDesk() {
     event.preventDefault()
     const content = text.trim()
     if (!content) return
+    prepareAvaSpeech()
     setPending(true)
     try {
       const response = await fetch("/api/office/guide", {
@@ -48,6 +49,7 @@ export function AvaDesk() {
 
   async function confirm() {
     if (!draft) return
+    prepareAvaSpeech()
     setPending(true)
     try {
       const response = await fetch("/api/office/mutate", {
@@ -85,7 +87,7 @@ export function AvaDesk() {
           onClick={() => {
             const next = !voice
             setVoice(next)
-            if (!next && typeof window !== "undefined") window.speechSynthesis?.cancel()
+            if (!next) stopAvaSpeech()
           }}
         >
           Voice {voice ? "on" : "off"}

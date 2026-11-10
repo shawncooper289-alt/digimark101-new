@@ -1,6 +1,6 @@
 # Ava Skye identity
 
-Version `2026.10.17`. The source of truth for code is `lib/ava/identity.ts`. Spoken audio goes through `lib/ava/speech.ts`.
+Version `2026.11.10`. The source of truth for code is `lib/ava/identity.ts`. Spoken audio goes through `lib/ava/speech.ts` and the server route `POST /api/ava/speak`. The office uses the same route inside `avaskye-online`.
 
 ## Name and pronunciation
 
@@ -8,11 +8,9 @@ Her name is Ava Skye. **Ava is always pronounced with a long A, like the letter 
 
 Screens keep the spelling Ava. Speech does not:
 
-- Browser `speechSynthesis` receives `Ay-vuh` in place of `Ava`.
-- Text-to-speech receives the same phonetic spelling.
-- If `AVA_TTS_SSML=true`, the intro request uses an SSML `<phoneme alphabet="ipa" ph="ˈeɪvə">`. Default OpenAI `tts-1` does not honor SSML, so the flag stays off unless the provider documents support.
-
-This applies to the site widget, Hear Ava, and the founder office voice switch.
+- Server text-to-speech and the browser fallback both receive `Ay-vuh` in place of `Ava`.
+- Chat replies, voice chat, onboarding replies, the homepage introduction, and the office all use that same spoken text.
+- The current model does not read SSML, so the route sends the phonetic spelling instead of a `<phoneme>` tag.
 
 ## Look
 
@@ -31,7 +29,13 @@ Dress codes:
 
 ## Voice settings
 
-Browser speech uses `en-US` at rate `1`. Optional generated intro audio uses model `tts-1` and voice `nova` unless `AVA_TTS_MODEL` and `AVA_TTS_VOICE` override them.
+Spoken lines go to `POST /api/ava/speak` on each site. The key stays on the server. The browser's built-in voice is used only when that request fails.
+
+Default provider is OpenAI-compatible audio speech: model `gpt-4o-mini-tts`, voice `coral`. Coral is the closest built-in match for a warm, confident young-adult woman with a General American accent, medium pitch, and a moderate conversational pace. `AVA_TTS_INSTRUCTIONS` has that direction as its default. `shimmer` is the other natural female option if you want a slightly softer tone.
+
+If `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set, ElevenLabs is used instead.
+
+Browser fallback uses `en-US` at rate `1`. Playback starts from the visitor's tap and a new line stops the one already playing.
 
 ## Skills
 

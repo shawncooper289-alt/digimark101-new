@@ -54,6 +54,7 @@ export function OfficeExperience({
 
   async function signIn(event: FormEvent) {
     event.preventDefault();
+    if (pending) return;
     setPending(true);
     setError(null);
     try {
@@ -61,6 +62,7 @@ export function OfficeExperience({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        signal: AbortSignal.timeout(28000),
       });
       const data = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -150,7 +152,7 @@ export function OfficeExperience({
           </details>
         )}
         {reply ? <p className="mt-4 max-w-xl text-sm">{reply}</p> : null}
-        {error ? <p className="mt-4 max-w-xl text-sm">{error}</p> : null}
+        {error ? <p className="mt-4 max-w-xl text-sm" role="alert">{error}</p> : null}
         {isOwner ? (
           <button type="button" className="mt-4 text-sm text-muted underline" onClick={() => void signOut()}>
             Sign out of the office

@@ -1,81 +1,32 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { avaIntroScript } from "@/lib/ava/intro"
-import { AVA_IDENTITY } from "@/lib/ava/identity"
-import { spokenText } from "@/lib/ava/speech"
+import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava/speech"
 
 export function AvaIntroButton() {
   const [playing, setPlaying] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const urlRef = useRef<string | null>(null)
-
-  function finish() {
-    if (urlRef.current) URL.revokeObjectURL(urlRef.current)
-    urlRef.current = null
-    audioRef.current = null
-    setPlaying(false)
-  }
-
-  function stop() {
-    audioRef.current?.pause()
-    window.speechSynthesis?.cancel()
-    finish()
-  }
 
   useEffect(() => {
-    return () => {
-      audioRef.current?.pause()
-      window.speechSynthesis?.cancel()
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current)
-    }
+    return () => stopAvaSpeech()
   }, [])
 
-  async function play() {
+  function play() {
     if (playing) {
-      stop()
+      stopAvaSpeech()
+      setPlaying(false)
       return
     }
+    prepareAvaSpeech()
     setError(null)
     setPlaying(true)
-    try {
-      const response = await fetch("/api/ava/intro")
-      const type = response.headers.get("content-type") || ""
-      if (response.ok && type.includes("audio")) {
-        const blob = await response.blob()
-        const url = URL.createObjectURL(blob)
-        urlRef.current = url
-        const audio = new Audio(url)
-        audioRef.current = audio
-        audio.onended = finish
-        audio.onerror = () => {
-          finish()
-          speak()
-        }
-        await audio.play()
-        return
+    void speakAva(avaIntroScript, () => setPlaying(false)).then((result) => {
+      if (result === "failed") {
+        setPlaying(false)
+        setError("This browser cannot play the introduction. The words are written below.")
       }
-    } catch {
-      // The browser voice is the fallback.
-    }
-    speak()
-  }
-
-  function speak() {
-    if (!("speechSynthesis" in window)) {
-      setPlaying(false)
-      setError("This browser cannot play the introduction. The words are written below.")
-      return
-    }
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(spokenText(avaIntroScript))
-    utterance.lang = AVA_IDENTITY.speech.browserLang
-    utterance.rate = AVA_IDENTITY.speech.browserRate
-    utterance.onend = finish
-    utterance.onerror = finish
-    window.speechSynthesis.speak(utterance)
-    setPlaying(true)
+    })
   }
 
   return (
@@ -85,7 +36,7 @@ export function AvaIntroButton() {
         className="inline-flex items-center gap-2 rounded-full bg-signal px-3 py-2 text-sm font-semibold text-[#14110c] shadow-[0_0_24px_rgba(203,176,130,0.35)]"
         aria-pressed={playing}
         aria-label={playing ? "Stop Ava Skye's introduction" : "Play Ava Skye's introduction"}
-        onClick={() => void play()}
+        onClick={play}
       >
         <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-[#14110c] text-signal">
           {playing ? (

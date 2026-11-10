@@ -54,20 +54,23 @@ export function decryptSecret(packed: string) {
 }
 
 export function siteOrigin(request?: Request) {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim()
-  if (configured) {
-    try {
-      return new URL(configured).origin
-    } catch {
-      // Fall through to the request host when the env value is not a URL.
+  if (process.env.NODE_ENV === "development") {
+    const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+    if (configured) {
+      try {
+        const url = new URL(configured)
+        if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return url.origin
+      } catch {
+        // Fall through to the request host in local development.
+      }
     }
-  }
-  if (request) {
-    const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || "").split(",")[0].trim()
-    const hostname = host.split(":")[0].toLowerCase()
-    const proto = (request.headers.get("x-forwarded-proto") || "https").split(",")[0].trim()
-    if (HOSTS.has(hostname) && (proto === "https" || hostname === "localhost" || hostname === "127.0.0.1")) {
-      return `${proto}://${host}`
+    if (request) {
+      const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || "").split(",")[0].trim()
+      const hostname = host.split(":")[0].toLowerCase()
+      const proto = (request.headers.get("x-forwarded-proto") || "https").split(",")[0].trim()
+      if (HOSTS.has(hostname) && (hostname === "localhost" || hostname === "127.0.0.1")) {
+        return `${proto}://${host}`
+      }
     }
   }
   return "https://www.digimark101.com"

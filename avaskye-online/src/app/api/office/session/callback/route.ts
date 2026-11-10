@@ -1,5 +1,6 @@
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
+import { authFetch } from "@/lib/auth-fetch"
 import { encodeOfficeSession, isOwnerIdentity, officeConfig, officeCookieOptions, ownerEmails, supabaseKeyHeaders } from "@/lib/office-store"
 
 export async function POST(request: Request) {
@@ -18,10 +19,12 @@ export async function POST(request: Request) {
   if (!access || !refresh) {
     return NextResponse.json({ error: "Missing tokens." }, { status: 400 })
   }
-  const userResponse = await fetch(`${url}/auth/v1/user`, {
+  const userResponse = await authFetch(`${url}/auth/v1/user`, {
     headers: { apikey: anon, Authorization: `Bearer ${access}` },
-    cache: "no-store",
   })
+  if (userResponse.status >= 500) {
+    return NextResponse.json({ error: "The shared login service is unavailable. Please try again shortly." }, { status: 503 })
+  }
   if (!userResponse.ok) {
     return NextResponse.json({ error: "Invalid session." }, { status: 401 })
   }
@@ -33,11 +36,10 @@ export async function POST(request: Request) {
   const jar = await cookies()
   jar.set("ava_office", encodeOfficeSession(access, refresh, expiresIn), officeCookieOptions(expiresIn))
   if (service && ownerEmails().includes(email)) {
-    await fetch(`${url}/rest/v1/rpc/sync_owner_email`, {
+    await authFetch(`${url}/rest/v1/rpc/sync_owner_email`, {
       method: "POST",
       headers: supabaseKeyHeaders(service, { "Content-Type": "application/json" }),
       body: JSON.stringify({ owner_email: email }),
-      cache: "no-store",
     }).catch(() => null)
   }
   return NextResponse.json({ ok: true })

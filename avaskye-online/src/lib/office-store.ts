@@ -165,13 +165,19 @@ export async function mailboxIsOwner(email: string) {
   if (isOwnerIdentity(normalized, null)) return true
   const { url, service } = officeConfig()
   if (!url || !service) return false
-  const response = await fetch(`${url}/auth/v1/admin/users?page=1&per_page=200`, {
-    headers: supabaseKeyHeaders(service),
-    cache: "no-store",
-  })
-  if (!response.ok) return false
-  const data = (await response.json()) as { users?: { email?: string; app_metadata?: { role?: string } }[] }
-  return (data.users ?? []).some((user) => user.email?.trim().toLowerCase() === normalized && user.app_metadata?.role === "owner")
+  const signal = AbortSignal.timeout(8000)
+  for (let page = 1; ; page += 1) {
+    const response = await fetch(`${url}/auth/v1/admin/users?page=${page}&per_page=200`, {
+      headers: supabaseKeyHeaders(service),
+      cache: "no-store",
+      signal,
+    })
+    if (!response.ok) throw new Error("Owner lookup unavailable")
+    const data = (await response.json()) as { users?: { email?: string; app_metadata?: { role?: string } }[] }
+    if (!Array.isArray(data.users)) throw new Error("Owner lookup unavailable")
+    if (data.users.some((user) => user.email?.trim().toLowerCase() === normalized && user.app_metadata?.role === "owner")) return true
+    if (data.users.length < 200) return false
+  }
 }
 
 export async function readVisitorMode() {

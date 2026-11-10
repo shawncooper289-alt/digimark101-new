@@ -13,8 +13,6 @@ export const OFFICE_SOCIAL = [
 
 export type OfficeSocialId = (typeof OFFICE_SOCIAL)[number]["id"]
 
-const HOSTS = new Set(["www.avaskye.online", "avaskye.online", "localhost", "127.0.0.1"])
-
 export function officeSocialKey() {
   const raw = process.env.SOCIAL_TOKEN_KEY?.trim() || ""
   if (!raw) return null
@@ -32,14 +30,13 @@ export function missingOfficeSocial(id: string) {
 }
 
 export function officeOrigin(request: Request) {
-  const requestUrl = new URL(request.url)
-  const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || requestUrl.host).split(",")[0].trim()
-  const hostname = host.split(":")[0].toLowerCase()
-  const proto = (request.headers.get("x-forwarded-proto") || requestUrl.protocol.replace(":", "")).split(",")[0].trim()
-  if ((HOSTS.has(hostname) || hostname.endsWith(".vercel.app")) && (proto === "https" || hostname === "localhost" || hostname === "127.0.0.1")) {
-    return `${proto}://${host}`
+  if (process.env.NODE_ENV === "development") {
+    const requestUrl = new URL(request.url)
+    const host = (request.headers.get("host") || requestUrl.host).split(",")[0].trim()
+    const hostname = host.split(":")[0].toLowerCase()
+    if (hostname === "localhost" || hostname === "127.0.0.1") return requestUrl.origin
   }
-  return (process.env.OFFICE_PUBLIC_URL || "https://www.avaskye.online").replace(/\/$/, "")
+  return "https://www.avaskye.online"
 }
 
 export function signOfficeState(userId: string) {

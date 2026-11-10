@@ -1,3 +1,4 @@
+import { publicSiteOrigin } from "@/lib/auth/site-url"
 import { supabaseKeyHeaders } from "@/lib/supabase/headers"
 import { createSupabaseAdmin } from "@/lib/supabase/admin"
 
@@ -6,12 +7,7 @@ export type SeatSource = "paypal" | "manual" | "request" | "beta"
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function siteOrigin() {
-  const raw = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.digimark101.com").trim()
-  try {
-    return new URL(raw).origin
-  } catch {
-    return "https://www.digimark101.com"
-  }
+  return publicSiteOrigin()
 }
 
 function projectUrl() {
@@ -35,17 +31,29 @@ export async function sendStudioInvite(email: string, redirectTo?: string) {
   const url = projectUrl()
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
   if (!url || !key || !EMAIL.test(email)) return false
-  const response = await fetch(`${url}/auth/v1/otp`, {
-    method: "POST",
-    headers: supabaseKeyHeaders(key, { "Content-Type": "application/json" }),
-    body: JSON.stringify({
-      email,
-      create_user: true,
-      options: { emailRedirectTo: redirectTo || `${siteOrigin()}/auth/callback` },
-    }),
-    cache: "no-store",
-  })
-  return response.ok
+  const endpoint = new URL(`${url}/auth/v1/otp`)
+  const callback = new URL("/auth/callback", siteOrigin())
+  if (redirectTo) {
+    try {
+      const requested = new URL(redirectTo)
+      if (requested.origin === callback.origin && requested.pathname === callback.pathname) callback.search = requested.search
+    } catch {
+      // A bad redirect cannot leave the public customer callback.
+    }
+  }
+  endpoint.searchParams.set("redirect_to", callback.toString())
+  try {
+    const response = await fetch(endpoint.toString(), {
+      method: "POST",
+      headers: supabaseKeyHeaders(key, { "Content-Type": "application/json" }),
+      body: JSON.stringify({ email, create_user: true }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    })
+    return response.ok
+  } catch {
+    return false
+  }
 }
 
 export async function deliverSeat(input: {
