@@ -33,7 +33,7 @@ export default function AboutPage() {
       <PageHeader
         eyebrow="About"
         title="A platform you own, and a studio when you want help."
-        lede="DigiMark101 is the all-in-one marketing platform for people who want to make money online. Studio is the workspace. Ava Skye is the assistant who sets it up with you. You confirm before anything is saved."
+        lede="DigiMark101 is an all-in-one marketing workspace for people who want to make money online. Studio is the workspace. Ava Skye is the assistant who sets it up with you. You confirm before anything is saved."
       />
       <div className="mx-auto grid max-w-6xl gap-12 px-5 py-14 md:grid-cols-12">
         <div className="prose-studio md:col-span-7">
@@ -46,9 +46,9 @@ export default function AboutPage() {
           <p>
             Ava Skye asks one question at a time and fills the forms. That is the time saver: you review the setup instead of retyping it. She will not invent a client or a result to make the work sound larger than it is.
           </p>
-          <h2>How a project is staffed</h2>
+          <h2>How studio work runs</h2>
           <p>
-            When you want the studio in the work, a strategist names the one thing slowing the business down. A maker builds the page, the campaign, or the sequence. An analyst keeps the readout honest. Ava holds the brief so the team is not starting from zero between meetings. The proposal says which of those seats are in the room. Field, Studio, and Partner are quoted there. Membership prices are on the pricing page.
+            When you want the studio in the work, we start by naming the one thing slowing the business down. Then we build the page, the campaign, or the email sequence that fixes it, and we report plainly on what changed. Ava keeps the brief, so no conversation starts from zero. The proposal says exactly who does the work and what is included. Field, Studio, and Partner are quoted there. Membership prices are on the pricing page.
           </p>
           <p>
             This page does not invent a founder biography, a headcount, or an office we have not published. The work is the introduction.

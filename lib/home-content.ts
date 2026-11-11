@@ -9,7 +9,7 @@ export const hero = {
   lead: "Build your own dynasty.",
   accent: "Own the system. Grow it with Ava.",
   lede:
-    "DigiMark101 is the all-in-one marketing platform for people who want to make money online. Ava Skye is the assistant who sets it up with you. She fills in the forms. You read them and say yes. The system stays yours.",
+    "DigiMark101 is an all-in-one marketing workspace for people who want to make money online. Ava Skye is the assistant who sets it up with you. She fills in the forms. You read them and say yes. The system stays yours.",
 } as const
 
 export const earningsDisclaimer =
@@ -47,7 +47,7 @@ export const audiences = [
   },
   {
     name: "Agencies",
-    body: "You run marketing for clients. Studio holds a pipeline, drafts, files, and a backend you can request under a name you choose. Public lead lists hide personal details until an order is paid.",
+    body: "You run marketing for clients. Studio holds a pipeline, drafts, and files for your clients. A white-label backend under your own name is coming soon. Public lead lists hide personal details until an order is paid.",
   },
 ] as const
 
@@ -97,7 +97,7 @@ export const howSteps = [
   {
     index: "04",
     title: "Keep the system",
-    body: "The workspace is yours. Memory stays with that login. You can also ask for a white-label backend, a separate database project for the workspace. It is created only after you confirm, and only when that service is turned on.",
+    body: "The workspace is yours. Memory stays with that login. A white-label backend, a separate database under a name you choose, is coming soon.",
   },
 ] as const
 
@@ -149,8 +149,8 @@ export const features = [
     group: "Marketing",
     name: "Social",
     summary:
-      "Connect Facebook, Instagram, LinkedIn, X, TikTok, YouTube, or Google Business Profile. Ava can draft a post for a network you name.",
-    today: "A network stays on “needs app credentials” until that app is configured. Tokens are encrypted on the server. A draft is published only after you confirm.",
+      "Ava drafts posts for Facebook, Instagram, LinkedIn, X, TikTok, YouTube, or Google Business Profile, and Studio saves them for you.",
+    today: "Coming soon: connecting your accounts and posting straight to each network. For now, you copy the draft and post it yourself.",
   },
   {
     group: "Marketing",
@@ -194,8 +194,8 @@ export const features = [
     group: "The business",
     name: "White-label backend",
     summary:
-      "A managed backend is a separate database project for a workspace. You choose a name and a region. White-label means that project is set up for the workspace, and the keys are not sent to the browser.",
-    today: "Ava can prepare the request. It is created only after you confirm, and only when the server credentials for that service are set.",
+      "Coming soon. A managed backend is a separate database project for a workspace, under a name and region you choose. White-label means it carries your name, not ours.",
+    today: "Not available yet. Today your records live in DigiMark101's database, private to your login, with the keys kept on the server.",
   },
   {
     group: "The business",
@@ -231,7 +231,7 @@ export const reasons = [
   },
   {
     title: "You keep the system",
-    body: "Memory stays on your workspace. A white-label backend can be requested in a name you choose. Publishing, sending, and spending wait for your yes. That is what owning the marketing system means here.",
+    body: "Memory stays on your workspace. A white-label backend under your own name is coming soon. Publishing, sending, and spending wait for your yes. That is what owning the marketing system means here.",
   },
   {
     title: "The same door works for every stage",
@@ -277,7 +277,7 @@ export const comparison = [
   {
     job: "Social posts",
     stack: "A scheduler with another password.",
-    here: "Drafts for Facebook, Instagram, LinkedIn, X, TikTok, YouTube, and Google Business Profile when that network’s app is configured. You confirm before a post is published.",
+    here: "Ava drafts posts for Facebook, Instagram, LinkedIn, X, TikTok, YouTube, and Google Business Profile. Connecting accounts and posting for you is coming soon.",
   },
   {
     job: "Learning the marketing",
@@ -292,7 +292,7 @@ export const comparison = [
   {
     job: "Your own database",
     stack: "The vendor’s account. You rent the records.",
-    here: "A white-label managed backend you confirm. It opens only when DigiMark101’s server credentials for that service are set. Keys stay on the server.",
+    here: "Coming soon: a white-label backend under your own name. Today your records stay private to your login, and the keys stay on the server.",
   },
   {
     job: "Phone and text",
@@ -330,17 +330,17 @@ export const homeFaqs = [
   {
     question: "What should I try first?",
     answer:
-      "Create an account, or join the beta if you want a free tester seat. Then talk to Ava or open Studio and add one contact. There is also a first-campaign path: one page, one form, and three follow-up emails. Ava drafts them. You approve before anything is called live. The starter membership for that path is priced on the first-campaign page.",
+      "Create an account, or join the beta if you want a free tester seat. Then talk to Ava or open Studio and add one contact. There is also a first-campaign path: answer five questions, and Studio fills a ready-made template for one page, one form, and three follow-up emails. You read it and approve it. Approving saves it. It does not publish a page or send email yet. The starter membership for that path is priced on the first-campaign page.",
   },
   {
     question: "What is still being connected?",
     answer:
-      "Email sending waits on an email provider. Phone and text are not connected. The visual page builder is a later phase, so a funnel record is not a published site. The inbox is notes, not your outside mailbox. Lead-list checkout is not connected, so a request stays pending. Calendar booking is inside Studio, not a public link for your customers yet.",
+      "Email sending waits on an email provider. Phone and text are not connected. The visual page builder is a later phase, so a funnel record is not a published site. The inbox is notes, not your outside mailbox. Lead-list checkout is not connected, so a request stays pending. Calendar booking is inside Studio, not a public link for your customers yet. Posting to social networks and the white-label backend are coming soon.",
   },
   {
     question: "Why is this a better choice than separate tools, or a platform like GoHighLevel?",
     answer:
-      "Separate tools mean a login for contacts, another for email, another for pages, and another for reminders. DigiMark101 puts those jobs in Studio and adds Ava to fill the setup. GoHighLevel is a large all-in-one menu many agencies rent, including calling, texting, and payments. DigiMark101 is the all-in-one for people who want that kind of system and also want a guide, plain language, and a clear line between what is live and what is still being built. This page compares capabilities. It does not invent prices.",
+      "Separate tools mean a login for contacts, another for email, another for pages, and another for reminders. DigiMark101 puts those jobs in Studio and adds Ava to fill the setup. GoHighLevel is a large all-in-one menu many agencies rent, including calling, texting, and payments. DigiMark101 is an all-in-one workspace for people who want that kind of system and also want a guide, plain language, and a clear line between what is live and what is still being built. This page compares capabilities. It does not invent prices.",
   },
   {
     question: "Is the beta free?",

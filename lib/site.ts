@@ -10,7 +10,7 @@ export const site = {
   email: "hello@digimark101.com",
   tagline: "Build your own dynasty.",
   description:
-    "DigiMark101 is the all-in-one marketing platform you own. Ava Skye sets it up with you. You confirm. Contacts, pipeline, email drafts, pages, and automations live in one studio.",
+    "DigiMark101 is an all-in-one marketing workspace you own. Ava Skye sets it up with you. You confirm. Contacts, pipeline, email drafts, pages, and automations live in one studio.",
 } as const
 
 export const nav = [
@@ -21,7 +21,6 @@ export const nav = [
   { href: "/about", label: "About" },
   { href: "/blog", label: "Journal" },
   { href: "/studio", label: "Studio" },
-  { href: "/marketplace", label: "Lead lists" },
 ] as const
 
 export type Service = {
@@ -49,14 +48,12 @@ export const services: Service[] = [
     outcomes: [
       "A site search engines can crawl and people can understand.",
       "Pages mapped to real demand, not a keyword spreadsheet with no offer behind it.",
-      "A monthly readout of what moved, what did not, and what to publish next.",
+      "A written note on what to fix and what to publish next.",
     ],
     includes: [
       "Technical audit and fix list",
-      "Information architecture and internal linking",
       "Page briefs tied to an offer",
       "On-page writing direction",
-      "Search Console and analytics review",
     ],
     steps: [
       { title: "Find the leaks", body: "Crawl, index coverage, speed, and the pages that already earn attention." },
@@ -88,11 +85,9 @@ export const services: Service[] = [
       "Spend you can pause, defend, or scale because the readout is plain.",
     ],
     includes: [
-      "Account structure and tracking check",
       "Offer and audience definition",
       "Ad and landing-page pairing",
-      "Weekly budget watch",
-      "A monthly decision: hold, fix, or scale",
+      "Account structure and tracking check",
     ],
     steps: [
       { title: "Make the offer sharp", body: "Ads amplify a promise. If the page cannot say who it is for, we fix that before raising spend." },
@@ -123,8 +118,6 @@ export const services: Service[] = [
       "Channel choice and content pillars",
       "A monthly calendar",
       "Drafts for approval",
-      "Profile and highlight structure",
-      "A simple report on what earned attention and what earned a click",
     ],
     steps: [
       { title: "Pick the rooms", body: "Two channels done properly beat six channels abandoned." },
@@ -152,11 +145,9 @@ export const services: Service[] = [
       "Search and email finally sharing the same words.",
     ],
     includes: [
-      "Messaging workshop",
       "Page and article briefs",
       "Drafts and revisions",
       "Proof inventory, using only approved facts",
-      "A publishing queue",
     ],
     steps: [
       { title: "Collect the true things", body: "Claims, offers, and objections. If a number is not approved, it does not ship." },
@@ -186,8 +177,6 @@ export const services: Service[] = [
     includes: [
       "Sitemap and page jobs",
       "Design direction",
-      "Build in a modern stack",
-      "Core templates, not a one-off collage",
       "Launch checklist for speed, metadata, and forms",
     ],
     steps: [
@@ -216,10 +205,8 @@ export const services: Service[] = [
     ],
     includes: [
       "Capture points and consent copy",
-      "Welcome sequence",
+      "Welcome sequence drafts",
       "Campaign calendar",
-      "Basic segments",
-      "Deliverability hygiene and a monthly readout",
     ],
     steps: [
       { title: "Earn the address", body: "The offer for the signup has to be as clear as the offer for the sale." },
@@ -239,7 +226,7 @@ export const services: Service[] = [
     index: "07",
     name: "Analytics",
     short: "Analytics",
-    summary: "Events, a dashboard, and a monthly readout of what happened and what to do next.",
+    summary: "A measurement plan, an event check, and a plain readout of what happened and what to do next.",
     keywords: ["analytics", "measurement", "tracking", "dashboard", "ga4", "data", "report"],
     outcomes: [
       "A short list of events that match the business.",
@@ -249,8 +236,6 @@ export const services: Service[] = [
     includes: [
       "Measurement plan",
       "Event and conversion audit",
-      "Dashboard for the questions you actually ask",
-      "Monthly narrative readout",
       "A backlog of tracking fixes",
     ],
     steps: [
@@ -274,15 +259,13 @@ export const services: Service[] = [
     keywords: ["ai", "automation", "ava", "assistant", "workflow", "gpt", "grok"],
     outcomes: [
       "A named job for the assistant, with a human still accountable.",
-      "Drafts, routing, and research that save hours.",
+      "Drafts, routing, and research taken off the team's plate.",
       "A clear line between what the model may say and what the studio will ship.",
     ],
     includes: [
       "Workflow map",
       "Assistant brief and guardrails",
       "A first automation with a human check",
-      "Documentation the team can run",
-      "A review after the first month",
     ],
     steps: [
       { title: "Pick one painful loop", body: "Briefs, reporting drafts, lead routing, or research. One loop, done properly." },

@@ -89,7 +89,6 @@ export function platformJsonLd() {
       "Social drafts",
       "Workspace automations",
       "Leads engine",
-      "White-label managed backend",
       "Beta tester seats",
     ],
   }

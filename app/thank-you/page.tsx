@@ -34,8 +34,8 @@ export default async function ThankYouPage({
           </p>
         ) : null}
         <ul className="mt-6 space-y-2 text-ink-soft">
-          <li>Next, answer five questions. Ava drafts one page, one lead form, and three emails.</li>
-          <li>Nothing is marked live until you approve it.</li>
+          <li>Next, answer five questions. Studio fills a template for one page, one lead form, and three emails.</li>
+          <li>Approving saves the draft. It does not publish a page or send email.</li>
           <li>The membership renews until you cancel it in PayPal.</li>
         </ul>
         <div className="mt-8 flex flex-wrap gap-3">

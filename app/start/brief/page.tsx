@@ -4,7 +4,7 @@ import { pageMetadata } from "@/lib/seo"
 
 export const metadata = pageMetadata({
   title: "Five questions",
-  description: "Tell Ava the business, the offer, the buyer, the place, and the result. She drafts the first campaign from that.",
+  description: "Answer five short questions: the business, the offer, the buyer, the place, and the result. Studio fills the first-campaign template with your answers.",
   path: "/start/brief",
 })
 
@@ -13,8 +13,8 @@ export default function BriefPage() {
     <>
       <PageHeader
         eyebrow="Five questions"
-        title="Tell Ava the job."
-        lede="Short answers. She will not add a tactic you did not ask for."
+        title="Five short answers."
+        lede="Use your own words. Studio puts them into a ready-made template for one page, one form, and three emails. Nothing is added that you did not say."
       />
       <div className="mx-auto max-w-xl px-5 py-14">
         <FirstBrief />
