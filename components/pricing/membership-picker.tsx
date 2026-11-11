@@ -31,6 +31,23 @@ declare global {
   }
 }
 
+const includedToday = [
+  "Studio, your workspace, saved to your login: contacts, pipeline, calendar, inbox notes, files, and media.",
+  "Ava Skye, the AI assistant. She sets up your account with you by form or by conversation, fills the forms, and saves only after you say yes.",
+  "Email lists and campaign drafts, funnel and page plans, and social post drafts, all kept in one place.",
+  "Simple automations that log a note or save a memory when a contact, appointment, or deal changes.",
+  "The first-campaign template: answer five questions and get one page, one lead form, and three emails to read and approve.",
+  "Business setup, private memory for Ava, and reports that count your own records.",
+]
+
+const comingSoon = [
+  "Sending email from Studio",
+  "Posting straight to your social accounts",
+  "Publishing pages and funnels online",
+  "Business phone numbers, calling, and texting",
+  "A white-label backend under your own name",
+]
+
 export function MembershipPicker({ offers, unrestricted = false }: { offers: MembershipOffers; unrestricted?: boolean }) {
   const router = useRouter()
   const [selectedKey, setSelectedKey] = useState(offers.plans[0]?.key ?? "monthly")
@@ -119,9 +136,29 @@ export function MembershipPicker({ offers, unrestricted = false }: { offers: Mem
       <p className="mt-4 max-w-2xl text-ink-soft">
         DigiMark101 Membership renews automatically in USD until you cancel it in PayPal. Founding rates run through January 31, 2027, then the regular price applies to new checkouts. People who join before then stay on the rate they paid. Ad spend is not included. The proposal packages above stay quoted.
       </p>
-      <p className="mt-4 max-w-2xl text-sm text-ink-soft">
-        Starter is $179 a month, $20 under the $199 month-to-month plan Scalehackerlab published in September 2026. Studio monthly is $447, under the $500 entry LYFE Marketing publishes, and that plan also adds a $300 setup fee. A done-for-you retainer is a different product. Those still commonly start around $1,500 a month.
-      </p>
+      <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <div className="rounded-[1.5rem] border border-ink/10 bg-card p-6">
+          <h3 className="font-serif text-3xl">What members get today</h3>
+          <ul className="mt-4 space-y-2 text-sm text-ink-soft">
+            {includedToday.map((item) => (
+              <li key={item} className="border-t border-ink/10 pt-2">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-[1.5rem] border border-ink/10 bg-mist p-6">
+          <h3 className="font-serif text-3xl">Coming soon</h3>
+          <p className="mt-2 text-sm text-ink-soft">These are being built. They are not part of the membership yet.</p>
+          <ul className="mt-4 space-y-2 text-sm text-ink-soft">
+            {comingSoon.map((item) => (
+              <li key={item} className="border-t border-ink/10 pt-2">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       <div className="mt-8 flex flex-wrap gap-1 rounded-full border border-ink/10 bg-card p-1" role="radiogroup" aria-label="Billing term">
         {offers.plans.map((plan) => {

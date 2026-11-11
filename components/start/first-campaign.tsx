@@ -67,8 +67,8 @@ export function FirstBrief() {
     <form onSubmit={onSubmit} className="grid gap-4">
       <p className="text-sm text-ink-soft">
         {payment === "confirmed"
-          ? "PayPal has confirmed a membership on this account. Ava will draft from these answers and wait."
-          : "PayPal has not confirmed a membership on this account yet. You can still draft. The desk will show the payment as not confirmed until it lands."}
+          ? "PayPal has confirmed a membership on this account. Studio will fill the template from these answers."
+          : "PayPal has not confirmed a membership on this account yet. You can still fill the template. The payment shows as not confirmed until PayPal confirms it."}
       </p>
       {fields.map((field) => (
         <label key={field.key} className="grid gap-1 text-sm">
@@ -132,7 +132,7 @@ export function FirstPreview() {
   return (
     <div className="grid gap-8">
       <p className="text-sm font-semibold uppercase tracking-[0.16em] text-signal">
-        {job.status === "live" ? "Live in your studio" : "Draft, waiting on your yes"}
+        {job.status === "live" ? "Approved and saved in your studio" : "Draft, waiting on your yes"}
         {job.payment === "confirmed" ? " · Paid" : " · Payment not confirmed"}
       </p>
       <article className="rounded-[1.75rem] border border-ink/10 bg-card p-6">
@@ -154,7 +154,7 @@ export function FirstPreview() {
         ))}
       </div>
       <p className="text-sm text-ink-soft">
-        Approve locks this as the live job. It does not email anyone and it does not put a new public website online. Ava will not replace it unless you send a change.
+        Approve saves this as your current first campaign. It does not email anyone, and it does not put a page online. Publishing and sending are coming.
       </p>
       {error ? <p className="text-sm text-signal">{error}</p> : null}
       <div className="flex flex-wrap gap-3">

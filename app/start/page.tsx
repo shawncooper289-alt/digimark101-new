@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/seo"
 
 export const metadata = pageMetadata({
   title: "First campaign",
-  description: "One page, one lead form, and three follow-up emails. Ava drafts them after the starter membership. Nothing goes out until you approve.",
+  description: "A guided template for one page, one lead form, and three follow-up emails. Answer five questions, then read and approve the draft. Approving saves it. It does not publish or send.",
   path: "/start",
 })
 
@@ -18,7 +18,7 @@ export default function StartPage() {
       <PageHeader
         eyebrow="First campaign"
         title="One page. One form. Three emails."
-        lede="This is the job DigiMark101 starts with. Ava writes the draft from five answers. You approve it before anything is called live."
+        lede="This is the job DigiMark101 starts with. You answer five questions, and Studio fills a ready-made template with your words. You read it, then approve it to save it in your studio."
       />
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-[1.2fr_0.8fr]">
         <div>
@@ -32,8 +32,8 @@ export default function StartPage() {
                 ],
               },
               { text: "Answer five questions. No deck and no strategy call." },
-              { text: "Ava drafts the page, the lead form, and three emails." },
-              { text: "Approve, or send it back. She does not publish on her own." },
+              { text: "Studio fills the template for the page, the lead form, and three emails using your answers." },
+              { text: "Read it and approve it, or change your answers. Approving saves the draft. It does not publish a page or send email. Those steps are coming." },
             ].map((step, index) => (
               <li key={step.text} className="rounded-[1.5rem] border border-ink/10 bg-card px-5 py-4">
                 <span className="text-xs font-semibold uppercase tracking-[0.16em] text-signal">0{index + 1}</span>

@@ -11,7 +11,7 @@ export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
         <div className="md:col-span-5">
           <DigiMarkLogo variant="paper" />
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-ink-soft">
-            The all-in-one marketing platform you own. Eight kinds of marketing work, one workspace, and Ava Skye to set it up with you.
+            An all-in-one marketing workspace you own. Eight kinds of marketing work, one workspace, and Ava Skye to set it up with you.
           </p>
           <p className="mt-4 max-w-sm text-xs leading-relaxed text-ink-soft">{earningsDisclaimer}</p>
           <a className="mt-4 inline-block text-sm underline decoration-ink/30 underline-offset-4" href={`mailto:${site.email}`}>
@@ -28,6 +28,11 @@ export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link className="hover:text-signal" href="/marketplace">
+                Lead lists
+              </Link>
+            </li>
             <li>
               <Link className="hover:text-signal" href="/contact">
                 Contact
