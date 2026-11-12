@@ -1,3 +1,4 @@
+import { BANNED_LINE_RULE, omitBannedLine } from "@/lib/ava/banned-line"
 import { AVA_IDENTITY } from "@/lib/ava/identity"
 import { spokenText } from "@/lib/ava/speech"
 
@@ -7,16 +8,21 @@ const DEFAULT_TTS_STYLE =
   "Speak as a warm, confident young-adult woman with a General American accent. Use a medium pitch and a moderate, conversational pace. Sound like a real person talking, not an announcer or a recording."
 /** Appended to every instruction-capable OpenAI request, including an AVA_TTS_INSTRUCTIONS override. */
 export const AVA_NAME_PRONUNCIATION_RULE = AVA_IDENTITY.pronunciation.rule
-export const DEFAULT_TTS_INSTRUCTIONS = `${DEFAULT_TTS_STYLE} ${AVA_NAME_PRONUNCIATION_RULE}`
+/** Appended the same way, so an instructions override cannot drop the preview-sentence ban. */
+export const AVA_BANNED_LINE_RULE = BANNED_LINE_RULE
+export const DEFAULT_TTS_INSTRUCTIONS = `${DEFAULT_TTS_STYLE} ${AVA_NAME_PRONUNCIATION_RULE} ${AVA_BANNED_LINE_RULE}`
 
 type Env = Record<string, string | undefined>
+
+function withRule(base: string, rule: string) {
+  if (base.toLowerCase().includes(rule.toLowerCase())) return base
+  return `${base} ${rule}`
+}
 
 export function ttsInstructions(env: Env) {
   const override = env.AVA_TTS_INSTRUCTIONS?.trim()
   const base = override || DEFAULT_TTS_INSTRUCTIONS
-  const rule = AVA_NAME_PRONUNCIATION_RULE.toLowerCase()
-  if (base.toLowerCase().includes(rule)) return base
-  return `${base} ${AVA_NAME_PRONUNCIATION_RULE}`
+  return withRule(withRule(base, AVA_NAME_PRONUNCIATION_RULE), AVA_BANNED_LINE_RULE)
 }
 
 export type TtsPlan = {
@@ -31,7 +37,7 @@ export function supportsTtsInstructions(model: string) {
 }
 
 export function spokenForTts(text: string) {
-  const cleaned = spokenText(text)
+  const cleaned = spokenText(omitBannedLine(text))
     .replace(/https?:\/\/\S+/gi, "the site")
     .replace(/[#*_`>]/g, "")
     .replace(/[\u2014\u2013]/g, ", ")

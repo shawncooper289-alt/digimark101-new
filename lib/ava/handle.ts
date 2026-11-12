@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { answerAva } from "@/lib/ava/agent"
+import { omitBannedLine } from "@/lib/ava/banned-line"
 import { sanitizeSetupDraft } from "@/lib/ava/onboarding-playbook"
 import { sanitizeTurns } from "@/lib/ava/respond"
 import { clientIp, sameOrigin, tooManyRequests } from "@/lib/http"
@@ -54,7 +55,7 @@ export async function handleAvaPost(request: Request) {
     // Intake failures stay on the server and are not logged.
   }
   return NextResponse.json({
-    text: reply.text,
+    text: omitBannedLine(reply.text),
     audioUrl: null,
     mode: reply.mode,
     live: reply.live,

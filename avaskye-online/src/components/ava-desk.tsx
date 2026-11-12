@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
+import { omitBannedLine } from "@/lib/ava/banned-line"
 import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava-speech"
 
 export function AvaDesk() {
   const router = useRouter()
   const [text, setText] = useState("")
-  const [reply, setReply] = useState("What should we work on?")
+  const [reply, setReply] = useState(omitBannedLine("What should we work on?"))
   const [pending, setPending] = useState(false)
   const [draft, setDraft] = useState<{ name: string; email?: string; company?: string } | null>(null)
   const [voice, setVoice] = useState(false)

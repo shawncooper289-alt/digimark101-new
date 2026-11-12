@@ -129,6 +129,8 @@ Identity, look, dress codes, voice, and pronunciation are locked in `lib/ava/ide
 
 **Ava is always pronounced AY-vuh, with a strong long A as in able or day** (IPA `/ˈeɪvə/`), never AH-vuh, AW-vuh, Awva, or Ah-va. Browser speech and TTS replace the spoken name. The letters on screen stay Ava. SSML is used only when `AVA_TTS_SSML=true`.
 
+She never says "In the theater of life, we are all actors sharing the same scene," or a theater-of-life or we-are-all-actors line. That sentence is left out of chat, greetings, video scripts, and speech. The ElevenLabs voice, when used, is whichever id is in `ELEVENLABS_VOICE_ID`.
+
 Her skill book is `lib/ava/knowledge-base.ts`: pages and funnels, social pages, delegation, client management, other agents, sales conversations, and workspace admin. Recovered from the October 2026 knowledge base. She still will not invent a client, a testimonial, or a statistic.
 
 Per-client memory is confirmed before it is saved, and one client cannot read another client’s memory.

@@ -1,3 +1,4 @@
+import { omitBannedLine } from "@/lib/ava/banned-line"
 import { sanitizeSetupDraft, setupResult, type SetupDraftInput, type SetupSnapshot } from "@/lib/ava/onboarding-playbook"
 import { onboardingPatch } from "@/lib/onboarding/fields"
 import { upsertClientOnboarding } from "@/lib/onboarding/save-row"
@@ -49,38 +50,43 @@ function str(value: unknown) {
   return typeof value === "string" ? value : undefined
 }
 
+function said(value: unknown) {
+  const text = str(value)
+  return text ? omitBannedLine(text) : text
+}
+
 function actionFromTool(name: string, args: Record<string, unknown>): Action | null {
   switch (name) {
     case "create_contact":
-      return str(args.name) ? { type: "create_contact", name: str(args.name)!, email: str(args.email), phone: str(args.phone), company: str(args.company), notes: str(args.notes) } : null
+      return str(args.name) ? { type: "create_contact", name: str(args.name)!, email: str(args.email), phone: str(args.phone), company: str(args.company), notes: said(args.notes) } : null
     case "create_deal":
-      return str(args.title) ? { type: "create_deal", title: str(args.title)!, contactName: str(args.contactName), stage: stages.find((item) => item === args.stage), notes: str(args.notes) } : null
+      return str(args.title) ? { type: "create_deal", title: str(args.title)!, contactName: str(args.contactName), stage: stages.find((item) => item === args.stage), notes: said(args.notes) } : null
     case "move_deal":
       return str(args.title) && stages.includes(args.stage as Stage) ? { type: "move_deal", title: str(args.title)!, stage: args.stage as Stage } : null
     case "book_appointment":
-      return str(args.startsAt) ? { type: "book_appointment", title: str(args.title) || "Appointment", contactName: str(args.contactName), startsAt: str(args.startsAt)!, notes: str(args.notes) } : null
+      return str(args.startsAt) ? { type: "book_appointment", title: str(args.title) || "Appointment", contactName: str(args.contactName), startsAt: str(args.startsAt)!, notes: said(args.notes) } : null
     case "log_message":
-      return str(args.body) ? { type: "log_message", contactName: str(args.contactName) || "Workspace", subject: str(args.subject), body: str(args.body)! } : null
+      return said(args.body) ? { type: "log_message", contactName: str(args.contactName) || "Workspace", subject: str(args.subject), body: said(args.body)! } : null
     case "start_campaign":
-      return str(args.name) ? { type: "start_campaign", name: str(args.name)!, channel: str(args.channel), brief: str(args.brief) } : null
+      return str(args.name) ? { type: "start_campaign", name: str(args.name)!, channel: str(args.channel), brief: said(args.brief) } : null
     case "create_site":
-      return str(args.name) ? { type: "create_site", name: str(args.name)!, headline: str(args.headline) } : null
+      return str(args.name) ? { type: "create_site", name: str(args.name)!, headline: said(args.headline) } : null
     case "create_automation":
       return triggers.includes(args.trigger as Trigger) && automationActions.includes(args.action as AutomationAction)
         ? { type: "create_automation", name: str(args.name) || "Studio automation", trigger: args.trigger as Trigger, action: args.action as AutomationAction }
         : null
     case "remember":
-      return str(args.key) && str(args.value) ? { type: "remember", key: str(args.key)!, value: str(args.value)! } : null
+      return str(args.key) && said(args.value) ? { type: "remember", key: str(args.key)!, value: said(args.value)! } : null
     case "create_task":
       return str(args.title) ? { type: "create_task", title: str(args.title)!, contactName: str(args.contactName) } : null
     case "draft_email_list":
       return str(args.name) ? { type: "draft_email_list", name: str(args.name)! } : null
     case "draft_social_post":
       return str(args.body) && socialPlatforms.includes(args.platform as SocialPlatform)
-        ? { type: "draft_social_post", platform: args.platform as SocialPlatform, body: str(args.body)!, scheduledFor: str(args.scheduledFor) }
+        ? { type: "draft_social_post", platform: args.platform as SocialPlatform, body: said(args.body)!, scheduledFor: str(args.scheduledFor) }
         : null
     case "note_lead":
-      return str(args.niche) && str(args.note) && !/@/.test(str(args.note)!) ? { type: "note_lead", niche: str(args.niche)!, note: str(args.note)! } : null
+      return str(args.niche) && str(args.note) && !/@/.test(str(args.note)!) ? { type: "note_lead", niche: str(args.niche)!, note: said(args.note)! } : null
     case "request_backend":
       return str(args.name) ? { type: "request_backend", name: str(args.name)!, region: str(args.region) } : null
     default:

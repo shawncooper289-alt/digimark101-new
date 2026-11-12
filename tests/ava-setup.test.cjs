@@ -19,7 +19,11 @@ const fields = load("lib/onboarding/fields.ts", () => {
 const growth = load("lib/onboarding/growth-plan.ts", () => {
   throw new Error("growth-plan.ts has no imports")
 })
+const banned = load("lib/ava/banned-line.ts", () => {
+  throw new Error("banned-line.ts has no imports")
+})
 const playbook = load("lib/ava/onboarding-playbook.ts", (id) => {
+  if (String(id).includes("banned-line")) return banned
   if (String(id).includes("site")) return { site: { url: "https://www.digimark101.com", email: "hi@digimark101.com" } }
   if (String(id).includes("fields")) return fields
   if (String(id).includes("growth-plan")) return growth

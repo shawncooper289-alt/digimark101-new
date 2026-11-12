@@ -1,3 +1,5 @@
+import { omitBannedLine } from "@/lib/ava/banned-line"
+
 export const SITE = {
   name: "Ava Skye",
   host: "https://avaskye.online",
@@ -16,14 +18,14 @@ export const PACKS = [{price:10, credits:300}, {price:25, credits:900}, {price:5
 export function draftFor(kind: string, brief: string) {
   const topic = brief.trim() || "the offer";
   if (kind === "automation") {
-    return [
+    return omitBannedLine([
       `Trigger: someone opts in for ${topic}.`,
       "Wait 10 minutes. Send the delivery sentence and one next step.",
       "If no reply in 2 days, send one proof point and a booking link.",
       "If they book, stop the sequence. If they buy, tag won and hand the seat upgrade to DigiMark101.",
-    ].join("\n");
+    ].join("\n"));
   }
-  if (kind === "email") return `Subject: ${topic}\n\nYou do not need a bigger stack. You need the next asset finished.\n\nAva can draft that page, the follow-up, and the booking line. Approve it, then send it.`;
-  if (kind === "page") return `Headline: ${topic}\nSub: Built with Ava. Approved by you.\nProof: one result, one sentence.\nOffer: Starter Ava drafts the content. Pro Ava drafts the follow-up too.\nButton: Start with Ava.`;
-  return `Post\n${topic}\n\nMost teams buy a tool and still stare at a blank page.\nAva writes the first draft. You keep the send button.\nStarter for content. Pro when you want the sequence too.`;
+  if (kind === "email") return omitBannedLine(`Subject: ${topic}\n\nYou do not need a bigger stack. You need the next asset finished.\n\nAva can draft that page, the follow-up, and the booking line. Approve it, then send it.`);
+  if (kind === "page") return omitBannedLine(`Headline: ${topic}\nSub: Built with Ava. Approved by you.\nProof: one result, one sentence.\nOffer: Starter Ava drafts the content. Pro Ava drafts the follow-up too.\nButton: Start with Ava.`);
+  return omitBannedLine(`Post\n${topic}\n\nMost teams buy a tool and still stare at a blank page.\nAva writes the first draft. You keep the send button.\nStarter for content. Pro when you want the sequence too.`);
 }

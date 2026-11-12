@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { BANNED_LINE_RULE, omitBannedLine } from "@/lib/ava/banned-line"
 import { deskSnapshot } from "@/lib/desk"
 import { readOfficeOwner } from "@/lib/office-store"
 import { SOCIAL_PLAYS } from "@/lib/social-strategies"
@@ -80,7 +81,8 @@ function naturalize(reply: string) {
     .replace(/one question at a time[^\.?!]*[\.?!]?/gi, "")
     .replace(/\s{2,}/g, " ")
     .trim()
-  return cleaned || "What should I call you?"
+  if (!cleaned) return "What should I call you?"
+  return omitBannedLine(cleaned)
 }
 
 function socialHint(message: string) {
@@ -112,6 +114,7 @@ You can carry any conversation — small talk, digressions, personal questions, 
 You are forever loyal to Shawn Cooper and DigiMark101. Never invent client results, testimonials, revenue, or live metrics.
 When the request is a marketing task, run Instant Decomposition silently: stage → spine step → hours/cash → the one thing slowing the business down → draft or exact next action. Collapse multi-idea requests. Everything else goes on the kill list. Do not say bottleneck.
 Hard rules never relax: no unauthorized spend or connects, no harm to Shawn or the brand, drafts stay drafts until he confirms.
+${BANNED_LINE_RULE}
 
 Operator functions (always active on this desk):
 - Proactive daily and weekly brief when he opens the desk or asks what is happening.
@@ -162,6 +165,10 @@ If he asks to set up a free account or is new, ask the next unanswered question 
   }
 }
 
+function officeReply(body: { reply: string; href?: string; draft?: { name: string; email?: string; company?: string } }) {
+  return NextResponse.json({ ...body, reply: omitBannedLine(body.reply) })
+}
+
 export async function POST(request: Request) {
   const owner = await readOfficeOwner()
   if (!owner) return NextResponse.json({ error: "The owner office is closed." }, { status: 403 })
@@ -172,7 +179,7 @@ export async function POST(request: Request) {
 
   const draft = draftContact(message)
   if (draft) {
-    return NextResponse.json({
+    return officeReply({
       reply: naturalize(`Got a draft for ${draft.name}. Nothing is saved until you say yes.`),
       draft,
       href: "/crm",
@@ -180,7 +187,7 @@ export async function POST(request: Request) {
   }
 
   if (/open\s+(digimark101|studio|login)|take me to digimark|access (my )?free account/i.test(message)) {
-    return NextResponse.json({
+    return officeReply({
       reply: "Opening the login. Use one of your emails.",
       href: "https://www.digimark101.com/login",
     })
@@ -188,15 +195,15 @@ export async function POST(request: Request) {
 
   const route = routes.find((item) => item.phrase.test(message.toLowerCase()))
   if (route && /open|show|go|take me/.test(message.toLowerCase())) {
-    return NextResponse.json({ reply: `Opening ${route.label}.`, href: route.href })
+    return officeReply({ reply: `Opening ${route.label}.`, href: route.href })
   }
 
   const snap = await deskSnapshot()
   const live = await liveReply(message, snap, history)
-  if (live) return NextResponse.json({ reply: live, href: route?.href })
+  if (live) return officeReply({ reply: live, href: route?.href })
 
   const casual = offlineReply(message, history)
-  if (casual) return NextResponse.json({ reply: casual })
+  if (casual) return officeReply({ reply: casual })
 
   if (/how many|summary|status|what is on the desk/.test(message.toLowerCase())) {
     const parts = [
@@ -204,10 +211,10 @@ export async function POST(request: Request) {
       snap.contacts === null ? "" : `${snap.contacts} contacts, ${snap.deals ?? 0} deals, ${snap.automations ?? 0} automations on.`,
       snap.subscriptions === null ? "" : `${snap.subscriptions} PayPal subscriptions.`,
     ].filter(Boolean)
-    return NextResponse.json({ reply: parts.join(" ") })
+    return officeReply({ reply: parts.join(" ") })
   }
 
-  return NextResponse.json({
+  return officeReply({
     reply: route
       ? `${route.label} is right here if you want it.`
       : "Want to set up a free account, or open DigiMark? I can also open mail sequences and media for any client.",

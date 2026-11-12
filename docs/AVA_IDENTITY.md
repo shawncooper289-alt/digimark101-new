@@ -33,7 +33,9 @@ Spoken lines go to `POST /api/ava/speak` on each site. The key stays on the serv
 
 Default provider is OpenAI-compatible audio speech: model `gpt-4o-mini-tts`, voice `coral`. Coral is the closest built-in match for a warm, confident young-adult woman with a General American accent, medium pitch, and a moderate conversational pace. `AVA_TTS_INSTRUCTIONS` can replace that style. The AY-vuh pronunciation rule is still appended, so an override cannot drop it. `shimmer` is the other natural female option if you want a slightly softer tone.
 
-If `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set, ElevenLabs is used instead.
+If `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set, ElevenLabs is used instead. The voice id comes from that environment variable. It is not written into the code.
+
+Ava never says "In the theater of life, we are all actors sharing the same scene." She also skips a close paraphrase, a theater-of-life line, or a we-are-all-actors line. That sentence is removed from chat, greetings, video scripts, and speech. If it was the whole line, she says a short hello instead. The rule stays in her instructions even when `AVA_TTS_INSTRUCTIONS` replaces the speaking style, and the speech path drops the sentence before audio is made.
 
 Browser fallback uses `en-US` at rate `1`. Playback starts from the visitor's tap and a new line stops the one already playing.
 

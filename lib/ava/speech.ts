@@ -1,3 +1,4 @@
+import { omitBannedLine } from "@/lib/ava/banned-line"
 import { AVA_IDENTITY } from "@/lib/ava/identity"
 
 const NAME = /\bAva\b/g
@@ -71,10 +72,11 @@ export function stopAvaSpeech() {
 }
 
 export function speakInBrowser(text: string, onDone?: () => void) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window) || !text.trim()) return false
+  const safe = omitBannedLine(text)
+  if (typeof window === "undefined" || !("speechSynthesis" in window) || !safe.trim()) return false
   const token = generation
   window.speechSynthesis.cancel()
-  const utterance = new SpeechSynthesisUtterance(spokenText(text))
+  const utterance = new SpeechSynthesisUtterance(spokenText(safe))
   utterance.lang = AVA_IDENTITY.speech.browserLang
   utterance.rate = AVA_IDENTITY.speech.browserRate
   const finish = () => {
@@ -130,7 +132,7 @@ async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void) {
 }
 
 export async function speakAva(text: string, onDone?: () => void): Promise<"played" | "stopped" | "failed"> {
-  const spoken = spokenText(text).trim()
+  const spoken = spokenText(omitBannedLine(text)).trim()
   if (!spoken || typeof window === "undefined") return "failed"
   const token = ++generation
   halt(true)
