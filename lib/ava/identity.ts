@@ -3,7 +3,7 @@
  * pronunciation changes. docs/AVA_IDENTITY.md mirrors it for people.
  * Spoken audio must use lib/ava/speech.ts so the display spelling stays "Ava".
  */
-export const AVA_IDENTITY_VERSION = "2026.11.10"
+export const AVA_IDENTITY_VERSION = "2026.11.12"
 
 export const AVA_IDENTITY = {
   version: AVA_IDENTITY_VERSION,
@@ -15,7 +15,7 @@ export const AVA_IDENTITY = {
     phoneticSpelling: "Ay-vuh",
     ipa: "/ˈeɪvə/",
     ssmlPhoneme: "ˈeɪvə",
-    rule: "Ava is always a long A, like the letter A.",
+    rule: "The name Ava is pronounced AY-vuh, with a strong long A (as in able or day), never AH-vuh, AW-vuh, Awva, or Ah-va. Pronounce Ay-vuh with that same strong long A.",
   },
   speech: {
     browserLang: "en-US",
