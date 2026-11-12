@@ -1,10 +1,10 @@
 # Ava Skye identity
 
-Version `2026.11.10`. The source of truth for code is `lib/ava/identity.ts`. Spoken audio goes through `lib/ava/speech.ts` and the server route `POST /api/ava/speak`. The office uses the same route inside `avaskye-online`.
+Version `2026.11.12`. The source of truth for code is `lib/ava/identity.ts`. Spoken audio goes through `lib/ava/speech.ts` and the server route `POST /api/ava/speak`. The office uses the same route inside `avaskye-online`.
 
 ## Name and pronunciation
 
-Her name is Ava Skye. **Ava is always pronounced with a long A, like the letter A** (`AY-vuh`, IPA `/ˈeɪvə/`).
+Her name is Ava Skye. **Ava is always pronounced AY-vuh, with a strong long A as in able or day** (IPA `/ˈeɪvə/`). It must not sound like AH-vuh, AW-vuh, Awva, or Ah-va.
 
 Screens keep the spelling Ava. Speech does not:
 
@@ -31,7 +31,7 @@ Dress codes:
 
 Spoken lines go to `POST /api/ava/speak` on each site. The key stays on the server. The browser's built-in voice is used only when that request fails.
 
-Default provider is OpenAI-compatible audio speech: model `gpt-4o-mini-tts`, voice `coral`. Coral is the closest built-in match for a warm, confident young-adult woman with a General American accent, medium pitch, and a moderate conversational pace. `AVA_TTS_INSTRUCTIONS` has that direction as its default. `shimmer` is the other natural female option if you want a slightly softer tone.
+Default provider is OpenAI-compatible audio speech: model `gpt-4o-mini-tts`, voice `coral`. Coral is the closest built-in match for a warm, confident young-adult woman with a General American accent, medium pitch, and a moderate conversational pace. `AVA_TTS_INSTRUCTIONS` can replace that style. The AY-vuh pronunciation rule is still appended, so an override cannot drop it. `shimmer` is the other natural female option if you want a slightly softer tone.
 
 If `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set, ElevenLabs is used instead.
 

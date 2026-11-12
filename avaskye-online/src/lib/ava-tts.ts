@@ -1,9 +1,22 @@
+import { AVA_IDENTITY } from "@/lib/ava/identity"
+
 const DEFAULT_TTS_MODEL = "gpt-4o-mini-tts"
 const DEFAULT_TTS_VOICE = "coral"
-const DEFAULT_TTS_INSTRUCTIONS =
-  "Speak as a warm, confident young-adult woman with a General American accent. Use a medium pitch and a moderate, conversational pace. Sound like a real person talking, not an announcer or a recording. Pronounce the name Ay-vuh with a long A, like the letter A."
+const DEFAULT_TTS_STYLE =
+  "Speak as a warm, confident young-adult woman with a General American accent. Use a medium pitch and a moderate, conversational pace. Sound like a real person talking, not an announcer or a recording."
+/** Appended to every instruction-capable OpenAI request, including an AVA_TTS_INSTRUCTIONS override. */
+export const AVA_NAME_PRONUNCIATION_RULE = AVA_IDENTITY.pronunciation.rule
+export const DEFAULT_TTS_INSTRUCTIONS = `${DEFAULT_TTS_STYLE} ${AVA_NAME_PRONUNCIATION_RULE}`
 
 type Env = Record<string, string | undefined>
+
+export function ttsInstructions(env: Env) {
+  const override = env.AVA_TTS_INSTRUCTIONS?.trim()
+  const base = override || DEFAULT_TTS_INSTRUCTIONS
+  const rule = AVA_NAME_PRONUNCIATION_RULE.toLowerCase()
+  if (base.toLowerCase().includes(rule)) return base
+  return `${base} ${AVA_NAME_PRONUNCIATION_RULE}`
+}
 
 export function spokenForTts(text: string) {
   const cleaned = text
@@ -50,7 +63,7 @@ export function ttsPlan(text: string, env: Env = process.env): {
   const model = env.AVA_TTS_MODEL?.trim() || DEFAULT_TTS_MODEL
   const voice = env.AVA_TTS_VOICE?.trim() || DEFAULT_TTS_VOICE
   const payload: Record<string, string> = { model, voice, input: spoken, response_format: "mp3" }
-  if (supportsInstructions(model)) payload.instructions = env.AVA_TTS_INSTRUCTIONS?.trim() || DEFAULT_TTS_INSTRUCTIONS
+  if (supportsInstructions(model)) payload.instructions = ttsInstructions(env)
   const base = (env.AVA_TTS_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "")
   return {
     provider: "openai" as const,

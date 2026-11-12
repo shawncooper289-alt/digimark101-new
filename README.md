@@ -127,7 +127,7 @@ The studio Backend screen is the white-label path: a client can be pointed at a 
 
 Identity, look, dress codes, voice, and pronunciation are locked in `lib/ava/identity.ts` and described in `docs/AVA_IDENTITY.md`.
 
-**Ava is always pronounced with a long A, like the letter A** (`Ay-vuh`, IPA `/ˈeɪvə/`). Browser speech and TTS replace the spoken name. The letters on screen stay Ava. SSML is used only when `AVA_TTS_SSML=true`.
+**Ava is always pronounced AY-vuh, with a strong long A as in able or day** (IPA `/ˈeɪvə/`), never AH-vuh, AW-vuh, Awva, or Ah-va. Browser speech and TTS replace the spoken name. The letters on screen stay Ava. SSML is used only when `AVA_TTS_SSML=true`.
 
 Her skill book is `lib/ava/knowledge-base.ts`: pages and funnels, social pages, delegation, client management, other agents, sales conversations, and workspace admin. Recovered from the October 2026 knowledge base. She still will not invent a client, a testimonial, or a statistic.
 
