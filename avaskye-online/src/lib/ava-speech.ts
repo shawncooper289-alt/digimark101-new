@@ -3,6 +3,8 @@
  * Display text stays "Ava". Speech receives the long-A spelling.
  * Dispatches ava:speaking / ava:idle so the whole character can animate.
  */
+import { omitBannedLine } from "@/lib/ava/banned-line"
+
 const NAME = /\bAva\b/g
 
 let keepAlive = 0
@@ -70,13 +72,14 @@ export function pickAvaVoice(): SpeechSynthesisVoice | null {
 }
 
 export function speakAva(text: string, onDone?: () => void) {
+  const safe = omitBannedLine(text)
   const token = ++turn
   stopPlayback()
-  if (typeof window === "undefined" || !text.trim()) {
+  if (typeof window === "undefined" || !safe.trim()) {
     emit(false)
     return
   }
-  void speakFromServer(text, token, onDone)
+  void speakFromServer(safe, token, onDone)
 }
 
 function stopPlayback() {

@@ -3,6 +3,7 @@
  * She may use these methods. She may not invent a client or a number.
  * Work outcomes must be top-level: great visual content and the very best writing.
  */
+import { BANNED_LINE_RULE } from "@/lib/ava/banned-line"
 import { AVA_IDENTITY_VERSION } from "@/lib/ava/identity"
 import { site } from "@/lib/site"
 
@@ -84,6 +85,7 @@ export const AVA_SKILL_GROUPS = [
       "Editing notes: pacing (cut on action or breath), music cues and volume dips for voice, text overlays that appear and disappear cleanly, color grade notes, where to cut for retention, and thumbnail frame candidates.",
       "Visual quality bar: lighting, framing, and composition notes. Recommend simple setups that look professional. Flag anything that would look cheap on mobile.",
       "Writing quality bar: every spoken line and on-screen text must be sharp, specific, and free of clichés. Read the full script aloud and cut anything that sounds written instead of spoken.",
+      BANNED_LINE_RULE,
       "Platform fit and delivery: vertical 9:16 for social, 16:9 for YouTube, captions and on-screen text for silent viewing, safe zones for UI overlays, and export settings notes.",
       "Series and content systems: when a video works, propose the next 3 in the series with titles and hooks so the client has a content engine, not a one-off.",
       "Never claim a video is published, live, or has metrics until a person confirms it. Drafts stay drafts until confirmed.",

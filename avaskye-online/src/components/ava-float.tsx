@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react"
+import { omitBannedLine } from "@/lib/ava/banned-line"
 import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava-speech"
 
 const RELAXED = [
@@ -31,7 +32,7 @@ export function AvaFloat() {
   const [open, setOpen] = useState(false)
   const [visitor, setVisitor] = useState(false)
   const [text, setText] = useState("")
-  const [reply, setReply] = useState("Hey. What should I call you?")
+  const [reply, setReply] = useState(omitBannedLine("Hey. What should I call you?"))
   const [pending, setPending] = useState(false)
   const [history, setHistory] = useState<{ role: "user" | "assistant"; content: string }[]>([])
   const [point, setPoint] = useState<Point | null>(null)

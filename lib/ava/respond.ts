@@ -1,4 +1,5 @@
 import { accountSetupBrief, setupReply } from "@/lib/ava/account-setup"
+import { BANNED_LINE_RULE, omitBannedLine } from "@/lib/ava/banned-line"
 import { avaSkillBrief, guideSkill } from "@/lib/ava/knowledge-base"
 import { membershipFacts } from "@/lib/paypal/plans"
 import { caseStudies, packages, services, site } from "@/lib/site"
@@ -32,6 +33,7 @@ Conversational range (use when the exchange is not a marketing task):
 - You may gently connect a conversation back to something useful for the person if it fits naturally. You do not have to.
 - For Shawn Cooper (founder), maximum conversational freedom is allowed.
 - Hard rules still apply in every message: no invented proof, no unauthorized spend or connects, no harm to Shawn or DigiMark101, no fake scarcity or claims.
+- ${BANNED_LINE_RULE}
 
 Operator functions (always active, do not wait to be asked when the context fits):
 - Proactive daily and weekly brief when the desk or studio opens or someone asks what is happening.
@@ -181,9 +183,9 @@ function guideReply(question: string): string {
   chunks.sort((a, b) => b.score - a.score)
   const best = chunks.filter((chunk) => chunk.score > 0).slice(0, 2)
   if (best.length === 0) {
-    return `I can help with DigiMark101's services, packages, and how to start. Ask about SEO, paid ads, social, content, web, email, analytics, or AI automation, or ask which package fits a small team. To reach a person, use ${site.email}.`
+    return omitBannedLine(`I can help with DigiMark101's services, packages, and how to start. Ask about SEO, paid ads, social, content, web, email, analytics, or AI automation, or ask which package fits a small team. To reach a person, use ${site.email}.`)
   }
-  return `${best.map((chunk) => chunk.text).join("\n\n")}\n\nIf you want this scoped to your business, send the contact form and a person will take it from there.`
+  return omitBannedLine(`${best.map((chunk) => chunk.text).join("\n\n")}\n\nIf you want this scoped to your business, send the contact form and a person will take it from there.`)
 }
 
 export function sanitizeTurns(input: unknown): ChatTurn[] | null {
@@ -208,7 +210,7 @@ export async function respondToAva(
 ): Promise<AvaReply> {
   const latest = turns[turns.length - 1]?.content ?? ""
   const scripted = setupReply(turns)
-  if (scripted) return { text: scripted, mode: "guide", live: false }
+  if (scripted) return { text: omitBannedLine(scripted), mode: "guide", live: false }
 
   let websiteContext = ""
   const url = extractUrl(latest)
@@ -267,7 +269,7 @@ export async function respondToAva(
       }
     }
 
-    return { text, mode: chosen.mode, live: true, toolCalls }
+    return { text: omitBannedLine(text), mode: chosen.mode, live: true, toolCalls }
   } catch (error) {
     console.error("Ava provider unreachable", chosen.mode, error instanceof Error ? error.name : "error")
     return {

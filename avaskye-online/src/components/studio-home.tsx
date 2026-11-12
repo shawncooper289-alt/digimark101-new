@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useState, type FormEvent } from "react"
 import { visitorModeIntent } from "@/lib/appearance-command"
+import { omitBannedLine } from "@/lib/ava/banned-line"
 import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava-speech"
 import { AvaLiveCharacter } from "@/components/ava-live-character"
 
@@ -27,7 +28,7 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
   const [standing, setStanding] = useState(false)
   const [table, setTable] = useState<(typeof TABLES)[number]["href"]>(TABLES[0].href)
   const [prompt, setPrompt] = useState("")
-  const [reply, setReply] = useState("Tell me which table to run. I open it. I do not publish or save until you say yes.")
+  const [reply, setReply] = useState(omitBannedLine("Tell me which table to run. I open it. I do not publish or save until you say yes."))
   const [pending, setPending] = useState(false)
   const [draft, setDraft] = useState<{ name: string; email?: string; company?: string } | null>(null)
   const [voice, setVoice] = useState(true)

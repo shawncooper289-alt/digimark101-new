@@ -1,3 +1,4 @@
+import { omitBannedLine } from "@/lib/ava/banned-line"
 import { isNoRoadblock, NO_ROADBLOCK_NOTE, starterGrowthPlan } from "@/lib/onboarding/growth-plan"
 import { onboardingPatch } from "@/lib/onboarding/fields"
 import { site } from "@/lib/site"
@@ -478,7 +479,7 @@ function pack(
 ): PlaybookResult {
   const fields = finalizeFields(answers, planOverride)
   return {
-    text,
+    text: typeof text === "string" ? omitBannedLine(text) : text,
     save,
     outcomes,
     setup: {

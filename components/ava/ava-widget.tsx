@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 import { AvaAvatar } from "@/components/branding/ava-avatar"
+import { omitBannedLine } from "@/lib/ava/banned-line"
 import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava/speech"
 import { applySetupSnapshot, readSetupDraft } from "@/lib/onboarding/setup-draft"
 import { usePlatform } from "@/components/studio/platform-provider"
@@ -455,11 +456,11 @@ export function AvaWidget() {
       if (!response.ok || !data.text) throw new Error(data.error || "Ava could not answer.")
       if (data.setup) applySetupSnapshot(data.setup)
       if (data.fills) window.dispatchEvent(new CustomEvent("ava:fill", { detail: data.fills }))
-      let reply = data.text
+      let reply = omitBannedLine(data.text)
       if (data.clientActions?.length) {
         const detail = { actions: data.clientActions, summaries: [] as string[] }
         window.dispatchEvent(new CustomEvent("ava:client-actions", { detail }))
-        if (detail.summaries.length) reply = detail.summaries.join(" ")
+        if (detail.summaries.length) reply = omitBannedLine(detail.summaries.join(" "))
       }
       if (data.pendingActions?.length) setQueued(data.pendingActions)
       if (data.refresh) window.dispatchEvent(new Event("ava:refresh"))
