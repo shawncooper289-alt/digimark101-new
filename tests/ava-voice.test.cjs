@@ -92,6 +92,19 @@ test("the voice clone id replaces the premade voice on both sites", () => {
   }
 })
 
+test("openai speech falls back to the brain key and stays on coral", () => {
+  const main = load("lib/ava/tts.ts", mainImports)
+  const office = load("avaskye-online/src/lib/ava-tts.ts", officeImports)
+  for (const { ttsPlan } of [main, office]) {
+    const plan = ttsPlan("Hello Ava", { OPENAI_API_KEY: "brain-key", AVA_TTS_VOICE: "shimmer" })
+    const body = JSON.parse(plan.body)
+    assert.equal(plan.provider, "openai")
+    assert.equal(body.voice, "coral")
+    assert.equal(plan.headers.Authorization, "Bearer brain-key")
+    assert.equal(JSON.stringify(plan).includes("shimmer"), false)
+  }
+})
+
 test("older tts-1 requests omit instructions the model would reject", () => {
   const { ttsPlan } = load("lib/ava/tts.ts", mainImports)
   const body = JSON.parse(

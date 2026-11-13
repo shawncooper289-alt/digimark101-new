@@ -106,9 +106,7 @@ export function missingOfficeEnv() {
   if (!process.env.PAYPAL_CLIENT_ID?.trim()) missing.push("PAYPAL_CLIENT_ID")
   if (!process.env.PAYPAL_CLIENT_SECRET?.trim()) missing.push("PAYPAL_CLIENT_SECRET")
   if (!process.env.PAYPAL_WEBHOOK_ID?.trim()) missing.push("PAYPAL_WEBHOOK_ID")
-  if (!process.env.XAI_API_KEY?.trim() && !process.env.AVA_LLM_API_KEY?.trim() && !process.env.OPENAI_API_KEY?.trim()) {
-    missing.push("XAI_API_KEY")
-  }
+  if (!process.env.OPENAI_API_KEY?.trim()) missing.push("OPENAI_API_KEY")
   return missing
 }
 

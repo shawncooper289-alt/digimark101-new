@@ -629,7 +629,7 @@ export function AvaWidget() {
                   Ava Skye
                 </h2>
                 <p className="mt-1 text-xs text-ink-soft">
-                  {listening ? "Listening" : live === null ? "Studio assistant" : live ? "Live model" : "Studio guide"}
+                  {listening ? "Listening" : live === null ? "Studio assistant" : live ? "Connected" : notice ? "Not connected" : "Studio assistant"}
                 </p>
               </div>
             </div>

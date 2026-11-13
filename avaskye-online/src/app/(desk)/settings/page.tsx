@@ -1,7 +1,10 @@
 import { missingOfficeEnv, officeConfig } from "@/lib/office-store"
 import { readVisitorMode } from "@/lib/office-store"
 import { OfficeExperience } from "@/components/office-experience"
+import { OpenAiStatus } from "@/components/openai-status"
 import { casualLookFor } from "@/lib/casual-looks"
+
+export const dynamic = "force-dynamic"
 
 export default async function SettingsPage() {
   const missing = missingOfficeEnv()
@@ -12,6 +15,7 @@ export default async function SettingsPage() {
       <h1 className="text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Settings</h1>
       <p className="mt-3 max-w-2xl text-muted">The owner role is stamped when this mailbox signs in. Set OWNER_EMAIL to the founder mailbox, then sign in here. The server calls sync_owner_email, which writes app_metadata.role = owner. Customer accounts are not stamped.</p>
       <p className="mt-4 text-sm">{config.owner ? "Owner mailbox is set on this server." : "Owner mailbox is not set."}</p>
+      <OpenAiStatus />
       {missing.length ? (
         <div className="mt-6">
           <h2 className="text-2xl">Still unset</h2>

@@ -31,9 +31,9 @@ Dress codes:
 
 Spoken lines go to `POST /api/ava/speak` on each site. The key stays on the server. The browser's built-in voice is used only when that request fails.
 
-Default provider is OpenAI-compatible audio speech: model `gpt-4o-mini-tts`, voice `coral`. Coral is the closest built-in match for a warm, confident young-adult woman with a General American accent, medium pitch, and a moderate conversational pace. `AVA_TTS_INSTRUCTIONS` can replace that style. The AY-vuh pronunciation rule is still appended, so an override cannot drop it. `shimmer` is the other natural female option if you want a slightly softer tone.
+ElevenLabs is the main voice when `ELEVENLABS_API_KEY` and a voice id are set. The OpenAI fallback, including realtime, is model `gpt-4o-mini-tts` and voice `coral`. Coral is the built-in match for a warm, confident young-adult woman with a General American accent, medium pitch, and a moderate conversational pace. The voice stays coral even if `AVA_TTS_VOICE` is set to something else. `AVA_TTS_INSTRUCTIONS` can replace the speaking style. The AY-vuh pronunciation rule is still appended, so an override cannot drop it.
 
-If `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set, ElevenLabs is used instead. The voice id comes from that environment variable. It is not written into the code. `ELEVENLABS_VOICE_ID` is a temporary premade voice. When `AVA_VOICE_CLONE_ID` is set, that Instant Voice Clone is used instead. No code change is required.
+If `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set, ElevenLabs is used instead. The voice id comes from that environment variable. It is not written into the code. `ELEVENLABS_VOICE_ID` is a temporary premade voice. When `AVA_VOICE_CLONE_ID` is set, that Instant Voice Clone is used instead. No code change is required. If `AVA_TTS_API_KEY` is unset, OpenAI speech uses `OPENAI_API_KEY`.
 
 Her face in finished videos stays on the 2026-11-11 "Let's get started" clip (`AVA_AVATAR_ID`). Only a business outfit may change. See `docs/VIDEO.md`.
 

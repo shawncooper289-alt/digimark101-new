@@ -13,7 +13,7 @@ const rules = [
   { title: "She explains the work", body: "Services, packages, and the order we usually turn channels on." },
   { title: "She will not invent proof", body: "No client names, testimonials, or performance numbers that the studio has not published." },
   { title: "She does not press the buttons", body: "Ava does not send email, charge a card, or change an ad account from the chat." },
-  { title: "She has a fallback", body: "With an API key she uses a live model. Without one, she answers from the studio guide and the widget says which mode you are in." },
+  { title: "She does not guess", body: "When OpenAI is connected, she answers from that model. When it is not, she says so. She does not fill the gap with a made-up answer." },
 ]
 
 export default function AvaPage() {

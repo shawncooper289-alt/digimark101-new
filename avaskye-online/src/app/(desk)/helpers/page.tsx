@@ -1,6 +1,9 @@
 import { ConfirmButton } from "@/components/confirm-button"
+import { OpenAiStatus } from "@/components/openai-status"
 import { deskRows, text } from "@/lib/desk"
 import { MAX_HELPERS_AT_ONCE, OFFICE_HELPERS } from "@/lib/specialists"
+
+export const dynamic = "force-dynamic"
 
 export default async function HelpersPage() {
   const rows = await deskRows(
@@ -15,6 +18,7 @@ export default async function HelpersPage() {
         These six helpers work behind Ava. Clients never see them. They only see Ava and the draft. At most {MAX_HELPERS_AT_ONCE} run at the same time for one client. Anything beyond that waits in line. Nothing here sends mail, posts, or spends money.
       </p>
       <p className="mt-3 text-sm text-muted">Running in this list: {running}. The cap is {MAX_HELPERS_AT_ONCE} per client, even if this page shows work from more than one client.</p>
+      <OpenAiStatus />
       <ul className="mt-6 grid gap-3 md:grid-cols-2">
         {OFFICE_HELPERS.map((helper) => (
           <li key={helper.id} className="rounded-3xl border border-border bg-surface p-4">
