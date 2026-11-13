@@ -71,15 +71,20 @@ export function pickAvaVoice(): SpeechSynthesisVoice | null {
   return best && score(best) > 10 ? best : null
 }
 
-export function speakAva(text: string, onDone?: () => void) {
+export const DEVICE_VOICE_NOTE =
+  "This reply used this device's built-in voice, because Ava's studio voice was unavailable."
+
+export type OfficeSpeechResult = { status: "played" | "stopped" | "failed"; voice: "elevenlabs" | "openai" | "device" | "none" }
+
+export function speakAva(text: string, onDone?: () => void): Promise<OfficeSpeechResult> {
   const safe = omitBannedLine(text)
   const token = ++turn
   stopPlayback()
   if (typeof window === "undefined" || !safe.trim()) {
     emit(false)
-    return
+    return Promise.resolve({ status: "failed", voice: "none" })
   }
-  void speakFromServer(safe, token, onDone)
+  return speakFromServer(safe, token, onDone)
 }
 
 function stopPlayback() {
@@ -172,7 +177,7 @@ async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void) {
   }
 }
 
-async function speakFromServer(text: string, token: number, onDone?: () => void) {
+async function speakFromServer(text: string, token: number, onDone?: () => void): Promise<OfficeSpeechResult> {
   try {
     const response = await fetch("/api/ava/speak", {
       method: "POST",
@@ -180,22 +185,26 @@ async function speakFromServer(text: string, token: number, onDone?: () => void)
       body: JSON.stringify({ text }),
       signal: AbortSignal.timeout(20000),
     })
-    if (token !== turn) return
+    if (token !== turn) return { status: "stopped", voice: "none" }
     const type = response.headers.get("content-type") || ""
+    const header = (response.headers.get("x-ava-speech") || "").toLowerCase()
     if (response.ok && type.includes("audio")) {
       const bytes = await response.arrayBuffer()
-      if (token !== turn) return
-      if (bytes.byteLength > 64 && (await playMp3(bytes, token, onDone))) return
+      if (token !== turn) return { status: "stopped", voice: "none" }
+      const voice = header === "elevenlabs" ? "elevenlabs" : "openai"
+      if (bytes.byteLength > 64 && (await playMp3(bytes, token, onDone))) return { status: "played", voice }
     }
   } catch {
     // The device voice speaks this turn instead.
   }
-  if (token !== turn) return
-  speakInBrowser(text, token, onDone)
+  if (token !== turn) return { status: "stopped", voice: "none" }
+  return speakInBrowser(text, token, onDone)
+    ? { status: "played", voice: "device" }
+    : { status: "failed", voice: "none" }
 }
 
 function speakInBrowser(text: string, token: number, onDone?: () => void) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window) || !text.trim()) return
+  if (typeof window === "undefined" || !("speechSynthesis" in window) || !text.trim()) return false
   window.speechSynthesis.cancel()
   const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
@@ -255,4 +264,5 @@ function speakInBrowser(text: string, token: number, onDone?: () => void) {
       if (token === turn) start()
     }, 350)
   }
+  return true
 }

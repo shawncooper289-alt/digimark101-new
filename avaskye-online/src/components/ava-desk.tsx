@@ -2,8 +2,11 @@
 
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
+import { AvaSpeak } from "@/components/ava-speak"
 import { omitBannedLine } from "@/lib/ava/banned-line"
-import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava-speech"
+import { spokenCommand } from "@/lib/ava/voice-command"
+import { prepareAvaSpeech, stopAvaSpeech } from "@/lib/ava-speech"
+import { speakReply } from "@/lib/speak-reply"
 
 export function AvaDesk() {
   const router = useRouter()
@@ -12,40 +15,60 @@ export function AvaDesk() {
   const [pending, setPending] = useState(false)
   const [draft, setDraft] = useState<{ name: string; email?: string; company?: string } | null>(null)
   const [voice, setVoice] = useState(false)
+  const [deviceNote, setDeviceNote] = useState<string | null>(null)
 
-  function speak(line: string) {
-    if (!voice) return
-    speakAva(line)
+  function say(line: string, aloud = voice) {
+    return speakReply(omitBannedLine(line), aloud, setDeviceNote)
   }
 
-  async function send(event: FormEvent) {
-    event.preventDefault()
-    const content = text.trim()
-    if (!content) return
+  async function submit(content: string, aloud = false) {
+    const message = content.trim()
+    if (!message || pending) return
+    const command = draft ? spokenCommand(message) : null
+    if (command === "confirm") {
+      await confirm()
+      return
+    }
+    if (command === "discard") {
+      setDraft(null)
+      const next = "Discarded. Nothing was saved."
+      setReply(next)
+      await say(next, aloud || voice)
+      return
+    }
     prepareAvaSpeech()
     setPending(true)
     try {
       const response = await fetch("/api/office/guide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message }),
       })
       const data = (await response.json()) as { reply?: string; href?: string; draft?: { name: string; email?: string; company?: string }; error?: string }
       if (!response.ok) {
-        setReply(data.error || "I could not answer that.")
+        const next = data.error || "I could not answer that."
+        setReply(next)
+        await say(next, aloud || voice)
         return
       }
-      const nextReply = data.reply || "Done."
+      const nextReply = omitBannedLine(data.reply || "Done.")
       setReply(nextReply)
-      speak(nextReply)
       setDraft(data.draft ?? null)
       setText("")
       if (data.href) router.push(data.href)
+      await say(nextReply, aloud || voice)
     } catch {
-      setReply("I could not reach the office guide.")
+      const next = "I could not reach the office guide."
+      setReply(next)
+      await say(next, aloud || voice)
     } finally {
       setPending(false)
     }
+  }
+
+  function send(event: FormEvent) {
+    event.preventDefault()
+    void submit(text)
   }
 
   async function confirm() {
@@ -59,9 +82,9 @@ export function AvaDesk() {
         body: JSON.stringify({ action: "create_contact", confirmed: true, ...draft }),
       })
       const data = (await response.json()) as { error?: string }
-      const saved = response.ok ? `Saved ${draft.name} in the CRM.` : data.error || "Nothing was saved."
+      const saved = omitBannedLine(response.ok ? `Saved ${draft.name} in the CRM.` : data.error || "Nothing was saved.")
       setReply(saved)
-      if (response.ok) speak(saved)
+      if (response.ok) await say(saved, voice)
       if (response.ok) {
         setDraft(null)
         router.refresh()
@@ -81,20 +104,23 @@ export function AvaDesk() {
         <button type="submit" className="rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" disabled={pending || !text.trim()}>
           Ask
         </button>
+        <AvaSpeak disabled={pending} onText={(utterance) => submit(utterance, true)} />
         <button
           type="button"
           className="rounded-full border border-border px-4 py-2 text-sm"
           aria-pressed={voice}
+          aria-label={voice ? "Turn Ava's voice off" : "Turn Ava's voice on"}
           onClick={() => {
             const next = !voice
             setVoice(next)
             if (!next) stopAvaSpeech()
           }}
         >
-          Voice {voice ? "on" : "off"}
+          Sound {voice ? "on" : "off"}
         </button>
       </form>
       <p className="mx-auto mt-3 max-w-6xl text-sm text-muted">{reply}</p>
+      {deviceNote ? <p className="mx-auto mt-2 max-w-6xl text-xs text-muted">{deviceNote}</p> : null}
       {draft ? (
         <div className="mx-auto mt-3 flex max-w-6xl flex-wrap items-center gap-3 text-sm">
           <p>Draft contact: {draft.name}{draft.email ? ` · ${draft.email}` : ""}{draft.company ? ` · ${draft.company}` : ""}</p>

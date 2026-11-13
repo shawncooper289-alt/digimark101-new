@@ -131,9 +131,15 @@ async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void) {
   }
 }
 
-export async function speakAva(text: string, onDone?: () => void): Promise<"played" | "stopped" | "failed"> {
+export const DEVICE_VOICE_NOTE =
+  "This reply used this device's built-in voice, because Ava's studio voice was unavailable."
+
+export type AvaSpeechVoice = "elevenlabs" | "openai" | "device" | "none"
+export type AvaSpeechResult = { status: "played" | "stopped" | "failed"; voice: AvaSpeechVoice }
+
+export async function speakAva(text: string, onDone?: () => void): Promise<AvaSpeechResult> {
   const spoken = spokenText(omitBannedLine(text)).trim()
-  if (!spoken || typeof window === "undefined") return "failed"
+  if (!spoken || typeof window === "undefined") return { status: "failed", voice: "none" }
   const token = ++generation
   halt(true)
   try {
@@ -143,16 +149,20 @@ export async function speakAva(text: string, onDone?: () => void): Promise<"play
       body: JSON.stringify({ text: spoken }),
       signal: AbortSignal.timeout(20000),
     })
-    if (token !== generation) return "stopped"
+    if (token !== generation) return { status: "stopped", voice: "none" }
     const type = response.headers.get("content-type") || ""
+    const header = (response.headers.get("x-ava-speech") || "").toLowerCase()
     if (response.ok && type.includes("audio")) {
       const bytes = await response.arrayBuffer()
-      if (token !== generation) return "stopped"
-      if (bytes.byteLength > 64 && (await playMp3(bytes, token, onDone))) return "played"
+      if (token !== generation) return { status: "stopped", voice: "none" }
+      const voice: AvaSpeechVoice = header === "elevenlabs" ? "elevenlabs" : "openai"
+      if (bytes.byteLength > 64 && (await playMp3(bytes, token, onDone))) return { status: "played", voice }
     }
   } catch {
-    // Browser speech is the fallback when the server voice is unavailable.
+    // The device voice is the fallback when the studio voice is unavailable.
   }
-  if (token !== generation) return "stopped"
-  return speakInBrowser(spoken, onDone) ? "played" : "failed"
+  if (token !== generation) return { status: "stopped", voice: "none" }
+  return speakInBrowser(spoken, onDone)
+    ? { status: "played", voice: "device" }
+    : { status: "failed", voice: "none" }
 }
