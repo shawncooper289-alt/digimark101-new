@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { AVA_INTRO_BRIEF } from "@/lib/video/ava-intro"
 
 type Scene = {
   caption: string
@@ -79,6 +80,7 @@ type Brief = {
   attire: string
   brand: { primary: string; accent: string; font: string; logoUrl: string }
   scriptOverride: string
+  scenePlan: { visual: string; camera: string; transition: string }[]
 }
 
 const EMPTY: Brief = {
@@ -97,6 +99,7 @@ const EMPTY: Brief = {
   attire: "navy-blazer",
   brand: { primary: "#14181a", accent: "#cbb082", font: "Georgia", logoUrl: "" },
   scriptOverride: "",
+  scenePlan: [],
 }
 
 const input = "min-h-11 rounded-2xl border border-ink/15 bg-transparent px-3"
@@ -261,6 +264,7 @@ export function VideoMaker() {
           <label className="grid gap-1 text-sm"><span className="font-medium">Logo link</span><input className={input} placeholder="https://" value={brief.brand.logoUrl} onChange={(event) => patch({ brand: { ...brief.brand, logoUrl: event.target.value } })} /></label>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button className="btn btn-ghost" type="button" onClick={() => setBrief({ ...AVA_INTRO_BRIEF })}>Load the Meet Ava intro</button>
           <button className="btn btn-signal" type="submit" disabled={busy}>Write the script</button>
           <button className="btn btn-ghost" type="button" disabled={busy} onClick={() => void send("preview")}>Make a preview draft</button>
           <button className="btn btn-ghost" type="button" disabled={busy} onClick={() => { setPolls(0); void send("render") }}>Render a finished video</button>

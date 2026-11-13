@@ -17,6 +17,13 @@ export type BrandKit = {
   logoUrl: string
 }
 
+/** Optional per-sentence direction for a prepared storyboard. */
+export type SceneDirection = {
+  visual: string
+  camera: string
+  transition: string
+}
+
 export type VideoBrief = {
   title: string
   idea: string
@@ -33,6 +40,7 @@ export type VideoBrief = {
   attire: AttireId
   brand: BrandKit
   scriptOverride: string
+  scenePlan: SceneDirection[]
 }
 
 export type Scene = {

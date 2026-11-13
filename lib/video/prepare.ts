@@ -2,7 +2,7 @@ import { captionsSrt, captionsVtt } from "./captions"
 import { nextCuts, requestedSeconds, writeScript } from "./script"
 import { buildScenes, lengthNote } from "./storyboard"
 import { stripQualityOverrides } from "./quality"
-import { ASPECTS, ATTIRE, STYLES, type VideoBrief, type VideoProject } from "./types"
+import { ASPECTS, ATTIRE, STYLES, type SceneDirection, type VideoBrief, type VideoProject } from "./types"
 import { safeHttpsUrl, type TextTools } from "./text"
 import {
   avaAvatarId,
@@ -14,6 +14,22 @@ import {
   voiceLabel,
   type Env,
 } from "./providers"
+
+function readScenePlan(value: unknown): SceneDirection[] {
+  if (!Array.isArray(value)) return []
+  const plan: SceneDirection[] = []
+  for (const item of value) {
+    if (plan.length >= 50) break
+    if (!item || typeof item !== "object") continue
+    const row = item as Record<string, unknown>
+    const visual = textOf(row.visual, 600)
+    const camera = textOf(row.camera, 400)
+    const transition = textOf(row.transition, 400)
+    if (!visual && !camera && !transition) continue
+    plan.push({ visual, camera, transition })
+  }
+  return plan
+}
 
 function textOf(value: unknown, max: number) {
   return typeof value === "string" ? value.trim().slice(0, max) : ""
@@ -54,6 +70,7 @@ export function readBrief(input: unknown): { brief: VideoBrief; ignored: string[
       logoUrl: safeHttpsUrl(textOf(brandRaw.logoUrl, 300)),
     },
     scriptOverride: textOf(raw.scriptOverride, 8000),
+    scenePlan: readScenePlan(raw.scenePlan),
   }
   return { brief, ignored }
 }
