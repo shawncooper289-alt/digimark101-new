@@ -202,3 +202,68 @@ test("prompts keep the preview-sentence ban and do not hardcode a voice id", () 
   assert.match(intro, /dynasty gets built/)
   assert.equal(intro.includes(BANNED), false)
 })
+
+test("speech to text prefers ElevenLabs Scribe, then OpenAI, and drops the banned line", () => {
+  const transcript = load("lib/ava/transcript.ts", { "@/lib/ava/banned-line": banned })
+  const officeTranscript = load("avaskye-online/src/lib/ava/transcript.ts", { "@/lib/ava/banned-line": officeBanned })
+  const { transcribePlan, SCRIBE_MODEL, OPENAI_TRANSCRIBE_MODEL } = load("lib/ava/transcribe.ts", {
+    "@/lib/ava/transcript": transcript,
+  })
+  const officePlan = load("avaskye-online/src/lib/ava/transcribe.ts", {
+    "@/lib/ava/transcript": officeTranscript,
+  }).transcribePlan
+  assert.equal(transcript.transcriptText(`Hello Ava. ${BANNED}`), "Hello Ava.")
+  assert.equal(transcript.transcriptText(BANNED), "")
+  assert.equal(transcript.transcriptText("Add a contact named Jordan Lee"), "Add a contact named Jordan Lee")
+  assert.equal(officeTranscript.transcriptText(BANNED), "")
+  const eleven = transcribePlan({ ELEVENLABS_API_KEY: "eleven-key", OPENAI_API_KEY: "brain-key" })
+  assert.equal(eleven.provider, "elevenlabs")
+  assert.equal(eleven.url, "https://api.elevenlabs.io/v1/speech-to-text")
+  assert.equal(eleven.model, SCRIBE_MODEL)
+  assert.equal(eleven.headers["xi-api-key"], "eleven-key")
+  const openai = transcribePlan({ OPENAI_API_KEY: "brain-key" })
+  assert.equal(openai.provider, "openai")
+  assert.equal(openai.url, "https://api.openai.com/v1/audio/transcriptions")
+  assert.equal(openai.model, OPENAI_TRANSCRIBE_MODEL)
+  assert.equal(openai.headers.Authorization, "Bearer brain-key")
+  assert.equal(transcribePlan({}), null)
+  assert.equal(officePlan({ ELEVENLABS_API_KEY: "eleven-key" }).model, SCRIBE_MODEL)
+  const { spokenCommand } = load("lib/ava/voice-command.ts")
+  assert.equal(spokenCommand("Yes."), "confirm")
+  assert.equal(spokenCommand("save it"), "confirm")
+  assert.equal(spokenCommand("no"), "discard")
+  assert.equal(spokenCommand("Open the pipeline"), null)
+  assert.equal(
+    fs.readFileSync("lib/ava/transcript.ts", "utf8"),
+    fs.readFileSync("avaskye-online/src/lib/ava/transcript.ts", "utf8"),
+  )
+  assert.equal(
+    fs.readFileSync("lib/ava/transcribe.ts", "utf8"),
+    fs.readFileSync("avaskye-online/src/lib/ava/transcribe.ts", "utf8"),
+  )
+  assert.equal(
+    fs.readFileSync("lib/ava/voice-command.ts", "utf8"),
+    fs.readFileSync("avaskye-online/src/lib/ava/voice-command.ts", "utf8"),
+  )
+})
+
+test("the floating widget shows Ava's hands in Studio and can be spoken to", () => {
+  const widget = fs.readFileSync("components/ava/ava-widget.tsx", "utf8")
+  assert.match(widget, /ava-float-full\.png/)
+  assert.match(widget, /AVATAR_W = 121/)
+  assert.match(widget, /AVATAR_H = 142/)
+  assert.match(widget, /startsWith\("\/studio"\)/)
+  assert.match(widget, /Speak to Ava/)
+  assert.match(widget, /Hands-free/)
+  assert.match(widget, /aria-live="polite"/)
+  assert.match(widget, /DEVICE_VOICE_NOTE/)
+  assert.equal(widget.includes("/media/ava-float.png"), false)
+  assert.equal(widget.includes("AVATAR_W = 148"), false)
+  const office = fs.readFileSync("avaskye-online/src/components/ava-float.tsx", "utf8")
+  assert.match(office, /w-\[4\.1rem\]/)
+  assert.match(office, /object-contain object-bottom/)
+  assert.match(office, /<AvaSpeak/)
+  const note = "This reply used this device's built-in voice, because Ava's studio voice was unavailable."
+  assert.equal(fs.readFileSync("lib/ava/speech.ts", "utf8").includes(note), true)
+  assert.equal(fs.readFileSync("avaskye-online/src/lib/ava-speech.ts", "utf8").includes(note), true)
+})

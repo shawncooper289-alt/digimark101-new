@@ -2,9 +2,12 @@
 
 import { useRouter } from "next/navigation"
 import { useEffect, useState, type FormEvent } from "react"
+import { AvaSpeak } from "@/components/ava-speak"
 import { visitorModeIntent } from "@/lib/appearance-command"
 import { omitBannedLine } from "@/lib/ava/banned-line"
-import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava-speech"
+import { spokenCommand } from "@/lib/ava/voice-command"
+import { prepareAvaSpeech, stopAvaSpeech } from "@/lib/ava-speech"
+import { speakReply } from "@/lib/speak-reply"
 import { AvaLiveCharacter } from "@/components/ava-live-character"
 
 const TABLES = [
@@ -32,6 +35,7 @@ export function StudioHome({ counts, keyRejected = false }: { counts: { label: s
   const [pending, setPending] = useState(false)
   const [draft, setDraft] = useState<{ name: string; email?: string; company?: string } | null>(null)
   const [voice, setVoice] = useState(true)
+  const [deviceNote, setDeviceNote] = useState<string | null>(null)
   const current = TABLES.find((item) => item.href === table) ?? TABLES[0]
 
   useEffect(() => {
@@ -41,8 +45,8 @@ export function StudioHome({ counts, keyRejected = false }: { counts: { label: s
       .catch(() => undefined)
   }, [])
 
-  function speak(line: string) {
-    if (voice) speakAva(line)
+  function speak(line: string, aloud = voice) {
+    return speakReply(omitBannedLine(line), aloud, setDeviceNote)
   }
 
   async function setVisitorMode(next: boolean) {
@@ -60,17 +64,29 @@ export function StudioHome({ counts, keyRejected = false }: { counts: { label: s
         return
       }
       setVisitors(Boolean(data.visitorMode))
-      const nextReply = data.reply || (next ? "Professional outfit is on." : "Back to today’s look.")
+      const nextReply = omitBannedLine(data.reply || (next ? "Professional outfit is on." : "Back to today’s look."))
       setReply(nextReply)
-      speak(nextReply)
+      await speak(nextReply)
     } finally {
       setPending(false)
     }
   }
 
-  async function ask(message: string) {
+  async function ask(message: string, aloud = false) {
     const content = message.trim()
-    if (!content) return
+    if (!content || pending) return
+    const command = draft ? spokenCommand(content) : null
+    if (command === "confirm") {
+      await confirmDraft()
+      return
+    }
+    if (command === "discard") {
+      setDraft(null)
+      const next = "Discarded. Nothing was saved."
+      setReply(next)
+      await speak(next, aloud || voice)
+      return
+    }
     prepareAvaSpeech()
     const appearance = visitorModeIntent(content)
     if (appearance !== null) {
@@ -95,9 +111,9 @@ export function StudioHome({ counts, keyRejected = false }: { counts: { label: s
         setReply(data.error || "I could not run that.")
         return
       }
-      const nextReply = data.reply || "Done."
+      const nextReply = omitBannedLine(data.reply || "Done.")
       setReply(nextReply)
-      speak(nextReply)
+      await speak(nextReply, aloud || voice)
       setDraft(data.draft ?? null)
       setPrompt("")
       if (data.href) router.push(data.href)
@@ -119,9 +135,9 @@ export function StudioHome({ counts, keyRejected = false }: { counts: { label: s
         body: JSON.stringify({ action: "create_contact", confirmed: true, ...draft }),
       })
       const data = (await response.json()) as { error?: string }
-      const saved = response.ok ? `Saved ${draft.name} in the CRM.` : data.error || "Nothing was saved."
+      const saved = omitBannedLine(response.ok ? `Saved ${draft.name} in the CRM.` : data.error || "Nothing was saved.")
       setReply(saved)
-      if (response.ok) speak(saved)
+      if (response.ok) await speak(saved)
       if (response.ok) {
         setDraft(null)
         router.refresh()
@@ -188,6 +204,7 @@ export function StudioHome({ counts, keyRejected = false }: { counts: { label: s
               <button type="submit" className="rounded-full bg-accent px-4 py-2.5 text-sm text-accent-fg" disabled={pending}>
                 {pending ? "Working" : "Ask Ava"}
               </button>
+              <AvaSpeak disabled={pending} onText={(utterance) => ask(utterance, true)} />
               <button type="button" className="rounded-full border border-border bg-bg/60 px-4 py-2.5 text-sm" onClick={() => router.push(current.href)}>
                 Open {current.label}
               </button>
@@ -201,17 +218,19 @@ export function StudioHome({ counts, keyRejected = false }: { counts: { label: s
                 type="button"
                 className="rounded-full border border-border bg-bg/60 px-4 py-2.5 text-sm"
                 aria-pressed={voice}
+                aria-label={voice ? "Turn Ava's voice off" : "Turn Ava's voice on"}
                 onClick={() => {
                   const next = !voice
                   setVoice(next)
                   if (!next) stopAvaSpeech()
                 }}
               >
-                Voice {voice ? "on" : "off"}
+                Sound {voice ? "on" : "off"}
               </button>
             </div>
           </form>
           <p className="max-w-3xl text-sm">{reply}</p>
+          {deviceNote ? <p className="max-w-3xl text-xs text-muted">{deviceNote}</p> : null}
           {draft ? (
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <p>

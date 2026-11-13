@@ -30,7 +30,7 @@ export default function AvaPage() {
             <AvaAvatar size="xl" showOnlineIndicator />
             <p className="mt-6 font-serif text-4xl">Ask her before you write the form.</p>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              Turn Voice on and she speaks her replies, then listens. Typing works in every browser, including when the microphone is unavailable.
+              Tap Speak and talk. She answers out loud. Hands-free keeps the conversation going until you tap Stop. Typing still works.
             </p>
             <OpenAvaButton className="btn btn-signal mt-6">Open Ava</OpenAvaButton>
           </div>

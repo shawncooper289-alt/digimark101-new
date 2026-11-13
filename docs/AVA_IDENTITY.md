@@ -19,6 +19,7 @@ Reference images:
 - `/media/ava-brand.jpg` — primary portrait
 - `/media/ava-digital-presence.jpg` — professional alternate
 - `/media/ava-city.jpg` — skyline portrait
+- `/media/ava-float-full.png` — floating Studio widget. Same person, tailored blazer, upper body with both hands in the frame
 
 She is a woman with long dark wavy hair, a warm complexion, defined brows, and a steady expression, photographed in a dark studio.
 

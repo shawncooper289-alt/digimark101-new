@@ -25,7 +25,8 @@ export const AVA_IDENTITY = {
     realtimeVoice: "coral",
   },
   referenceImages: [
-    { src: "/media/ava-brand.jpg", use: "Primary portrait. Hero, widget, and avatar." },
+    { src: "/media/ava-brand.jpg", use: "Primary portrait for marketing pages." },
+    { src: "/media/ava-float-full.png", use: "Floating Studio widget. Same person, tailored blazer, upper body with both hands in frame." },
     { src: "/media/ava-digital-presence.jpg", use: "Same person, navy blazer, alternate professional crop." },
     { src: "/media/ava-city.jpg", use: "Same person against the evening skyline." },
   ],

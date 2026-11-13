@@ -1,8 +1,10 @@
 "use client"
 
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react"
+import { AvaSpeak } from "@/components/ava-speak"
 import { omitBannedLine } from "@/lib/ava/banned-line"
-import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava-speech"
+import { prepareAvaSpeech, stopAvaSpeech } from "@/lib/ava-speech"
+import { speakReply } from "@/lib/speak-reply"
 
 const RELAXED = [
   { id: "satin", src: "/ava/float-satin.png", label: "Black satin" },
@@ -38,6 +40,7 @@ export function AvaFloat() {
   const [point, setPoint] = useState<Point | null>(null)
   const [voiceOn, setVoiceOn] = useState(true)
   const [textOnly, setTextOnly] = useState(false)
+  const [deviceNote, setDeviceNote] = useState<string | null>(null)
   const dragRef = useRef<{ pointerId: number; originX: number; originY: number; startX: number; startY: number; moved: boolean } | null>(null)
   const historyRef = useRef(history)
   const look = officeLook(visitor)
@@ -69,14 +72,6 @@ export function AvaFloat() {
   }, [])
 
   useEffect(() => {
-    if (!open || !voiceOn || textOnly || !reply) {
-      stopAvaSpeech()
-      return
-    }
-    speakAva(reply)
-  }, [reply, voiceOn, textOnly, open])
-
-  useEffect(() => {
     function onStart(event: Event) {
       prepareAvaSpeech()
       const detail = (event as CustomEvent<{ email?: string }>).detail
@@ -94,9 +89,10 @@ export function AvaFloat() {
       })
         .then((response) => response.json())
         .then((data: { reply?: string; error?: string }) => {
-          const next = data.reply || data.error || "What should I call you?"
+          const next = omitBannedLine(data.reply || data.error || "What should I call you?")
           setReply(next)
           setHistory((prev) => [...prev, starterTurn, { role: "assistant" as const, content: next }].slice(-8))
+          void speakReply(next, true, setDeviceNote)
         })
         .catch(() => setReply("I missed that. Try again?"))
         .finally(() => setPending(false))
@@ -156,30 +152,38 @@ export function AvaFloat() {
     }
     prepareAvaSpeech()
     setOpen(true)
+    if (voiceOn && !textOnly) void speakReply(reply, true, setDeviceNote)
   }
 
-  async function send(event: FormEvent) {
-    event.preventDefault()
-    const content = text.trim()
-    if (!content || pending) return
+  async function submit(content: string, aloud = false) {
+    const message = content.trim()
+    if (!message || pending) return
     prepareAvaSpeech()
     setPending(true)
     try {
       const response = await fetch("/api/office/guide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content, history }),
+        body: JSON.stringify({ message, history }),
       })
       const data = (await response.json()) as { reply?: string; error?: string }
-      const next = response.ok ? data.reply || "Okay." : data.error || "I didn't catch that."
+      const next = omitBannedLine(response.ok ? data.reply || "Okay." : data.error || "I didn't catch that.")
       setReply(next)
-      setHistory((prev) => [...prev, { role: "user" as const, content }, { role: "assistant" as const, content: next }].slice(-8))
+      setHistory((prev) => [...prev, { role: "user" as const, content: message }, { role: "assistant" as const, content: next }].slice(-8))
       if (response.ok) setText("")
+      await speakReply(next, aloud || (voiceOn && !textOnly), setDeviceNote)
     } catch {
-      setReply("I couldn't reach the desk. Try again in a second.")
+      const next = "I couldn't reach the desk. Try again in a second."
+      setReply(next)
+      await speakReply(next, aloud || (voiceOn && !textOnly), setDeviceNote)
     } finally {
       setPending(false)
     }
+  }
+
+  function send(event: FormEvent) {
+    event.preventDefault()
+    void submit(text)
   }
 
   function silence() {
@@ -206,6 +210,8 @@ export function AvaFloat() {
           </div>
         </div>
         <p className="text-sm text-muted">{reply}</p>
+        {deviceNote ? <p className="text-xs">{deviceNote}</p> : null}
+        <AvaSpeak disabled={pending} onText={(utterance) => submit(utterance, true)} />
         <form className="flex gap-2" onSubmit={send}>
           <label className="sr-only" htmlFor="ava-float-help">Ask Ava</label>
           <input id="ava-float-help" value={text} onChange={(event) => setText(event.target.value)} placeholder="Answer or ask anything" className="min-w-0 flex-1 rounded-full border border-border bg-transparent px-3 py-2.5 text-base" />
@@ -218,14 +224,14 @@ export function AvaFloat() {
   return (
     <button
       type="button"
-      className={`fixed z-50 w-20 cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing sm:w-24 md:w-28 ${point ? "" : "bottom-[max(0.5rem,env(safe-area-inset-bottom))] right-2"}`}
+      className={`fixed z-50 w-[4.1rem] cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing sm:w-[4.9rem] md:w-[5.75rem] ${point ? "" : "bottom-[max(0.5rem,env(safe-area-inset-bottom))] right-2"}`}
       style={placed}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       aria-label={`Ask Ava for help. Drag to move her. She is in ${look.label}.`}
     >
-      <img src={look.src} alt="" draggable={false} className="pointer-events-none h-auto w-full drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]" />
+      <img src={look.src} alt="" draggable={false} className="pointer-events-none block h-auto w-full object-contain object-bottom drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]" />
     </button>
   )
 }

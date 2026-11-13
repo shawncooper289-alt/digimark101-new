@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { avaIntroScript } from "@/lib/ava/intro"
-import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava/speech"
+import { DEVICE_VOICE_NOTE, prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava/speech"
 
 export function AvaIntroButton() {
   const [playing, setPlaying] = useState(false)
@@ -22,9 +22,11 @@ export function AvaIntroButton() {
     setError(null)
     setPlaying(true)
     void speakAva(avaIntroScript, () => setPlaying(false)).then((result) => {
-      if (result === "failed") {
+      if (result.status === "failed") {
         setPlaying(false)
         setError("This browser cannot play the introduction. The words are written below.")
+      } else if (result.voice === "device") {
+        setError(DEVICE_VOICE_NOTE)
       }
     })
   }

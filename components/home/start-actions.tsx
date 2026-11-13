@@ -4,7 +4,7 @@ import { OpenAvaButton } from "@/components/ava/open-ava-button"
 export function StartActions({ compact = false }: { compact?: boolean }) {
   const size = compact ? "" : "text-base"
   return (
-    <div className="flex flex-col gap-3 max-sm:pr-40 sm:flex-row sm:flex-wrap">
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
       <Link href="/signup" className={`btn btn-signal w-full sm:w-auto ${size}`}>
         Create your account
       </Link>

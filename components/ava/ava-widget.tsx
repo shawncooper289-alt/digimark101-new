@@ -1,11 +1,13 @@
 "use client"
 
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 import { AvaAvatar } from "@/components/branding/ava-avatar"
+import { useDictate } from "@/components/ava/use-dictate"
 import { omitBannedLine } from "@/lib/ava/banned-line"
-import { prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava/speech"
+import { DEVICE_VOICE_NOTE, prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava/speech"
+import { spokenCommand } from "@/lib/ava/voice-command"
 import { applySetupSnapshot, readSetupDraft } from "@/lib/onboarding/setup-draft"
 import { usePlatform } from "@/components/studio/platform-provider"
 import { rosterFrom, type Action } from "@/lib/platform/types"
@@ -20,8 +22,8 @@ const SUGGESTIONS = [
   "Add a contact named Jordan Lee",
 ]
 
-const AVATAR_W = 148
-const AVATAR_H = 268
+const AVATAR_W = 121
+const AVATAR_H = 142
 
 function MessageText({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s<]+)/g)
@@ -44,41 +46,14 @@ function MessageText({ text }: { text: string }) {
   )
 }
 
-function speechInputSupported() {
-  return typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
-}
-
-function useSpeechInput() {
-  return useSyncExternalStore(
-    () => () => {},
-    speechInputSupported,
-    () => false,
+function MicIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5 11a7 7 0 0 0 14 0" />
+      <path d="M12 18v3" />
+    </svg>
   )
-}
-
-type RecognitionLike = {
-  lang: string
-  interimResults: boolean
-  continuous: boolean
-  onresult: ((event: { resultIndex: number; results: ArrayLike<{ 0: { transcript: string }; isFinal: boolean }> }) => void) | null
-  onerror: ((event: { error?: string }) => void) | null
-  onend: (() => void) | null
-  start: () => void
-  stop: () => void
-}
-
-function getRecognition(): RecognitionLike | null {
-  const browser = window as Window & {
-    SpeechRecognition?: new () => RecognitionLike
-    webkitSpeechRecognition?: new () => RecognitionLike
-  }
-  const Ctor = browser.SpeechRecognition || browser.webkitSpeechRecognition
-  if (!Ctor) return null
-  const recognition = new Ctor()
-  recognition.lang = "en-US"
-  recognition.interimResults = true
-  recognition.continuous = false
-  return recognition
 }
 
 function visibleFields() {
@@ -168,7 +143,7 @@ function voiceSnapshot(id: string) {
   }
   const cached = voiceCache.get(id)
   if (cached?.raw === raw) return cached.value
-  const value = raw === "1"
+  const value = raw !== "0"
   voiceCache.set(id, { raw, value })
   return value
 }
@@ -198,30 +173,19 @@ function writeVoice(id: string, next: boolean) {
   emitPrefs()
 }
 
-function subscribeViewport(callback: () => void) {
-  window.addEventListener("resize", callback)
-  return () => window.removeEventListener("resize", callback)
-}
-
-let viewportSig = "0x0"
-function viewportSnapshot() {
-  const next = `${window.innerWidth}x${window.innerHeight}`
-  if (next === viewportSig) return viewportSig
-  viewportSig = next
-  return viewportSig
-}
-
 export function AvaWidget() {
   const titleId = useId()
+  const liveId = useId()
   const router = useRouter()
+  const pathname = usePathname()
+  const showBubble = pathname.startsWith("/studio")
   const platform = usePlatform()
-  const canListen = useSpeechInput()
   const identity = identityKey(platform.email)
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState("")
   const [pending, setPending] = useState(false)
-  const [listening, setListening] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
+  const [deviceNote, setDeviceNote] = useState<string | null>(null)
   const [live, setLive] = useState<boolean | null>(null)
   const [messages, setMessages] = useState<Turn[]>([])
   const [queued, setQueued] = useState<Action[] | null>(null)
@@ -229,28 +193,33 @@ export function AvaWidget() {
   const readAnchor = useCallback(() => anchorSnapshot(identity), [identity])
   const readVoice = useCallback(() => voiceSnapshot(identity), [identity])
   const storedAnchor = useSyncExternalStore(subscribePrefs, readAnchor, () => null)
-  const voice = useSyncExternalStore(subscribePrefs, readVoice, () => false)
-  const viewportKey = useSyncExternalStore(subscribeViewport, viewportSnapshot, () => "0x0")
+  const voice = useSyncExternalStore(subscribePrefs, readVoice, () => true)
+  const [viewportKey, setViewportKey] = useState("0x0")
+  useEffect(() => {
+    const update = () => setViewportKey(`${window.innerWidth}x${window.innerHeight}`)
+    update()
+    window.addEventListener("resize", update)
+    return () => window.removeEventListener("resize", update)
+  }, [])
   const [viewportWidth, viewportHeight] = viewportKey.split("x").map((part) => Number(part))
   const anchor = dragAnchor?.id === identity ? dragAnchor.point : storedAnchor
   const scroller = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const recognitionRef = useRef<RecognitionLike | null>(null)
   const sendRef = useRef<(text: string, source?: "voice" | "typed") => Promise<void>>(async () => {})
-  const speakRef = useRef<(text: string) => void>(() => {})
-  const voiceModeRef = useRef<(next: boolean) => void>(() => {})
+  const speakRef = useRef<(text: string) => Promise<void>>(async () => {})
   const messagesRef = useRef<Turn[]>([])
   const voiceRef = useRef(false)
   const openRef = useRef(false)
   const pendingRef = useRef(false)
-  const holdListen = useRef(false)
-  const typingRef = useRef(false)
-  const listeningRef = useRef(false)
-  const silenceRef = useRef(0)
   const identityRef = useRef(identity)
   const anchorRef = useRef<Anchor | null>(null)
-  const startListenRef = useRef<() => void>(() => {})
-  const stopListenRef = useRef<() => void>(() => {})
+  const queuedRef = useRef<Action[] | null>(null)
+  const dictate = useDictate(async (text) => {
+    await sendRef.current(text, "voice")
+  })
+  const dictateRef = useRef(dictate)
+  dictateRef.current = dictate
+  queuedRef.current = queued
   const dragRef = useRef<{
     pointerId: number
     originX: number
@@ -260,116 +229,69 @@ export function AvaWidget() {
     moved: boolean
   } | null>(null)
 
-  function shouldListen() {
-    return voiceRef.current && openRef.current && !pendingRef.current && !holdListen.current && !typingRef.current
-  }
-
-  function stopListen() {
-    listeningRef.current = false
-    recognitionRef.current?.stop()
-    recognitionRef.current = null
-    setListening(false)
-  }
-
-  function startListen() {
-    if (!shouldListen() || listeningRef.current) return
-    const recognition = getRecognition()
-    if (!recognition) {
-      setNotice("This browser cannot use the microphone. Type your message instead.")
-      return
-    }
-    let heard = false
-    recognitionRef.current = recognition
-    listeningRef.current = true
-    recognition.onresult = (event) => {
-      let transcript = ""
-      let final = false
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        transcript += event.results[index]?.[0]?.transcript ?? ""
-        final = event.results[index]?.isFinal ?? final
-      }
-      setDraft(transcript)
-      if (final && transcript.trim()) {
-        heard = true
-        silenceRef.current = 0
-        void sendRef.current(transcript, "voice")
-      }
-    }
-    recognition.onerror = (event) => {
-      listeningRef.current = false
-      setListening(false)
-      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-        holdListen.current = true
-        setNotice("Microphone is blocked. Type your message instead.")
-      }
-    }
-    recognition.onend = () => {
-      listeningRef.current = false
-      recognitionRef.current = null
-      setListening(false)
-      if (heard || !shouldListen()) return
-      if (silenceRef.current >= 1) {
-        setNotice("Listening paused. Type a message, or press Listen.")
-        return
-      }
-      silenceRef.current += 1
-      window.setTimeout(() => startListen(), 280)
-    }
-    try {
-      recognition.start()
-      setListening(true)
-    } catch {
-      listeningRef.current = false
-      setListening(false)
-    }
-  }
-
-  function speak(text: string) {
-    if (!voiceRef.current || !text.trim()) {
-      holdListen.current = false
-      if (shouldListen()) startListen()
-      return
-    }
-    holdListen.current = true
-    stopListen()
+  function speakAndWait(text: string, fromVoice: boolean) {
+    if (!voiceRef.current || !text.trim()) return Promise.resolve()
+    dictateRef.current.pause()
     prepareAvaSpeech()
-    const resume = () => {
-      holdListen.current = false
-      if (shouldListen()) startListen()
-    }
-    void speakAva(text, resume).then((result) => {
-      if (result === "failed") resume()
+    return new Promise<void>((resolve) => {
+      let settled = false
+      const finish = () => {
+        if (settled) return
+        settled = true
+        if (!fromVoice) dictateRef.current.resume()
+        resolve()
+      }
+      void speakAva(text, finish).then((result) => {
+        if (result.voice === "device") setDeviceNote(DEVICE_VOICE_NOTE)
+        else if (result.status === "played") setDeviceNote(null)
+        if (result.status !== "played") finish()
+      })
     })
+  }
+
+  async function confirmQueued() {
+    const actions = queuedRef.current
+    if (!actions?.length) return
+    prepareAvaSpeech()
+    try {
+      const summaries: string[] = []
+      for (const action of actions) summaries.push(await platform.run(action))
+      setQueued(null)
+      const reply = omitBannedLine(summaries.join(" ") || "Saved.")
+      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: reply }])
+      window.dispatchEvent(new Event("ava:refresh"))
+      await speakAndWait(reply, false)
+    } catch {
+      const reply = "I could not save that draft. Nothing was changed."
+      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: reply }])
+      await speakAndWait(reply, false)
+    }
+  }
+
+  function discardQueued() {
+    setQueued(null)
+    const reply = "Discarded. Nothing was saved."
+    setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: reply }])
+    void speakAndWait(reply, false)
   }
 
   useEffect(() => {
     const onOpen = () => {
       setOpen(true)
       openRef.current = true
-      if (voiceRef.current) startListenRef.current()
     }
     const onAsk = (event: Event) => {
       const text = String((event as CustomEvent<string>).detail || "set up my account").trim()
       setOpen(true)
       openRef.current = true
-      const chosen = (() => {
-        try {
-          const stored = window.localStorage.getItem(voiceKey(identityRef.current))
-          return stored === "0" || stored === "1"
-        } catch {
-          return false
-        }
-      })()
-      if (!chosen) voiceModeRef.current(true)
       const history = messagesRef.current
       const started = history.some((item) => item.role === "user" && /set up my account|setup my account|just talk with ava/i.test(item.content))
       if (started && history.some((item) => item.role === "assistant")) {
         const last = [...history].reverse().find((item) => item.role === "assistant")
-        if (last) speakRef.current(last.content)
-        else if (voiceRef.current) startListenRef.current()
+        if (last) void speakRef.current(last.content)
         return
       }
-      if (text) void sendRef.current(text, voiceRef.current ? "voice" : "typed")
+      if (text) void sendRef.current(text, "typed")
     }
     window.addEventListener("ava:open", onOpen)
     window.addEventListener("ava:ask", onAsk)
@@ -386,19 +308,15 @@ export function AvaWidget() {
     voiceRef.current = voice
     messagesRef.current = messages
     sendRef.current = send
-    speakRef.current = speak
-    voiceModeRef.current = setVoiceMode
-    startListenRef.current = startListen
-    stopListenRef.current = stopListen
+    speakRef.current = (text) => speakAndWait(text, false)
   })
 
   useEffect(() => {
     if (!open) {
-      stopListenRef.current()
+      dictateRef.current.stop()
       stopAvaSpeech()
       return
     }
-    if (!voiceRef.current) inputRef.current?.focus()
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false)
     }
@@ -408,11 +326,10 @@ export function AvaWidget() {
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight })
-  }, [messages, pending, open])
+  }, [messages, pending, open, dictate.live])
 
   useEffect(() => {
     return () => {
-      recognitionRef.current?.stop()
       stopAvaSpeech()
     }
   }, [])
@@ -420,10 +337,17 @@ export function AvaWidget() {
   async function send(text: string, source: "voice" | "typed" = "typed") {
     const content = text.trim()
     if (!content || pendingRef.current) return
+    const command = queuedRef.current?.length ? spokenCommand(content) : null
+    if (command) {
+      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "user", content }])
+      setDraft("")
+      if (command === "confirm") await confirmQueued()
+      else discardQueued()
+      return
+    }
     prepareAvaSpeech()
     pendingRef.current = true
-    holdListen.current = true
-    stopListen()
+    dictateRef.current.pause()
     const nextMessages = [...messages, { id: crypto.randomUUID(), role: "user" as const, content }]
     setMessages(nextMessages)
     setDraft("")
@@ -470,19 +394,13 @@ export function AvaWidget() {
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: reply }])
       pendingRef.current = false
       setPending(false)
-      speak(reply)
+      await speakAndWait(reply, source === "voice")
     } catch {
       pendingRef.current = false
-      holdListen.current = false
       setPending(false)
-      setMessages((current) => [
-        ...current,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: "I could not reach the studio assistant just now. Please try again, or email hello@digimark101.com.",
-        },
-      ])
+      const reply = "I could not reach the studio assistant just now. Please try again, or email hello@digimark101.com."
+      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: reply }])
+      await speakAndWait(reply, source === "voice")
     }
   }
 
@@ -490,28 +408,47 @@ export function AvaWidget() {
     voiceRef.current = next
     writeVoice(identityRef.current, next)
     if (!next) {
-      holdListen.current = false
+      dictateRef.current.stop()
       stopAvaSpeech()
-      stopListen()
       setNotice(null)
       return
     }
-    silenceRef.current = 0
-    holdListen.current = false
     prepareAvaSpeech()
-    setNotice(canListen ? "Voice is on. Ava will speak, then listen. You can still type." : "Voice can play replies here. This browser has no microphone, so type instead.")
-    if (openRef.current) startListen()
+    setNotice("Sound is on. Tap Speak and talk. You can still type.")
   }
 
   function openChat() {
     prepareAvaSpeech()
     setOpen(true)
     openRef.current = true
-    if (voiceRef.current) {
-      silenceRef.current = 0
-      holdListen.current = false
-      startListen()
+  }
+
+  function onSpeak() {
+    if (!voiceRef.current) setVoiceMode(true)
+    prepareAvaSpeech()
+    if (dictate.phase === "listening") {
+      dictate.finish()
+      return
     }
+    void dictate.start()
+  }
+
+  function onHandsFree() {
+    const next = !dictate.handsFree
+    if (next && !voiceRef.current) setVoiceMode(true)
+    prepareAvaSpeech()
+    dictate.setHandsFree(next)
+    if (next) {
+      void dictate.start()
+      return
+    }
+    if (dictate.phase === "listening") dictate.finish()
+    else dictate.stop()
+  }
+
+  function onStop() {
+    dictate.stop()
+    stopAvaSpeech()
   }
 
   function onPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
@@ -585,13 +522,25 @@ export function AvaWidget() {
     return { left, top, width, height }
   }
 
+  const listening = dictate.phase === "listening"
+  const liveLine =
+    dictate.phase === "listening"
+      ? dictate.live
+        ? `Heard: ${dictate.live}`
+        : "Listening…"
+      : dictate.phase === "transcribing"
+        ? "Turning speech into text…"
+        : ""
+
+  if (!open && !showBubble) return null
+
   return (
     <>
-      {open ? null : (
+      {open || !showBubble ? null : (
         <button
           type="button"
           className={`ava-float fixed z-50 cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing ${
-            anchor ? "" : "bottom-3 right-3"
+            anchor ? "" : "right-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))]"
           }`}
           style={anchor ? { left: anchor.x, top: anchor.y, width: AVATAR_W, height: AVATAR_H } : { width: AVATAR_W, height: AVATAR_H }}
           onPointerDown={onPointerDown}
@@ -603,12 +552,12 @@ export function AvaWidget() {
           aria-label="Ask Ava for help. Drag to move her."
         >
           <Image
-            src="/media/ava-float.png"
+            src="/media/ava-float-full.png"
             alt=""
             draggable={false}
-            width={477}
-            height={866}
-            className="pointer-events-none h-full w-full object-contain drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]"
+            width={712}
+            height={836}
+            className="pointer-events-none h-full w-full object-contain object-center drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]"
           />
         </button>
       )}
@@ -618,18 +567,18 @@ export function AvaWidget() {
           role="dialog"
           aria-modal="false"
           aria-labelledby={titleId}
-          className="fixed inset-x-3 bottom-3 z-50 flex h-[min(680px,calc(100dvh-1.5rem))] flex-col overflow-hidden rounded-3xl border border-signal/25 bg-card shadow-[0_0_40px_rgba(203,176,130,0.16)] sm:inset-auto"
+          className="fixed inset-x-3 bottom-3 z-50 flex h-[min(680px,calc(100dvh-1.5rem))] flex-col overflow-hidden rounded-3xl border border-signal/25 bg-card shadow-[0_0_40px_rgba(203,176,130,0.16)] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[400px]"
           style={viewportWidth >= 640 ? panelStyle() : undefined}
         >
           <header className="flex items-center justify-between gap-3 border-b border-ink/10 bg-pine px-4 py-3 text-ink">
             <div className="flex items-center gap-3">
-              <AvaAvatar size="md" showOnlineIndicator isAnimated={pending || listening} />
+              <AvaAvatar size="md" showOnlineIndicator isAnimated={pending || dictate.phase !== "idle"} />
               <div>
                 <h2 id={titleId} className="font-serif text-xl leading-none">
                   Ava Skye
                 </h2>
                 <p className="mt-1 text-xs text-ink-soft">
-                  {listening ? "Listening" : live === null ? "Studio assistant" : live ? "Connected" : notice ? "Not connected" : "Studio assistant"}
+                  {listening ? "Listening" : dictate.phase === "transcribing" ? "Hearing you" : live === null ? "Studio assistant" : live ? "Connected" : notice ? "Not connected" : "Studio assistant"}
                 </p>
               </div>
             </div>
@@ -642,7 +591,7 @@ export function AvaWidget() {
             {messages.length === 0 ? (
               <div>
                 <p className="text-sm leading-relaxed text-ink-soft">
-                  Ask about a channel, a package, or how to brief the studio. I will not invent a client result.
+                  Tap Speak and talk, or type. Ask about a channel, a package, or how to brief the studio. I will not invent a client result.
                 </p>
                 <div className="mt-4 grid gap-2">
                   {SUGGESTIONS.map((suggestion) => (
@@ -672,40 +621,19 @@ export function AvaWidget() {
             {pending ? <p className="text-sm text-ink-soft">Ava is thinking…</p> : null}
             {queued ? (
               <div className="rounded-2xl border border-ink/10 bg-mist p-3">
-                <p className="text-sm text-ink">This stays a draft until you confirm it.</p>
+                <p className="text-sm text-ink">This stays a draft until you confirm it. You can say yes, or tap Confirm save.</p>
                 <div className="mt-2 flex gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-signal"
-                    onClick={() => {
-                      prepareAvaSpeech()
-                      void (async () => {
-                        try {
-                          const summaries: string[] = []
-                          for (const action of queued) summaries.push(await platform.run(action))
-                          setQueued(null)
-                          const reply = summaries.join(" ") || "Saved."
-                          setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: reply }])
-                          window.dispatchEvent(new Event("ava:refresh"))
-                          speak(reply)
-                        } catch {
-                          setMessages((current) => [
-                            ...current,
-                            { id: crypto.randomUUID(), role: "assistant", content: "I could not save that draft. Nothing was changed." },
-                          ])
-                        }
-                      })()
-                    }}
-                  >
+                  <button type="button" className="btn btn-signal" onClick={() => void confirmQueued()}>
                     Confirm save
                   </button>
-                  <button type="button" className="btn btn-ghost" onClick={() => setQueued(null)}>
+                  <button type="button" className="btn btn-ghost" onClick={discardQueued}>
                     Discard
                   </button>
                 </div>
               </div>
             ) : null}
             {notice ? <p className="text-xs leading-relaxed text-signal">{notice}</p> : null}
+            {deviceNote ? <p className="text-xs leading-relaxed text-signal">{deviceNote}</p> : null}
           </div>
 
           <form
@@ -724,12 +652,10 @@ export function AvaWidget() {
               value={draft}
               rows={2}
               onFocus={() => {
-                typingRef.current = true
-                stopListen()
+                dictateRef.current.pause()
               }}
               onBlur={(event) => {
-                typingRef.current = false
-                if (!event.currentTarget.value.trim() && shouldListen()) startListen()
+                if (!event.currentTarget.value.trim() && dictate.handsFree) dictateRef.current.resume()
               }}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
@@ -738,55 +664,60 @@ export function AvaWidget() {
                   void send(draft)
                 }
               }}
-              placeholder="Type a message, or use voice"
+              placeholder="Type a message, or tap Speak"
               className="w-full resize-none rounded-2xl border border-ink/15 bg-mist px-3 py-2 text-sm text-ink outline-none"
             />
+            <p id={liveId} className="mt-2 min-h-5 text-xs text-ink" role="status" aria-live="polite">
+              {liveLine}
+            </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-signal"
+                aria-pressed={listening}
+                aria-label={listening ? "Done talking" : "Speak to Ava"}
+                aria-describedby={liveId}
+                disabled={pending || dictate.phase === "transcribing"}
+                onClick={onSpeak}
+              >
+                <MicIcon />
+                {listening ? "Done" : dictate.phase === "transcribing" ? "Hearing…" : "Speak"}
+              </button>
+              <button
+                type="button"
+                className={`btn ${dictate.handsFree ? "btn-signal" : "btn-ghost"}`}
+                aria-pressed={dictate.handsFree}
+                aria-label={dictate.handsFree ? "Turn hands-free off" : "Start hands-free conversation"}
+                onClick={onHandsFree}
+              >
+                {dictate.handsFree ? "Hands-free on" : "Hands-free"}
+              </button>
+              {listening || dictate.handsFree || dictate.phase === "transcribing" ? (
+                <button type="button" className="btn btn-ink" aria-label="Stop Ava and stop the microphone" onClick={onStop}>
+                  Stop
+                </button>
+              ) : null}
               <button
                 type="button"
                 role="switch"
                 aria-checked={voice}
-                className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold ${
+                aria-label={voice ? "Turn Ava's voice off" : "Turn Ava's voice on"}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold ${
                   voice ? "border-signal bg-signal text-[#14110c]" : "border-ink/20 text-ink"
                 }`}
                 onClick={() => setVoiceMode(!voice)}
               >
                 <span className={`h-2.5 w-2.5 rounded-full ${voice ? "bg-[#14110c]" : "bg-ink-soft"}`} aria-hidden="true" />
-                Voice {voice ? "on" : "off"}
+                Sound {voice ? "on" : "off"}
               </button>
-              <button type="submit" className="btn btn-signal" disabled={pending || !draft.trim()}>
+              <button type="submit" className="btn btn-ghost" disabled={pending || !draft.trim()}>
                 Send
               </button>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => {
-                  prepareAvaSpeech()
-                  if (listening) {
-                    stopListen()
-                    return
-                  }
-                  silenceRef.current = 0
-                  holdListen.current = false
-                  if (!voiceRef.current) setVoiceMode(true)
-                  else startListen()
-                }}
-                disabled={!canListen}
-                aria-pressed={listening}
-              >
-                {listening ? "Stop listening" : "Listen"}
-              </button>
             </div>
+            {dictate.note ? <p className="mt-2 text-xs leading-relaxed text-signal">{dictate.note}</p> : null}
             <p className="mt-2 text-xs text-ink-soft">
-              {voice
-                ? "Voice is a conversation: Ava speaks her replies and listens for yours. Typing still works."
-                : "Voice is off. Type a message, or turn voice on for a spoken back-and-forth."}
+              Tap Speak and talk. You do not have to type. Hands-free lets Ava answer, then listen again, until you tap Stop.
             </p>
-            {canListen ? null : (
-              <p className="mt-2 text-xs text-ink-soft">
-                The microphone needs a browser with the Web Speech API, such as Chrome or Edge. Typing works everywhere.
-              </p>
-            )}
           </form>
         </section>
       ) : null}
