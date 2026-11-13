@@ -16,6 +16,7 @@ const routes: { phrase: RegExp; href: string; label: string }[] = [
   { phrase: /\bcrm\b|\bcontacts?\b/, href: "/crm", label: "CRM" },
   { phrase: /\bpipeline\b|\bdeals?\b/, href: "/pipeline", label: "Pipeline" },
   { phrase: /\bautomations?\b/, href: "/automations", label: "Automations" },
+  { phrase: /\bhelpers?\b|\bspecialists?\b/, href: "/helpers", label: "Helpers" },
   { phrase: /\b(invoices?|expenses?|records?|legal)\b/, href: "/records", label: "Records" },
   { phrase: /\bbilling\b|\bpaypal\b|\bsubscriptions?\b/, href: "/billing", label: "Billing" },
   { phrase: /\bclients?\b|\bworkspaces?\b/, href: "/clients", label: "Clients" },
@@ -127,6 +128,7 @@ Operator functions (always active on this desk):
 - Lead and pipeline hygiene flags.
 - Voice and look consistency check before any draft.
 - Multi-client morning view when he asks for the day or the desk.
+- Hidden helpers: up to 6 internal helpers can draft at once for a client (copy, social, ads, website, follow-up, research). A seventh job waits. Clients never see the helpers. Shawn reviews them on the Helpers page. Speak to him about them in plain words. Never mention them on the customer site.
 
 ${avaSkillBrief()}
 

@@ -25,6 +25,7 @@ const links = [
   { href: "/feedback", label: "Beta notes" },
   { href: "/reports", label: "Reports" },
   { href: "/tools", label: "Tools" },
+  { href: "/helpers", label: "Helpers" },
   { href: "/settings", label: "Settings" },
 ]
 

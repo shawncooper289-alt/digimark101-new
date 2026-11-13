@@ -138,7 +138,11 @@ export function AccountSetup() {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">Account setup</p>
       <h1 className="display mt-2 text-4xl md:text-5xl">Let&apos;s set this up the easy way.</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
-        Two ways. Fill in the form, or just talk with Ava. You can switch whenever you want, and your answers stay put. Nothing is saved until you look it over and confirm.
+        Two ways. Fill in the form, or just talk with Ava. You can switch whenever you want, and your answers stay put. Nothing is saved until you look it over and confirm. Apps and automatic notes live on their own page, with a clear label when something is not connected yet.
+      </p>
+
+      <p className="mt-4 text-sm">
+        <Link href="/studio/apps" className="font-semibold text-signal underline">See every app and automatic note</Link>
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2" role="group" aria-label="How do you want to set up your account">

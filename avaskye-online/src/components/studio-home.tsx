@@ -22,7 +22,7 @@ const TABLES = [
   { href: "/settings", label: "Settings" },
 ] as const
 
-export function StudioHome({ counts }: { counts: { label: string; value: number | null }[] }) {
+export function StudioHome({ counts, keyRejected = false }: { counts: { label: string; value: number | null }[]; keyRejected?: boolean }) {
   const router = useRouter()
   const [visitors, setVisitors] = useState(false)
   const [standing, setStanding] = useState(false)
@@ -151,6 +151,11 @@ export function StudioHome({ counts }: { counts: { label: string; value: number 
           </p>
         </div>
         <div className="grid max-w-5xl gap-3 rounded-3xl border border-white/15 bg-bg/70 p-3 backdrop-blur-sm sm:gap-4 sm:p-4">
+          {keyRejected ? (
+            <p className="rounded-2xl border border-border bg-bg/60 px-3 py-2 text-sm text-fg/90">
+              The office database key was not accepted, so these counts use your sign-in. On the avaskye.online project in Vercel, set SUPABASE_SECRET_KEY to the secret key for Supabase project sdjbvdujcmfmdjfolmhv. A key from a different project will keep failing.
+            </p>
+          ) : null}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
             {counts.map((item) => (
               <p key={item.label} className="rounded-2xl border border-border bg-bg/40 px-2 py-1.5 sm:px-3 sm:py-2">
