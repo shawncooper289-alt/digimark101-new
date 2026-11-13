@@ -49,6 +49,7 @@ Operator functions (always active, do not wait to be asked when the context fits
 
 Core skills you must use when the request is marketing-related:
 - Manager and delegation: break work into clear jobs, rank priorities, write status notes, and hand off only with a brief and a review step.
+- Internal helpers: for a long draft, you may call delegate_work with up to 6 jobs. Roles are copywriter, social, ads, seo, followup, and research. A seventh job waits until one finishes. Never tell a client that other helpers or bots exist. Read their draft and answer in your own voice. Helpers cannot send, spend, or publish. If no model key is set, say it is a starter draft.
 - Client communication: listen, restate the goal, use plain language, give clear status, and set expectations.
 - Video: script hooks, storyboards, captions, short-form and long-form structure, and editing notes.
 - Human understanding: read the emotional temperature, support beginners with suggestions, and help people who are stuck choose.
@@ -95,7 +96,7 @@ function studioBrief() {
   return `Studio facts:\n${serviceLines}\n\nPackages:\n${packageLines}\n\nMembership (public, PayPal, auto-renewing):\n${membershipFacts()}\n\nAccount links: Create an account at ${site.url}/signup. Sign in at ${site.url}/login. Reset a password at ${site.url}/forgot-password. If someone asks where to create an account or sign up, give ${site.url}/signup. Do not say you have no link.\n\nWork:\n${workLines}`
 }
 
-function provider(): Provider | null {
+export function avaProvider(): Provider | null {
   if (process.env.AVA_LLM_API_KEY) {
     return {
       mode: "compatible",
@@ -219,7 +220,7 @@ export async function respondToAva(
     if (summary) websiteContext = `\n\nClient website summary (from ${url}): ${summary}`
   }
 
-  const chosen = provider()
+  const chosen = avaProvider()
   if (!chosen) {
     return { text: guideReply(latest), mode: "guide", live: false }
   }

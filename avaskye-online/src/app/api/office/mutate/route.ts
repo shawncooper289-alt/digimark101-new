@@ -63,6 +63,16 @@ export async function POST(request: Request) {
     return NextResponse.json(saved.ok ? { ok: true } : { error: "The deal was not moved." }, { status: saved.ok ? 200 : 503 })
   }
 
+  if (action === "cancel_specialist_task") {
+    const id = typeof body.id === "string" ? body.id : ""
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.json({ error: "That helper job is not valid." }, { status: 400 })
+    const saved = await rest(`specialist_tasks?id=eq.${id}&status=eq.queued`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "cancelled", finished_at: new Date().toISOString() }),
+    })
+    return NextResponse.json(saved.ok ? { ok: true } : { error: "That waiting job was not cancelled." }, { status: saved.ok ? 200 : 503 })
+  }
+
   if (action === "set_automation") {
     const id = typeof body.id === "string" ? body.id : ""
     if (!/^[0-9a-f-]{36}$/i.test(id) || typeof body.enabled !== "boolean") return NextResponse.json({ error: "That automation change is not valid." }, { status: 400 })

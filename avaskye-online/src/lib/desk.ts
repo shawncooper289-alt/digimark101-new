@@ -1,5 +1,6 @@
 import { cookies } from "next/headers"
-import { missingOfficeEnv, officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-store"
+import { chooseDeskHeaders } from "@/lib/desk-auth"
+import { missingOfficeEnv, officeConfig, readOfficeOwner } from "@/lib/office-store"
 
 type Row = Record<string, unknown>
 
@@ -9,19 +10,53 @@ export async function requireOwner() {
   return owner
 }
 
-async function headers() {
-  const { service, anon } = officeConfig()
-  if (service) return supabaseKeyHeaders(service)
+let serviceState: "unknown" | "ok" | "rejected" = "unknown"
+let serviceDecision: Promise<void> | null = null
+
+export function deskKeyRejected() {
+  return serviceState === "rejected"
+}
+
+async function ownerAccess() {
   const raw = (await cookies()).get("ava_office")?.value
-  if (raw && anon) {
-    try {
-      const bag = JSON.parse(raw) as { access?: string }
-      if (bag.access) return { apikey: anon, Authorization: `Bearer ${bag.access}` }
-    } catch {
-      // Fall through to the public key. The table read then fails closed.
-    }
+  if (!raw) return ""
+  try {
+    const bag = JSON.parse(raw) as { access?: string }
+    return bag.access || ""
+  } catch {
+    return ""
   }
-  return supabaseKeyHeaders(anon)
+}
+
+async function headers() {
+  const { url, service, anon } = officeConfig()
+  if (!serviceDecision) {
+    serviceDecision = (async () => {
+      const choice = await chooseDeskHeaders({
+        url,
+        service,
+        anon,
+        ownerAccess: await ownerAccess(),
+        serviceState,
+        probe: async (probeHeaders) => {
+          if (!url) return 401
+          const response = await fetch(`${url}/rest/v1/`, { headers: probeHeaders, cache: "no-store" })
+          return response.status
+        },
+      })
+      serviceState = choice.serviceState
+    })()
+  }
+  await serviceDecision
+  const choice = await chooseDeskHeaders({
+    url,
+    service,
+    anon,
+    ownerAccess: await ownerAccess(),
+    serviceState,
+    probe: async () => (serviceState === "rejected" ? 401 : 200),
+  })
+  return choice.headers
 }
 
 export async function deskCount(table: string, filter = "") {
@@ -83,15 +118,15 @@ export async function deskSnapshot() {
     deskCount("subscriptions"),
     deskCount("lead_orders"),
   ])
-  return { premium, staging, rejected, contacts, deals, automations, subscriptions, orders, missing: missingOfficeEnv() }
+  return { premium, staging, rejected, contacts, deals, automations, subscriptions, orders, missing: missingOfficeEnv(), keyRejected: deskKeyRejected() }
 }
 
 export async function deskInsert(table: string, row: Record<string, unknown>) {
-  const { url, service, configured } = officeConfig()
-  if (!configured || !service) return false
+  const { url, configured } = officeConfig()
+  if (!configured || !url) return false
   const response = await fetch(`${url}/rest/v1/${table}`, {
     method: "POST",
-    headers: supabaseKeyHeaders(service, { "Content-Type": "application/json", Prefer: "return=minimal" }),
+    headers: { ...(await headers()), "Content-Type": "application/json", Prefer: "return=minimal" },
     body: JSON.stringify(row),
     cache: "no-store",
   })

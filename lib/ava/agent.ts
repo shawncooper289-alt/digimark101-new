@@ -3,6 +3,8 @@ import { sanitizeSetupDraft, setupResult, type SetupDraftInput, type SetupSnapsh
 import { onboardingPatch } from "@/lib/onboarding/fields"
 import { upsertClientOnboarding } from "@/lib/onboarding/save-row"
 import { respondToAva, type ChatTurn } from "@/lib/ava/respond"
+import { runSpecialistJobs } from "@/lib/ava/specialist-run"
+import { jobsFromRequest, normalizeJobs } from "@/lib/ava/specialists"
 import { setOwnerVisitorMode } from "@/lib/office/appearance"
 import { visitorModeIntent, visitorModeReply } from "@/lib/office/intent"
 import { isOwnerIdentity } from "@/lib/owner/access"
@@ -44,6 +46,7 @@ const toolDefs = [
   { type: "function", function: { name: "request_backend", description: "Request a white-label backend. Nothing is created until the person confirms, and no project is created when management credentials are missing.", parameters: { type: "object", properties: { name: { type: "string" }, region: { type: "string" } }, required: ["name"] } } },
   { type: "function", function: { name: "navigate", description: "Open a page in this product.", parameters: { type: "object", properties: { href: { type: "string" } }, required: ["href"] } } },
   { type: "function", function: { name: "fill_form", description: "Fill visible form fields. Do not save. Ask one short question if a required field is missing.", parameters: { type: "object", properties: { name: { type: "string" }, email: { type: "string" }, company: { type: "string" }, website: { type: "string" }, phone: { type: "string" }, message: { type: "string" }, title: { type: "string" }, headline: { type: "string" }, brief: { type: "string" }, region: { type: "string" }, site: { type: "string" } } } } },
+  { type: "function", function: { name: "delegate_work", description: "Hand specialized drafts to internal helpers. Never mention the helpers to a client. At most 6 run at once; extra jobs wait.", parameters: { type: "object", properties: { jobs: { type: "array", items: { type: "object", properties: { role: { type: "string", enum: ["copywriter", "social", "ads", "seo", "followup", "research"] }, brief: { type: "string" } }, required: ["role", "brief"] } } }, required: ["jobs"] } } },
 ]
 
 function str(value: unknown) {
@@ -240,18 +243,53 @@ export async function answerAva(input: {
 
   const model = await respondToAva(input.turns, {
     tools: user ? toolDefs : undefined,
-    extra: `Workspace roster, which is the only set of names and counts you may cite:\n${JSON.stringify(roster ?? { contacts: [], deals: [], appointments: [], campaigns: [], memory: [] })}\nVisible form fields: ${input.pageFields.join(", ") || "none"}.\nYou may call tools to prepare this client's workspace. Never invent clients, revenue, or campaign results. Campaign, site, and record tools return drafts. Nothing is saved until the person confirms.`,
+    extra: `Workspace roster, which is the only set of names and counts you may cite:\n${JSON.stringify(roster ?? { contacts: [], deals: [], appointments: [], campaigns: [], memory: [] })}\nVisible form fields: ${input.pageFields.join(", ") || "none"}.\nYou may call tools to prepare this client's workspace. Never invent clients, revenue, or campaign results. Campaign, site, and record tools return drafts. Nothing is saved until the person confirms. delegate_work is internal. Do not name those helpers in the reply.`,
   })
 
-  if (!model.toolCalls?.length || !user) {
+  const delegatedJobs = !model.live ? jobsFromRequest(latest) : []
+  for (const call of model.toolCalls ?? []) {
+    if (call.function.name !== "delegate_work") continue
+    try {
+      const args = JSON.parse(call.function.arguments) as { jobs?: unknown }
+      delegatedJobs.push(...normalizeJobs(args.jobs))
+    } catch {
+      // Ignore a helper brief that is not valid JSON.
+    }
+  }
+
+  let delegatedText = ""
+  let delegatedPending: Action[] = []
+  if (delegatedJobs.length) {
+    const outcome = await runSpecialistJobs({
+      ownerId: user?.id ?? null,
+      jobs: delegatedJobs.slice(0, 12),
+      context: `Roster names only: ${JSON.stringify(roster ?? { contacts: [], deals: [], appointments: [], campaigns: [], memory: [] })}`,
+    })
+    delegatedText = outcome.queued
+      ? `${outcome.text}\n\nThe rest is lined up and will be ready shortly. I will bring it back in my own words.`
+      : outcome.text
+    delegatedPending = outcome.pending
+  }
+
+  const otherCalls = (model.toolCalls ?? []).filter((call) => call.function.name !== "delegate_work")
+  if (!otherCalls.length && !delegatedText) {
     return { text: model.text, mode: model.mode, live: model.live, notice: model.notice }
+  }
+  if (!otherCalls.length) {
+    return {
+      text: delegatedText || model.text,
+      mode: model.mode,
+      live: model.live,
+      notice: model.notice,
+      pendingActions: delegatedPending.length ? delegatedPending : undefined,
+    }
   }
 
   const fills: Record<string, string> = {}
   let navigate: string | undefined
   const summaries: string[] = []
-  const pendingActions: Action[] = []
-  for (const call of model.toolCalls) {
+  const pendingActions: Action[] = user ? [...delegatedPending] : []
+  for (const call of otherCalls) {
     let args: Record<string, unknown> = {}
     try {
       args = JSON.parse(call.function.arguments) as Record<string, unknown>
@@ -278,7 +316,7 @@ export async function answerAva(input: {
     navigate = navigate || draft.navigate
   }
 
-  const text = [model.text, ...summaries].filter(Boolean).join("\n\n")
+  const text = [delegatedText || model.text, ...summaries].filter(Boolean).join("\n\n")
   return {
     text: text || "Here is the draft. Confirm it before I save anything.",
     mode: model.mode,

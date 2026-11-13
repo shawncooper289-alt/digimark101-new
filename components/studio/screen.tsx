@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useAvaForm } from "@/components/ava/use-ava-form"
+import { CatalogBoard } from "@/components/studio/catalog-board"
 import { usePlatform } from "@/components/studio/platform-provider"
 import type { Action, Stage } from "@/lib/platform/types"
 
@@ -27,7 +28,7 @@ const copy: Record<StudioSection, { title: string; lede: string }> = {
   inbox: { title: "Inbox", lede: "Notes and automation logs. External email and SMS are not connected yet." },
   campaigns: { title: "Email", lede: "Campaign drafts, including email. Creating one does not send it." },
   sites: { title: "Funnels", lede: "A record of a site or funnel. The visual builder is a later phase, so nothing here is published." },
-  automations: { title: "Automations", lede: "A small set of triggers that run inside this workspace." },
+  automations: { title: "Automations", lede: "Rules that run inside this workspace. The list below turns on a note or a memory. Anything marked coming soon on Apps does not send mail or post for you." },
   reports: { title: "Reports", lede: "Counts of your own rows. These are not benchmarks and not client results." },
   files: { title: "Files", lede: "Files are stored in your own private folder. Other clients cannot read them." },
   memory: { title: "Memory", lede: "Facts Ava keeps for this client. They are not shared with any other login." },
@@ -210,7 +211,9 @@ function Sites({ onSubmit, rows }: { onSubmit: (action: Action) => Promise<void>
 
 function Automations({ onSubmit, rows }: { onSubmit: (action: Action) => Promise<void>; rows: { id: string; name: string; trigger: string; action: string; enabled: boolean }[] }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+    <div className="grid gap-8">
+      <CatalogBoard showApps={false} />
+      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       <RecordForm
         fields={["name", "trigger", "action"]}
         onSubmit={(values) =>
@@ -223,6 +226,7 @@ function Automations({ onSubmit, rows }: { onSubmit: (action: Action) => Promise
         }
       />
       <List empty="No automations." rows={rows.map((row) => ({ id: row.id, title: row.name, meta: `${row.trigger} → ${row.action}` }))} />
+      </div>
     </div>
   )
 }

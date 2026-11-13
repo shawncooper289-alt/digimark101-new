@@ -13,5 +13,5 @@ export default async function TodayPage() {
     { label: "Plans", value: snap.subscriptions },
     { label: "Orders", value: snap.orders },
   ]
-  return <StudioHome counts={counts} />
+  return <StudioHome counts={counts} keyRejected={snap.keyRejected} />
 }
