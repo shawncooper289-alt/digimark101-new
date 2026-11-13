@@ -77,6 +77,21 @@ test("elevenlabs is preferred when its key and voice are set", () => {
   assert.equal(body.model_id, "eleven_multilingual_v2")
 })
 
+test("the voice clone id replaces the premade voice on both sites", () => {
+  const main = load("lib/ava/tts.ts", mainImports)
+  const office = load("avaskye-online/src/lib/ava-tts.ts", officeImports)
+  for (const { ttsPlan } of [main, office]) {
+    const plan = ttsPlan("Hello Ava", {
+      ELEVENLABS_API_KEY: "eleven-key",
+      ELEVENLABS_VOICE_ID: "premade-bella",
+      AVA_VOICE_CLONE_ID: "clone-from-env",
+    })
+    assert.match(plan.url, /clone-from-env/)
+    assert.equal(plan.url.includes("premade-bella"), false)
+    assert.equal(plan.url.includes("hpp4J3VqNfWAUOO0d1Us"), false)
+  }
+})
+
 test("older tts-1 requests omit instructions the model would reject", () => {
   const { ttsPlan } = load("lib/ava/tts.ts", mainImports)
   const body = JSON.parse(

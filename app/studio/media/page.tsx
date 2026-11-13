@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { MediaLibrary } from "@/components/studio/media-library"
 
 export default function Page() {
@@ -5,7 +6,7 @@ export default function Page() {
     <section>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">Studio</p>
       <h1 className="display mt-2 text-4xl md:text-5xl">Media library</h1>
-      <p className="mt-3 max-w-2xl text-ink-soft">Reusable images, videos, and documents. Link any item to a campaign.</p>
+      <p className="mt-3 max-w-2xl text-ink-soft">Reusable images, videos, and documents. Link any item to a campaign. To make a video, open the <Link className="underline" href="/studio/video">video maker</Link>.</p>
       <div className="mt-8">
         <MediaLibrary />
       </div>

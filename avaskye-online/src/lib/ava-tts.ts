@@ -51,7 +51,8 @@ export function ttsPlan(text: string, env: Env = process.env): {
   const spoken = spokenForTts(text)
   if (!spoken) return null
   const elevenKey = env.ELEVENLABS_API_KEY?.trim()
-  const elevenVoice = env.ELEVENLABS_VOICE_ID?.trim()
+  // AVA_VOICE_CLONE_ID is the permanent Instant Voice Clone. It wins over the temporary premade voice.
+  const elevenVoice = env.AVA_VOICE_CLONE_ID?.trim() || env.ELEVENLABS_VOICE_ID?.trim()
   if (elevenKey && elevenVoice) {
     return {
       provider: "elevenlabs" as const,
