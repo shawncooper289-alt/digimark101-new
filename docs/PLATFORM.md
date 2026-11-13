@@ -29,8 +29,8 @@ Without Supabase keys, the studio opens in a preview that stays in this browser.
 1. [Supabase](https://supabase.com): create a project. In the SQL editor run `supabase/migrations/20261015_platform.sql`. Run `supabase/migrations/20261015_leads.sql` as well if you want the public contact form to store inquiries. The older `initial_schema.sql` is optional and is not used by the studio screens.
 2. In Supabase Auth, decide whether new emails must be confirmed. The signup screen explains both outcomes.
 3. In Vercel, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Set `SUPABASE_SERVICE_ROLE_KEY` for lead intake, the lead qualifier, and PayPal webhooks. Do not use the service role for ordinary studio reads. It bypasses row-level security. Raw lead emails stay in `lead_private_contacts`, which anon and authenticated roles cannot read.
-4. For live Ava, set one model key: `XAI_API_KEY` (default model `grok-4.7`), or `OPENAI_API_KEY` (default `gpt-4o-mini`), or `AVA_LLM_API_KEY` with `AVA_LLM_BASE_URL` and `AVA_LLM_MODEL`. With no key, Ava still runs the studio commands she recognizes and fills forms from what she hears.
-5. Chat speech: no account. Allow the microphone in the browser. Optional homepage recording: `AVA_TTS_API_KEY`, plus `AVA_TTS_BASE_URL`, `AVA_TTS_MODEL`, and `AVA_TTS_VOICE` if you are not using OpenAI's defaults.
+4. For live Ava, set `OPENAI_API_KEY` on the customer site and on the office project. Optional `OPENAI_MODEL` defaults to `gpt-4o-mini`. With no key, Ava still runs the studio commands she recognizes and fills forms from what she hears. Open questions get a clear "not connected" reply. She does not guess.
+5. Chat speech: no account. Allow the microphone in the browser. ElevenLabs is the main voice when its key and voice id are set. OpenAI speech is the fallback and always uses the voice coral. It uses `AVA_TTS_API_KEY`, or `OPENAI_API_KEY` when that speech key is unset.
 
 ## Later phases
 

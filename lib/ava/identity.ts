@@ -22,6 +22,7 @@ export const AVA_IDENTITY = {
     browserRate: 1,
     ttsModel: "gpt-4o-mini-tts",
     ttsVoice: "coral",
+    realtimeVoice: "coral",
   },
   referenceImages: [
     { src: "/media/ava-brand.jpg", use: "Primary portrait. Hero, widget, and avatar." },

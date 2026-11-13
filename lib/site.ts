@@ -489,7 +489,7 @@ export const posts: JournalPost[] = [
     blocks: [
       {
         type: "p",
-        text: "Ava Skye is DigiMark101's studio assistant. On this website she answers questions about the work, the packages, and how to start. With an API key she answers from a live model. Without one, she answers from a studio guide so the page still helps.",
+        text: "Ava Skye is DigiMark101's studio assistant. On this website she answers questions about the work, the packages, and how to start. She answers through OpenAI when that connection is on. If it is off, she says so and does not guess.",
       },
       { type: "h2", text: "Give her a job, a reader, and a limit" },
       {

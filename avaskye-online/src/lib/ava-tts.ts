@@ -65,10 +65,11 @@ export function ttsPlan(text: string, env: Env = process.env): {
       }),
     }
   }
-  const key = env.AVA_TTS_API_KEY?.trim()
+  const key = env.AVA_TTS_API_KEY?.trim() || env.OPENAI_API_KEY?.trim()
   if (!key) return null
   const model = env.AVA_TTS_MODEL?.trim() || DEFAULT_TTS_MODEL
-  const voice = env.AVA_TTS_VOICE?.trim() || DEFAULT_TTS_VOICE
+  // OpenAI platform voice is always coral, for speech and for realtime.
+  const voice = DEFAULT_TTS_VOICE
   const payload: Record<string, string> = { model, voice, input: spoken, response_format: "mp3" }
   if (supportsInstructions(model)) payload.instructions = ttsInstructions(env)
   const base = (env.AVA_TTS_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "")

@@ -35,7 +35,7 @@ export function Coach() {
   }
 
   return <form onSubmit={submit}>
-    <p className="status">Grok-powered planning for signed-in accounts. Responses are suggestions, not completed actions. <Link href="/account">Account / sign in</Link></p>
+    <p className="status">Planning for signed-in accounts. Suggestions stay drafts until you confirm them. <Link href="/account">Account / sign in</Link></p>
     <label htmlFor="stage">What is slowing things down?</label>
     <select id="stage" value={stage} onChange={e => setStage(e.target.value)}>{['Offer', 'Leads', 'Conversion', 'Delivery'].map(s => <option key={s}>{s}</option>)}</select>
     <label htmlFor="goal">What do you want to move forward?</label>

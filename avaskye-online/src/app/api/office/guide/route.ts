@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server"
 import { BANNED_LINE_RULE, omitBannedLine } from "@/lib/ava/banned-line"
 import { deskSnapshot } from "@/lib/desk"
+import { runOfficeHelpers } from "@/lib/helper-run"
 import { readOfficeOwner } from "@/lib/office-store"
 import { SOCIAL_PLAYS } from "@/lib/social-strategies"
 import { extractUrl, readWebsite } from "@/lib/ava/website"
 import { avaSkillBrief } from "@/lib/ava/knowledge-base"
+import { delegateWorkTool, isHelperRole } from "@/lib/openai/helpers"
+import { openAiChat, openAiEnv, OPENAI_FAILED_MESSAGE, OPENAI_MISSING_OWNER } from "@/lib/openai/server"
 
 const routes: { phrase: RegExp; href: string; label: string }[] = [
   { phrase: /\b(hub|products?)\b/, href: "/products", label: "Hub" },
@@ -94,11 +97,29 @@ function socialHint(message: string) {
   return `\n\nFree organic social plays (open /social to run them):\n${picks.map((p) => `- ${p.name} (${p.platform}, ${p.cadence}): ${p.goal}`).join("\n")}\nWhen the owner asks for promotion or content, recommend the matching play, offer to open Social, or tell them to save it as a campaign. These are free only — no paid ads.`
 }
 
-async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSnapshot>>, history: Turn[]): Promise<string | null> {
-  const key = process.env.XAI_API_KEY || process.env.AVA_LLM_API_KEY || process.env.OPENAI_API_KEY
-  if (!key) return null
-  const base = process.env.XAI_API_KEY ? "https://api.x.ai/v1" : process.env.AVA_LLM_BASE_URL || "https://api.openai.com/v1"
-  const model = process.env.XAI_MODEL || process.env.AVA_LLM_MODEL || process.env.OPENAI_MODEL || "grok-4.7"
+function jobsFromTools(toolCalls: { name: string; arguments: string }[]) {
+  const jobs: { role: string; brief: string }[] = []
+  for (const call of toolCalls) {
+    if (call.name !== "delegate_work") continue
+    try {
+      const args = JSON.parse(call.arguments) as { jobs?: unknown }
+      if (!Array.isArray(args.jobs)) continue
+      for (const item of args.jobs) {
+        if (!item || typeof item !== "object") continue
+        const role = "role" in item && typeof item.role === "string" ? item.role : ""
+        const brief = "brief" in item && typeof item.brief === "string" ? item.brief.trim().slice(0, 2000) : ""
+        if (!isHelperRole(role) || brief.length < 2) continue
+        jobs.push({ role, brief })
+      }
+    } catch {
+      // Ignore a helper brief that is not valid JSON.
+    }
+  }
+  return jobs
+}
+
+async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSnapshot>>, history: Turn[], ownerId: string): Promise<string | null> {
+  if (!openAiEnv()) return null
 
   let websiteContext = ""
   const url = extractUrl(message)
@@ -107,7 +128,7 @@ async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSn
     if (summary) websiteContext = `\n\nWebsite summary (from ${url}): ${summary}\nUse this to understand the niche, products, prices, and positioning. Do not invent details that are not in the summary.`
   }
 
-  const system = `You are Ava Skye, sitting with Shawn in Ava's Skye Studio on avaskye.online. This is his personal desktop. You are live, in character, and fully capable.
+  const system = `You are Ava Skye, sitting with Shawn in Ava's Skye Studio on avaskye.online. This is his personal desktop. You are live, in character, and fully capable. Your name is pronounced AY-vuh.
 
 How you talk:
 Warm, direct, plain American English. Contractions. Short sentences when chatting. You can go longer when producing a draft or answering a real marketing question.
@@ -146,25 +167,28 @@ ${socialHint(message)}${websiteContext}
 
 If he asks to set up a free account or is new, ask the next unanswered question naturally. Do not announce a process.`
 
-  try {
-    const res = await fetch(`${base.replace(/\/$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      signal: AbortSignal.timeout(25000),
-      body: JSON.stringify({
-        model,
-        temperature: 0.5,
-        max_tokens: 800,
-        messages: [{ role: "system", content: system }, ...history.map((turn) => ({ role: turn.role, content: turn.content })), { role: "user", content: message }],
-      }),
-    })
-    if (!res.ok) return null
-    const data = await res.json() as { choices?: { message?: { content?: string } }[] }
-    const raw = data.choices?.[0]?.message?.content?.trim() || ""
-    return naturalize(raw) || null
-  } catch {
-    return null
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
+    { role: "system", content: system },
+  ]
+  for (const turn of history) {
+    if ((turn.role === "user" || turn.role === "assistant") && turn.content) {
+      messages.push({ role: turn.role, content: turn.content })
+    }
   }
+  messages.push({ role: "user", content: message })
+  const result = await openAiChat({
+    temperature: 0.5,
+    maxTokens: 800,
+    tools: [delegateWorkTool()],
+    messages,
+  })
+  if (!result.ok) return result.reason === "missing" ? OPENAI_MISSING_OWNER : OPENAI_FAILED_MESSAGE
+  const jobs = jobsFromTools(result.toolCalls)
+  if (jobs.length) {
+    const run = await runOfficeHelpers({ ownerId, jobs, ask: message })
+    return naturalize(run.text) || OPENAI_FAILED_MESSAGE
+  }
+  return naturalize(result.text) || OPENAI_FAILED_MESSAGE
 }
 
 function officeReply(body: { reply: string; href?: string; draft?: { name: string; email?: string; company?: string } }) {
@@ -201,7 +225,20 @@ export async function POST(request: Request) {
   }
 
   const snap = await deskSnapshot()
-  const live = await liveReply(message, snap, history)
+  if (!openAiEnv()) {
+    if (/how many|summary|status|what is on the desk/.test(message.toLowerCase())) {
+      const parts = [
+        snap.premium === null ? "Lead counts are unavailable until Supabase is configured." : `${snap.premium} premium leads, ${snap.staging ?? 0} in staging, ${snap.rejected ?? 0} rejected.`,
+        snap.contacts === null ? "" : `${snap.contacts} contacts, ${snap.deals ?? 0} deals, ${snap.automations ?? 0} automations on.`,
+        snap.subscriptions === null ? "" : `${snap.subscriptions} PayPal subscriptions.`,
+        OPENAI_MISSING_OWNER,
+      ].filter(Boolean)
+      return officeReply({ reply: parts.join(" ") })
+    }
+    return officeReply({ reply: OPENAI_MISSING_OWNER })
+  }
+
+  const live = await liveReply(message, snap, history, owner.id)
   if (live) return officeReply({ reply: live, href: route?.href })
 
   const casual = offlineReply(message, history)

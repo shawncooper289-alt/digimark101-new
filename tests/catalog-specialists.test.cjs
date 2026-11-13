@@ -31,9 +31,14 @@ const catalog = load("lib/platform/catalog.ts", (id) => {
   if (String(id).includes("platform/types")) return types
   throw new Error(id)
 })
+const helpers = load("lib/openai/helpers.ts", (id) => {
+  if (String(id).includes("banned-line")) return banned
+  throw new Error(id)
+})
 const specialists = load("lib/ava/specialists.ts", (id) => {
   if (String(id).includes("banned-line")) return banned
   if (String(id).includes("platform/types")) return types
+  if (String(id).includes("openai/helpers")) return helpers
   throw new Error(id)
 })
 const deskAuth = load("avaskye-online/src/lib/desk-auth.ts", () => {

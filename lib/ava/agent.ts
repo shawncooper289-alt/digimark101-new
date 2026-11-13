@@ -4,7 +4,9 @@ import { onboardingPatch } from "@/lib/onboarding/fields"
 import { upsertClientOnboarding } from "@/lib/onboarding/save-row"
 import { respondToAva, type ChatTurn } from "@/lib/ava/respond"
 import { runSpecialistJobs } from "@/lib/ava/specialist-run"
-import { jobsFromRequest, normalizeJobs } from "@/lib/ava/specialists"
+import { normalizeJobs, type SpecialistJob } from "@/lib/ava/specialists"
+import { delegateWorkTool } from "@/lib/openai/helpers"
+import { OPENAI_MISSING_CLIENT, OPENAI_MISSING_OWNER } from "@/lib/openai/server"
 import { setOwnerVisitorMode } from "@/lib/office/appearance"
 import { visitorModeIntent, visitorModeReply } from "@/lib/office/intent"
 import { isOwnerIdentity } from "@/lib/owner/access"
@@ -16,7 +18,7 @@ import { createSupabaseServer } from "@/lib/supabase/server"
 
 export type AvaAnswer = {
   text: string
-  mode: "xai" | "openai" | "compatible" | "guide"
+  mode: "openai" | "offline" | "guide"
   live: boolean
   notice?: string
   fills?: Record<string, string>
@@ -46,7 +48,7 @@ const toolDefs = [
   { type: "function", function: { name: "request_backend", description: "Request a white-label backend. Nothing is created until the person confirms, and no project is created when management credentials are missing.", parameters: { type: "object", properties: { name: { type: "string" }, region: { type: "string" } }, required: ["name"] } } },
   { type: "function", function: { name: "navigate", description: "Open a page in this product.", parameters: { type: "object", properties: { href: { type: "string" } }, required: ["href"] } } },
   { type: "function", function: { name: "fill_form", description: "Fill visible form fields. Do not save. Ask one short question if a required field is missing.", parameters: { type: "object", properties: { name: { type: "string" }, email: { type: "string" }, company: { type: "string" }, website: { type: "string" }, phone: { type: "string" }, message: { type: "string" }, title: { type: "string" }, headline: { type: "string" }, brief: { type: "string" }, region: { type: "string" }, site: { type: "string" } } } } },
-  { type: "function", function: { name: "delegate_work", description: "Hand specialized drafts to internal helpers. Never mention the helpers to a client. At most 6 run at once; extra jobs wait.", parameters: { type: "object", properties: { jobs: { type: "array", items: { type: "object", properties: { role: { type: "string", enum: ["copywriter", "social", "ads", "seo", "followup", "research"] }, brief: { type: "string" } }, required: ["role", "brief"] } } }, required: ["jobs"] } } },
+  delegateWorkTool(),
 ]
 
 function str(value: unknown) {
@@ -242,11 +244,16 @@ export async function answerAva(input: {
   }
 
   const model = await respondToAva(input.turns, {
-    tools: user ? toolDefs : undefined,
+    tools: user ? toolDefs : [delegateWorkTool()],
     extra: `Workspace roster, which is the only set of names and counts you may cite:\n${JSON.stringify(roster ?? { contacts: [], deals: [], appointments: [], campaigns: [], memory: [] })}\nVisible form fields: ${input.pageFields.join(", ") || "none"}.\nYou may call tools to prepare this client's workspace. Never invent clients, revenue, or campaign results. Campaign, site, and record tools return drafts. Nothing is saved until the person confirms. delegate_work is internal. Do not name those helpers in the reply.`,
   })
 
-  const delegatedJobs = !model.live ? jobsFromRequest(latest) : []
+  if (model.reason === "missing" || model.reason === "failed") {
+    const text = model.reason === "missing" && isOwnerIdentity(user) ? OPENAI_MISSING_OWNER : model.text
+    return { text, mode: "offline", live: false, notice: text }
+  }
+
+  const delegatedJobs: SpecialistJob[] = []
   for (const call of model.toolCalls ?? []) {
     if (call.function.name !== "delegate_work") continue
     try {
@@ -263,11 +270,14 @@ export async function answerAva(input: {
     const outcome = await runSpecialistJobs({
       ownerId: user?.id ?? null,
       jobs: delegatedJobs.slice(0, 12),
+      ask: latest,
       context: `Roster names only: ${JSON.stringify(roster ?? { contacts: [], deals: [], appointments: [], campaigns: [], memory: [] })}`,
     })
-    delegatedText = outcome.queued
-      ? `${outcome.text}\n\nThe rest is lined up and will be ready shortly. I will bring it back in my own words.`
-      : outcome.text
+    if (outcome.missing) {
+      const text = isOwnerIdentity(user) ? OPENAI_MISSING_OWNER : OPENAI_MISSING_CLIENT
+      return { text, mode: "offline", live: false, notice: text }
+    }
+    delegatedText = outcome.text
     delegatedPending = outcome.pending
   }
 

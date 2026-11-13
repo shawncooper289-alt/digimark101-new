@@ -1,25 +1,20 @@
 import { accountSetupBrief, setupReply } from "@/lib/ava/account-setup"
 import { BANNED_LINE_RULE, omitBannedLine } from "@/lib/ava/banned-line"
-import { avaSkillBrief, guideSkill } from "@/lib/ava/knowledge-base"
+import { avaSkillBrief } from "@/lib/ava/knowledge-base"
+import { extractUrl, readWebsite } from "@/lib/ava/website"
+import { openAiChat, openAiEnv, OPENAI_FAILED_MESSAGE, OPENAI_MISSING_CLIENT } from "@/lib/openai/server"
 import { membershipFacts } from "@/lib/paypal/plans"
 import { caseStudies, packages, services, site } from "@/lib/site"
-import { extractUrl, readWebsite } from "@/lib/ava/website"
 
 export type ChatTurn = { role: "user" | "assistant"; content: string }
 
 export type AvaReply = {
   text: string
-  mode: "xai" | "openai" | "compatible" | "guide"
+  mode: "openai" | "offline" | "guide"
   live: boolean
   notice?: string
+  reason?: "missing" | "failed"
   toolCalls?: { id: string; function: { name: string; arguments: string } }[]
-}
-
-type Provider = {
-  mode: AvaReply["mode"]
-  apiKey: string
-  baseUrl: string
-  model: string
 }
 
 const SYSTEM_PROMPT = `You are Ava Skye, the face, voice, and brains of DigiMark101 (${site.url}). You are the studio assistant and marketing manager clients can talk to. You can also simply carry a conversation when that is what is needed.
@@ -49,7 +44,8 @@ Operator functions (always active, do not wait to be asked when the context fits
 
 Core skills you must use when the request is marketing-related:
 - Manager and delegation: break work into clear jobs, rank priorities, write status notes, and hand off only with a brief and a review step.
-- Internal helpers: for a long draft, you may call delegate_work with up to 6 jobs. Roles are copywriter, social, ads, seo, followup, and research. A seventh job waits until one finishes. Never tell a client that other helpers or bots exist. Read their draft and answer in your own voice. Helpers cannot send, spend, or publish. If no model key is set, say it is a starter draft.
+- Your name Ava is pronounced AY-vuh.
+- Internal helpers: for a long draft, call delegate_work with up to 6 jobs. Roles are copywriter, social, ads, seo, followup, and research. A seventh job waits until one finishes. Never tell a client that other helpers or bots exist. Do not write the full draft in the same turn as that tool call. The app will ask you to review the notes and answer in your own voice. Helpers cannot send, spend, or publish. If OpenAI is not connected, the app says so. Do not invent a starter draft.
 - Client communication: listen, restate the goal, use plain language, give clear status, and set expectations.
 - Video: script hooks, storyboards, captions, short-form and long-form structure, and editing notes. Finished videos stay premium: one face, one voice, one lighting look, and no delivery if a quality check fails. Call a preview draft a preview draft.
 - Human understanding: read the emotional temperature, support beginners with suggestions, and help people who are stuck choose.
@@ -96,99 +92,6 @@ function studioBrief() {
   return `Studio facts:\n${serviceLines}\n\nPackages:\n${packageLines}\n\nMembership (public, PayPal, auto-renewing):\n${membershipFacts()}\n\nAccount links: Create an account at ${site.url}/signup. Sign in at ${site.url}/login. Reset a password at ${site.url}/forgot-password. If someone asks where to create an account or sign up, give ${site.url}/signup. Do not say you have no link.\n\nWork:\n${workLines}`
 }
 
-export function avaProvider(): Provider | null {
-  if (process.env.AVA_LLM_API_KEY) {
-    return {
-      mode: "compatible",
-      apiKey: process.env.AVA_LLM_API_KEY,
-      baseUrl: (process.env.AVA_LLM_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, ""),
-      model: process.env.AVA_LLM_MODEL || "gpt-4o-mini",
-    }
-  }
-  if (process.env.XAI_API_KEY) {
-    return {
-      mode: "xai",
-      apiKey: process.env.XAI_API_KEY,
-      baseUrl: "https://api.x.ai/v1",
-      model: process.env.XAI_MODEL || "grok-4.7",
-    }
-  }
-  if (process.env.OPENAI_API_KEY) {
-    return {
-      mode: "openai",
-      apiKey: process.env.OPENAI_API_KEY,
-      baseUrl: "https://api.openai.com/v1",
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-    }
-  }
-  return null
-}
-
-function guideReply(question: string): string {
-  const q = question.toLowerCase()
-  const chunks: { score: number; text: string }[] = []
-
-  for (const service of services) {
-    const score = service.keywords.reduce((total, keyword) => total + (q.includes(keyword) ? 2 : 0), 0)
-    if (service.name.toLowerCase().split(" ").some((part) => part.length > 2 && q.includes(part))) {
-      chunks.push({
-        score: score + 1,
-        text: `${service.name}. ${service.summary} A typical engagement includes ${service.includes.slice(0, 3).join(", ")}. The full page is Services → ${service.name}.`,
-      })
-    } else if (score > 0) {
-      chunks.push({
-        score,
-        text: `${service.name}. ${service.summary}`,
-      })
-    }
-  }
-
-  if (/(price|pricing|cost|package|retainer|fee|quote|proposal)/.test(q)) {
-    chunks.push({
-      score: 5,
-      text: `Packages are Field (one channel), Studio (up to three disciplines), and Partner (an embedded mix). ${packages.map((pkg) => `${pkg.name}: ${pkg.summary} ${pkg.priceLabel}.`).join(" ")} Those fees are written in a proposal. Membership is separate and public: ${membershipFacts()} Subscribe on the pricing page. PayPal bills it until you cancel.`,
-    })
-  }
-
-  if (/(sign\s*up|signup|create (my |an )?account|where do i (register|log ?in|login)|log ?in page|login page)/.test(q)) {
-    chunks.push({
-      score: 8,
-      text: `Create your account at ${site.url}/signup. Sign in at ${site.url}/login. After you sign up, check your inbox for the confirmation email, including spam.`,
-    })
-  }
-
-  if (/(contact|start|hire|email|talk|call|proposal)/.test(q)) {
-    chunks.push({
-      score: 5,
-      text: `Send a note at ${site.url}/contact or email ${site.email}. Include your site, the channel that feels stuck, and what a good quarter would look like. If Supabase is not configured, the form says so and points you to email instead of pretending the note was saved.`,
-    })
-  }
-
-  if (/(case|result|proof|client|testimonial|roi|roas)/.test(q)) {
-    chunks.push({
-      score: 5,
-      text: "The work pages are placeholders. DigiMark101 does not publish client names or performance numbers until a partner approves them. I will not invent a statistic to make the studio sound further along.",
-    })
-  }
-
-  if (/(ava|who are you|what can you)/.test(q)) {
-    chunks.push({
-      score: 4,
-      text: "I am Ava Skye, the studio assistant and marketing manager. I can explain the work, sketch a starting order of channels, draft a workspace change for you to confirm, help with video scripts and client communication, and write a sharper note to the studio. I do not change ad accounts, send email, or take payment.",
-    })
-  }
-
-  const skill = guideSkill(q)
-  if (skill) chunks.push({ score: 6, text: skill })
-
-  chunks.sort((a, b) => b.score - a.score)
-  const best = chunks.filter((chunk) => chunk.score > 0).slice(0, 2)
-  if (best.length === 0) {
-    return omitBannedLine(`I can help with DigiMark101's services, packages, and how to start. Ask about SEO, paid ads, social, content, web, email, analytics, or AI automation, or ask which package fits a small team. To reach a person, use ${site.email}.`)
-  }
-  return omitBannedLine(`${best.map((chunk) => chunk.text).join("\n\n")}\n\nIf you want this scoped to your business, send the contact form and a person will take it from there.`)
-}
-
 export function sanitizeTurns(input: unknown): ChatTurn[] | null {
   const raw = Array.isArray(input) ? input : []
   const turns: ChatTurn[] = []
@@ -212,6 +115,9 @@ export async function respondToAva(
   const latest = turns[turns.length - 1]?.content ?? ""
   const scripted = setupReply(turns)
   if (scripted) return { text: omitBannedLine(scripted), mode: "guide", live: false }
+  if (!openAiEnv()) {
+    return { text: OPENAI_MISSING_CLIENT, mode: "offline", live: false, notice: OPENAI_MISSING_CLIENT, reason: "missing" }
+  }
 
   let websiteContext = ""
   const url = extractUrl(latest)
@@ -220,64 +126,19 @@ export async function respondToAva(
     if (summary) websiteContext = `\n\nClient website summary (from ${url}): ${summary}`
   }
 
-  const chosen = avaProvider()
-  if (!chosen) {
-    return { text: guideReply(latest), mode: "guide", live: false }
+  const result = await openAiChat({
+    temperature: 0.5,
+    maxTokens: 900,
+    tools: options?.tools,
+    messages: [
+      { role: "system", content: `${SYSTEM_PROMPT}\n\n${studioBrief()}${websiteContext}${options?.extra ? `\n\n${options.extra}` : ""}` },
+      ...turns.slice(-12).map((turn) => ({ role: turn.role, content: turn.content })),
+    ],
+  })
+  if (!result.ok) {
+    const text = result.reason === "missing" ? OPENAI_MISSING_CLIENT : result.message || OPENAI_FAILED_MESSAGE
+    return { text, mode: "offline", live: false, notice: text, reason: result.reason }
   }
-
-  try {
-    const response = await fetch(`${chosen.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${chosen.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      signal: AbortSignal.timeout(25000),
-      body: JSON.stringify({
-        model: chosen.model,
-        temperature: 0.5,
-        max_tokens: 900,
-        messages: [
-          { role: "system", content: `${SYSTEM_PROMPT}\n\n${studioBrief()}${websiteContext}${options?.extra ? `\n\n${options.extra}` : ""}` },
-          ...turns.slice(-12).map((turn) => ({ role: turn.role, content: turn.content })),
-        ],
-        ...(options?.tools ? { tools: options.tools, tool_choice: "auto" } : {}),
-      }),
-    })
-
-    if (!response.ok) {
-      console.error("Ava provider error", chosen.mode, response.status)
-      return {
-        text: guideReply(latest),
-        mode: "guide",
-        live: false,
-        notice: "The live model did not respond, so this answer is from the studio guide.",
-      }
-    }
-
-    const data = (await response.json()) as {
-      choices?: Array<{ message?: { content?: unknown; tool_calls?: AvaReply["toolCalls"] } }>
-    }
-    const message = data.choices?.[0]?.message
-    const text = typeof message?.content === "string" ? message.content.trim() : ""
-    const toolCalls = message?.tool_calls?.filter((call) => call && typeof call.id === "string" && call.function?.name)
-    if (!text && !toolCalls?.length) {
-      return {
-        text: guideReply(latest),
-        mode: "guide",
-        live: false,
-        notice: "The live model returned an empty reply, so this answer is from the studio guide.",
-      }
-    }
-
-    return { text: omitBannedLine(text), mode: chosen.mode, live: true, toolCalls }
-  } catch (error) {
-    console.error("Ava provider unreachable", chosen.mode, error instanceof Error ? error.name : "error")
-    return {
-      text: guideReply(latest),
-      mode: "guide",
-      live: false,
-      notice: "The live model could not be reached, so this answer is from the studio guide.",
-    }
-  }
+  const toolCalls = result.toolCalls.map((call) => ({ id: call.id, function: { name: call.name, arguments: call.arguments } }))
+  return { text: omitBannedLine(result.text), mode: "openai", live: true, toolCalls }
 }

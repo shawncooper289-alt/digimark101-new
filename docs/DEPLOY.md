@@ -72,21 +72,25 @@ Copy from `.env.example`. Set them in **Project → Settings → Environment Var
 
 None. The marketing pages, guide-mode Ava, sitemap, and robots file build without secrets. The contact form will not store notes until Supabase is connected, and it says so.
 
-### Ava Skye (one provider)
+### Ava Skye (OpenAI)
+
+Ava's answers, including helper drafts, use one server-only OpenAI client. Older `XAI_API_KEY` and `AVA_LLM_API_KEY` values are ignored. If `OPENAI_API_KEY` is missing, Ava says the connection is off and does not invent an answer. The founder office Settings and Helpers pages say whether OpenAI is connected. They never show the key.
+
+Set these on **both** Vercel projects: `digimark101.com` (root directory `.`) and `avaskye-online` (root directory `avaskye-online`). Production, Preview, and Development.
 
 | Variable | Where to get it | Notes |
 | --- | --- | --- |
-| `XAI_API_KEY` | [xAI console](https://console.x.ai/) | Preferred if you already used Grok. Calls `https://api.x.ai/v1/chat/completions`. |
-| `XAI_MODEL` | same | Optional. Defaults to `grok-4.7`. Set this if your account uses a different model name. |
-| `OPENAI_API_KEY` | [OpenAI API keys](https://platform.openai.com/api-keys) | Used when `XAI_API_KEY` and `AVA_LLM_API_KEY` are unset. |
+| `OPENAI_API_KEY` | [OpenAI API keys](https://platform.openai.com/api-keys) | Required for Ava to answer. Server-only. Never use a `NEXT_PUBLIC_` name. |
 | `OPENAI_MODEL` | same | Optional. Defaults to `gpt-4o-mini`. |
-| `AVA_LLM_API_KEY` | your provider | If set, this wins over the xAI and OpenAI keys. |
-| `AVA_LLM_BASE_URL` | your provider | Optional OpenAI-compatible base URL. Defaults to `https://api.openai.com/v1`. |
-| `AVA_LLM_MODEL` | your provider | Optional. Defaults to `gpt-4o-mini`. |
 
-Provider order in code: `AVA_LLM_API_KEY`, then `XAI_API_KEY`, then `OPENAI_API_KEY`, then the studio guide. If the live call fails, Ava still answers from the guide and the widget says the model did not respond.
+Voice input uses the browser. Spoken replies, including the homepage introduction and the office, go through `POST /api/ava/speak`. ElevenLabs is the main voice when `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set (or `AVA_VOICE_CLONE_ID` instead of the premade voice). The OpenAI voice is the fallback, and it is always `coral` for speech and for realtime. `AVA_TTS_VOICE` does not change it. If `AVA_TTS_API_KEY` is unset, that fallback uses `OPENAI_API_KEY`. Defaults are `AVA_TTS_BASE_URL=https://api.openai.com/v1` and `AVA_TTS_MODEL=gpt-4o-mini-tts`. The button never autoplays. If no speech key works, the browser speaks the same script. Phone calling is not connected. Ava never speaks "In the theater of life, we are all actors sharing the same scene." That sentence is removed before audio is made, on both sites. The ElevenLabs voice id stays in `ELEVENLABS_VOICE_ID`.
 
-Voice input uses the browser. Spoken replies, including the homepage introduction and the office, go through `POST /api/ava/speak`. Set `AVA_TTS_API_KEY` on each Vercel project (or `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID`, which take priority). Defaults are `AVA_TTS_BASE_URL=https://api.openai.com/v1`, `AVA_TTS_MODEL=gpt-4o-mini-tts`, and `AVA_TTS_VOICE=coral`. The button never autoplays. If the key is missing or the provider fails, the browser speaks the same script. Phone calling is not connected. Ava never speaks "In the theater of life, we are all actors sharing the same scene." That sentence is removed before audio is made, on both sites. The ElevenLabs voice id stays in `ELEVENLABS_VOICE_ID`.
+| Variable | Project | Notes |
+| --- | --- | --- |
+| `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` | Both, if you want ElevenLabs | Main voice. Both values are required. |
+| `AVA_VOICE_CLONE_ID` | Both, optional | Replaces the premade ElevenLabs voice when set. |
+| `AVA_TTS_API_KEY` | Both, optional | OpenAI speech key. Falls back to `OPENAI_API_KEY`. |
+| `AVA_TTS_BASE_URL`, `AVA_TTS_MODEL`, `AVA_TTS_INSTRUCTIONS` | Both, optional | Speech style. The voice name stays coral. |
 
 ### Owner
 

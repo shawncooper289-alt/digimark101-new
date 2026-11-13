@@ -72,10 +72,11 @@ export function ttsPlan(text: string, env: Env = process.env): TtsPlan | null {
       }),
     }
   }
-  const key = env.AVA_TTS_API_KEY?.trim()
+  const key = env.AVA_TTS_API_KEY?.trim() || env.OPENAI_API_KEY?.trim()
   if (!key) return null
   const model = env.AVA_TTS_MODEL?.trim() || DEFAULT_TTS_MODEL
-  const voice = env.AVA_TTS_VOICE?.trim() || DEFAULT_TTS_VOICE
+  // OpenAI platform voice is always coral, for speech and for realtime.
+  const voice = DEFAULT_TTS_VOICE
   const instructions = ttsInstructions(env)
   const payload: Record<string, string> = { model, voice, input: spoken, response_format: "mp3" }
   if (supportsTtsInstructions(model)) payload.instructions = instructions

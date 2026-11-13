@@ -1,67 +1,37 @@
 import { omitBannedLine } from "@/lib/ava/banned-line"
-import { avaProvider } from "@/lib/ava/respond"
 import {
   actionsFromCalls,
-  localSpecialistDraft,
+  isSpecialistRole,
   MAX_CONCURRENT_SPECIALISTS,
-  presentAsAva,
-  runWithCap,
   specialistSystemPrompt,
   specialistTools,
   type SpecialistJob,
   type SpecialistRoleId,
 } from "@/lib/ava/specialists"
+import { delegateWave } from "@/lib/openai/delegate"
+import { avaReviewSystem, hideInternalNames } from "@/lib/openai/helpers"
+import { openAiChat, openAiEnv, OPENAI_FAILED_MESSAGE, OPENAI_MISSING_OWNER } from "@/lib/openai/server"
 import type { Action } from "@/lib/platform/types"
 import { createSupabaseAdmin } from "@/lib/supabase/admin"
 
-type ToolCall = { name: string; arguments: Record<string, unknown> }
+type StoredJob = SpecialistJob & { id?: string }
 
-async function draftJob(job: SpecialistJob, context: string): Promise<{ text: string; calls: ToolCall[] }> {
-  const local = localSpecialistDraft(job.role, job.brief)
-  const provider = avaProvider()
-  if (!provider) return { text: local, calls: [] }
-  try {
-    const response = await fetch(`${provider.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${provider.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      signal: AbortSignal.timeout(20000),
-      body: JSON.stringify({
-        model: provider.model,
-        temperature: 0.4,
-        max_tokens: 700,
-        messages: [
-          { role: "system", content: specialistSystemPrompt(job.role) },
-          { role: "user", content: `Brief:\n${job.brief}\n\nWorkspace context:\n${context || "No extra facts."}` },
-        ],
-        tools: specialistTools(job.role),
-        tool_choice: "auto",
-      }),
-    })
-    if (!response.ok) return { text: local, calls: [] }
-    const data = (await response.json()) as {
-      choices?: Array<{ message?: { content?: unknown; tool_calls?: { function?: { name?: string; arguments?: string } }[] } }>
-    }
-    const message = data.choices?.[0]?.message
-    const text = typeof message?.content === "string" ? omitBannedLine(message.content.trim()) : ""
-    const calls: ToolCall[] = []
-    for (const call of message?.tool_calls ?? []) {
-      const name = call.function?.name
-      if (!name) continue
-      let args: Record<string, unknown> = {}
-      try {
-        args = JSON.parse(call.function?.arguments || "{}") as Record<string, unknown>
-      } catch {
-        args = {}
-      }
-      calls.push({ name, arguments: args })
-    }
-    return { text: text || local, calls }
-  } catch {
-    return { text: local, calls: [] }
-  }
+function clean(text: string) {
+  return hideInternalNames(omitBannedLine(text))
+}
+
+async function modelChat(input: { system: string; user: string; tools?: unknown[] }) {
+  const result = await openAiChat({
+    messages: [
+      { role: "system", content: input.system },
+      { role: "user", content: input.user },
+    ],
+    tools: input.tools,
+    temperature: 0.4,
+    maxTokens: 700,
+  })
+  if (!result.ok) return result
+  return { ok: true as const, text: result.text, toolCalls: result.toolCalls }
 }
 
 async function persistQueued(ownerId: string, jobs: SpecialistJob[]) {
@@ -96,78 +66,129 @@ async function saveResult(id: string, result: string, failed: boolean) {
     .from("specialist_tasks")
     .update({
       status: failed ? "failed" : "done",
-      result: result.slice(0, 8000),
+      result: clean(result).slice(0, 8000),
       finished_at: new Date().toISOString(),
     })
     .eq("id", id)
+}
+
+async function countQueued(ownerId: string) {
+  const admin = createSupabaseAdmin()
+  if (!admin) return 0
+  const left = await admin
+    .from("specialist_tasks")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", ownerId)
+    .eq("status", "queued")
+  return left.count ?? 0
+}
+
+function callsFrom(toolCalls: { name: string; arguments: string }[]) {
+  return toolCalls.map((call) => {
+    let args: Record<string, unknown> = {}
+    try {
+      const parsed = JSON.parse(call.arguments || "{}") as unknown
+      if (parsed && typeof parsed === "object") args = parsed as Record<string, unknown>
+    } catch {
+      args = {}
+    }
+    return { name: call.name, arguments: args }
+  })
 }
 
 export async function runSpecialistJobs(input: {
   ownerId: string | null
   jobs: SpecialistJob[]
   context?: string
-}): Promise<{ text: string; pending: Action[]; stored: boolean; queued: number }> {
+  ask?: string
+}): Promise<{ text: string; pending: Action[]; stored: boolean; queued: number; missing: boolean }> {
   if (input.jobs.length === 0) {
-    return { text: "", pending: [], stored: false, queued: 0 }
+    return { text: "", pending: [], stored: false, queued: 0, missing: false }
   }
+  if (!openAiEnv()) {
+    return { text: OPENAI_MISSING_OWNER, pending: [], stored: false, queued: input.jobs.length, missing: true }
+  }
+
+  const ask = input.ask?.trim() || input.jobs.map((job) => job.brief).join("\n")
   const context = input.context || ""
-  const pending: Action[] = []
-  const parts: string[] = []
   const storedRows = input.ownerId ? await persistQueued(input.ownerId, input.jobs) : null
+  let jobs: StoredJob[] = input.jobs
+  let stored = false
 
   if (storedRows && input.ownerId) {
-    let guard = 0
-    let claimFailed = false
-    while (guard < 8) {
-      guard += 1
-      const claimed = await claimStored(input.ownerId)
-      if (!claimed) {
-        claimFailed = true
-        break
+    stored = true
+    const claimed = await claimStored(input.ownerId)
+    if (!claimed) {
+      return {
+        text: "This work is lined up. Nothing was made up, and nothing was sent.",
+        pending: [],
+        stored: true,
+        queued: input.jobs.length,
+        missing: false,
       }
-      if (claimed.length === 0) break
-      await Promise.all(
-        claimed.map(async (task) => {
-          const drafted = await draftJob({ role: task.role, brief: task.brief }, context)
-          pending.push(...actionsFromCalls(task.role, drafted.calls))
-          parts.push(drafted.text)
-          await saveResult(task.id, drafted.text, false)
-        }),
-      )
     }
-    if (claimFailed && parts.length === 0) {
-      await runWithCap(input.jobs, MAX_CONCURRENT_SPECIALISTS, async (job) => {
-        const drafted = await draftJob(job, context)
-        pending.push(...actionsFromCalls(job.role, drafted.calls))
-        parts.push(drafted.text)
-      })
+    if (claimed.length === 0) {
+      return {
+        text: "That work is waiting in line. Nothing was sent.",
+        pending: [],
+        stored: true,
+        queued: input.jobs.length,
+        missing: false,
+      }
     }
-    const admin = createSupabaseAdmin()
-    const left = admin
-      ? await admin
-          .from("specialist_tasks")
-          .select("id", { count: "exact", head: true })
-          .eq("owner_id", input.ownerId)
-          .eq("status", "queued")
-      : null
-    return {
-      text: presentAsAva(parts),
-      pending,
-      stored: true,
-      queued: left?.count ?? 0,
-    }
+    jobs = claimed
+      .filter((row) => isSpecialistRole(row.role))
+      .map((row) => ({ id: row.id, role: row.role, brief: row.brief }))
   }
 
-  await runWithCap(input.jobs, MAX_CONCURRENT_SPECIALISTS, async (job) => {
-    const drafted = await draftJob(job, context)
-    pending.push(...actionsFromCalls(job.role, drafted.calls))
-    parts.push(drafted.text)
+  const outcome = await delegateWave({
+    jobs,
+    max: MAX_CONCURRENT_SPECIALISTS,
+    ask,
+    context,
+    systemFor: (role) => (isSpecialistRole(role) ? specialistSystemPrompt(role) : ""),
+    toolsFor: (role) => (isSpecialistRole(role) ? specialistTools(role) : []),
+    chat: modelChat,
+    reviewSystem: avaReviewSystem(),
+    clean,
+    missingMessage: OPENAI_MISSING_OWNER,
+    failedMessage: OPENAI_FAILED_MESSAGE,
   })
-  return { text: presentAsAva(parts), pending, stored: false, queued: 0 }
+
+  if (stored) {
+    await Promise.all(
+      outcome.drafts.map(async (draft) => {
+        if (!draft.job.id) return
+        const failed = !draft.text
+        await saveResult(draft.job.id, draft.text || "This helper could not finish.", failed)
+      }),
+    )
+  }
+
+  if (outcome.missing) {
+    return { text: OPENAI_MISSING_OWNER, pending: [], stored, queued: outcome.queued.length, missing: true }
+  }
+
+  const pending: Action[] = []
+  for (const draft of outcome.drafts) {
+    if (!isSpecialistRole(draft.job.role)) continue
+    pending.push(...actionsFromCalls(draft.job.role, callsFrom(draft.toolCalls)))
+  }
+
+  const queued = stored && input.ownerId ? await countQueued(input.ownerId) : outcome.queued.length
+  let text = outcome.text
+  if (queued > 0 && text && !outcome.failed) {
+    const extra = stored
+      ? "The rest is lined up. I will bring it back in my own words. Nothing has been sent."
+      : "I finished the first batch. Sign in if you want the rest kept in line. Nothing has been sent."
+    text = `${text}\n\n${extra}`
+  }
+  return { text: omitBannedLine(text), pending, stored, queued, missing: false }
 }
 
 /** Finish jobs that were left queued because six helpers were already busy. */
 export async function drainSpecialistQueue(limitOwners = 20) {
+  if (!openAiEnv()) return { ok: false as const, reason: "missing" as const }
   const admin = createSupabaseAdmin()
   if (!admin) return { ok: false as const, reason: "unconfigured" as const }
   const { data, error } = await admin.from("specialist_tasks").select("owner_id").eq("status", "queued").limit(100)
@@ -182,8 +203,21 @@ export async function drainSpecialistQueue(limitOwners = 20) {
       if (!claimed?.length) break
       await Promise.all(
         claimed.map(async (task) => {
-          const drafted = await draftJob({ role: task.role, brief: task.brief }, "Queued earlier. Use only this brief.")
-          await saveResult(task.id, drafted.text, false)
+          if (!isSpecialistRole(task.role)) {
+            await saveResult(task.id, "This helper could not finish.", true)
+            finished += 1
+            return
+          }
+          const drafted = await modelChat({
+            system: specialistSystemPrompt(task.role),
+            user: `Brief:\n${task.brief}\n\nWorkspace context:\nQueued earlier. Use only this brief.`,
+            tools: specialistTools(task.role),
+          })
+          if (!drafted.ok) {
+            await saveResult(task.id, drafted.message, true)
+          } else {
+            await saveResult(task.id, drafted.text, false)
+          }
           finished += 1
         }),
       )

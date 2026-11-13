@@ -8,7 +8,7 @@
 Accounts you can add later, not before the first local run:
 
 - [Supabase](https://supabase.com) to store contact notes
-- [xAI](https://console.x.ai/) or [OpenAI](https://platform.openai.com/api-keys) for live Ava replies
+- [OpenAI](https://platform.openai.com/api-keys) for live Ava replies
 
 ## Run
 
@@ -20,7 +20,7 @@ npm run dev
 
 Open http://localhost:3000.
 
-Leave the keys blank at first. Ava uses the studio guide, and the contact form tells you the note was not stored.
+Leave the keys blank at first. Ava says OpenAI is not connected instead of guessing, and the contact form tells you the note was not stored.
 
 ## Store a lead locally
 
@@ -38,21 +38,14 @@ SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
 
 ## Turn on live Ava
 
-Set one of these in `.env.local` and restart:
-
-```bash
-XAI_API_KEY=your_xai_key
-XAI_MODEL=grok-4.7
-```
-
-or:
+Set this in `.env.local` and restart:
 
 ```bash
 OPENAI_API_KEY=sk-your_key
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-The widget badge switches from "Studio guide" to "Live model".
+`OPENAI_MODEL` is optional. The widget badge says Connected when a reply came from OpenAI, and Not connected when the key is missing.
 
 ## Open the studio
 

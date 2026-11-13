@@ -107,7 +107,7 @@ export const features = [
     name: "Ava Skye",
     summary:
       "Ava is the AI assistant for DigiMark101. AI means she can talk with you, draft the work, and fill in setup forms. She guides a new account one question at a time.",
-    today: "She saves a change only after you confirm it. With a live model key she answers from that model. Without one, she answers from the studio guide. She does not invent proof.",
+    today: "She saves a change only after you confirm it. She answers through OpenAI when that connection is on. If it is off, she says so and does not guess. She does not invent proof.",
   },
   {
     group: "People and sales",
@@ -315,7 +315,7 @@ export const homeFaqs = [
   {
     question: "Who is Ava Skye?",
     answer:
-      "Ava is the assistant on this site and inside Studio. She can explain the work, ask setup questions one at a time, fill forms, and draft a contact, a page, an email, a social post, or an automation. She saves it only after you say yes. With a live model key she uses that model. Without one, she answers from a studio guide. She does not invent clients or results.",
+      "Ava is the assistant on this site and inside Studio. She can explain the work, ask setup questions one at a time, fill forms, and draft a contact, a page, an email, a social post, or an automation. She saves it only after you say yes. She answers through OpenAI when that connection is on. If it is off, she says so and does not guess. She does not invent clients or results.",
   },
   {
     question: "How do I make money with it?",

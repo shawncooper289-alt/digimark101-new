@@ -30,7 +30,7 @@ export default function PrivacyPage() {
         </p>
         <h2>Ava Skye</h2>
         <p>
-          Messages you send to Ava are processed to produce a reply. When an API key is configured, the conversation needed to answer you is sent to the configured model provider: xAI, OpenAI, or another OpenAI-compatible endpoint you set. When no key is configured, the reply is generated from the studio guide on this application and is not sent to a model provider.
+          Messages you send to Ava are processed to produce a reply. When OPENAI_API_KEY is set, the conversation needed to answer you is sent to OpenAI. When it is not set, Ava says the connection is off and does not send the message to a model. She does not invent an answer in that case.
         </p>
         <p>
           An Ava conversation is saved as a lead only when your message includes an email and you clearly ask to be contacted, for example by saying we may email you. It is marked shareable only if you also say we may share your contact or include you in a lead list. A passing mention of an email is not stored. Do not send passwords, payment cards, or other secrets in the chat.

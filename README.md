@@ -38,7 +38,7 @@ npm run typecheck
 - **Site:** Next.js App Router at the repository root, Tailwind, deployed on Vercel. Production branch is `main`.
 - **Data:** Supabase Auth, Postgres, and row-level security. The anon key is public. The service role is server-only and is how Ava’s server jobs and the owner read lead personal details.
 - **Payments:** PayPal subscriptions for the public membership. Field, Studio, and Partner stay quoted in a proposal.
-- **Model:** one of `AVA_LLM_API_KEY`, `XAI_API_KEY`, or `OPENAI_API_KEY`. With none of them, Ava still answers from the studio guide.
+- **Model:** `OPENAI_API_KEY` on both Vercel projects. Optional `OPENAI_MODEL` (default `gpt-4o-mini`). If the key is missing, Ava says so and does not guess.
 
 ## Backend
 
@@ -144,10 +144,10 @@ Copy `.env.example`. Server-only values must never use the `NEXT_PUBLIC_` prefix
 | Variable | Role |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL |
-| `XAI_API_KEY`, `XAI_MODEL` | Preferred live model. Default model `grok-4.7` |
-| `OPENAI_API_KEY`, `OPENAI_MODEL` | Used when xAI and `AVA_LLM_API_KEY` are unset |
-| `AVA_LLM_API_KEY`, `AVA_LLM_BASE_URL`, `AVA_LLM_MODEL` | If set, this provider wins |
-| `AVA_TTS_API_KEY`, `AVA_TTS_BASE_URL`, `AVA_TTS_MODEL`, `AVA_TTS_VOICE` | Optional generated Hear Ava audio. Browser speech is the fallback |
+| `OPENAI_API_KEY` | Required on digimark101.com and on avaskye-online. Ava's brain. Server-only |
+| `OPENAI_MODEL` | Optional. Defaults to `gpt-4o-mini` |
+| `AVA_TTS_API_KEY`, `AVA_TTS_BASE_URL`, `AVA_TTS_MODEL` | Optional OpenAI speech. If the speech key is unset, speech uses `OPENAI_API_KEY`. The voice is coral |
+| `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` | Primary voice when both are set. The voice id stays in the env var |
 | `AVA_TTS_SSML` | `true` only when that provider honors IPA phonemes |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Auth and studio. Aliases are listed in `.env.example` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only. Leads PII, webhooks, owner stamp |
