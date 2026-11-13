@@ -12,27 +12,24 @@ import {
   pageLinks,
   reasons,
 } from "@/lib/home-content"
-import { formatDate, packages, posts, services } from "@/lib/site"
+import { packages, services } from "@/lib/site"
 
-const eyebrow = "text-xs font-semibold uppercase tracking-[0.2em] text-signal"
-const title = "display mt-3 max-w-4xl text-4xl text-ink sm:text-5xl md:text-6xl"
-const lede = "mt-5 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg"
-const wrap = "mx-auto max-w-6xl px-5 py-20 md:py-28"
-const card = "rounded-[1.4rem] border border-ink/10 bg-card/80 p-5 shadow-[inset_0_1px_0_rgba(234,228,215,0.05)]"
+const eyebrow = "home-kicker"
+const title = "home-title"
+const lede = "home-lede"
+const wrap = "home-wrap"
+const card = "home-card"
 
 export function HomeSections() {
   const groups = [...new Set(features.map((feature) => feature.group))]
 
   return (
     <>
-      <nav className="border-b border-ink/10 bg-paper/90" aria-label="On this page">
-        <ul className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-5 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <nav className="border-b border-ink/10" aria-label="On this page">
+        <ul className="mx-auto flex max-w-6xl gap-x-6 gap-y-2 overflow-x-auto px-5 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {pageLinks.map((link) => (
             <li key={link.href} className="shrink-0">
-              <a
-                href={link.href}
-                className="inline-flex min-h-11 items-center rounded-full border border-ink/15 px-3 text-sm text-ink-soft hover:border-signal/50 hover:text-ink"
-              >
+              <a href={link.href} className="inline-flex min-h-11 items-center text-sm text-ink-soft hover:text-signal">
                 {link.label}
               </a>
             </li>
@@ -101,6 +98,50 @@ export function HomeSections() {
         </div>
       </section>
 
+      <section id="how" className="dm-rise scroll-mt-24 relative overflow-hidden bg-pine" aria-labelledby="how-heading">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(203,176,130,0.16),transparent_55%)]" aria-hidden="true" />
+        <div className={`relative ${wrap}`}>
+          <p className={eyebrow}>How it works</p>
+          <h2 id="how-heading" className={title}>
+            Four steps. Then the system is yours.
+          </h2>
+          <ol className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {howSteps.map((step) => (
+              <li key={step.index} className="border-t border-signal/40 pt-5">
+                <p className="font-serif text-4xl text-signal">{step.index}</p>
+                <h3 className="mt-4 font-serif text-2xl leading-tight">{step.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft">{step.body}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-12">
+            <StartActions compact />
+          </div>
+        </div>
+      </section>
+
+      <section id="why" className="dm-rise scroll-mt-24 relative overflow-hidden bg-pine" aria-labelledby="why-heading">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(203,176,130,0.14),transparent_50%)]" aria-hidden="true" />
+        <div className={`relative ${wrap}`}>
+          <p className={eyebrow}>Why DigiMark101 and Ava</p>
+          <h2 id="why-heading" className={title}>
+            The best choice is the system you can actually run.
+          </h2>
+          <p className={lede}>
+            DigiMark101 is for people who want an all-in-one platform and a guide. Ava is that guide. The reasons below are capabilities you can check in the product, not borrowed awards.
+          </p>
+          <ul className="mt-12 grid gap-4 md:grid-cols-2">
+            {reasons.map((reason, index) => (
+              <li key={reason.title} className="border-t border-white/15 pt-5">
+                <p className="font-serif text-2xl text-signal">0{index + 1}</p>
+                <h3 className="mt-3 font-serif text-2xl">{reason.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">{reason.body}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       <section id="earn" className="dm-rise scroll-mt-24 border-b border-ink/10" aria-labelledby="earn-heading">
         <div className={wrap}>
           <p className={eyebrow}>How you make money</p>
@@ -120,28 +161,6 @@ export function HomeSections() {
             ))}
           </ol>
           <p className="mt-8 max-w-3xl text-sm leading-relaxed text-ink-soft">{earningsDisclaimer}</p>
-        </div>
-      </section>
-
-      <section id="how" className="dm-rise scroll-mt-24 relative overflow-hidden bg-pine" aria-labelledby="how-heading">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(203,176,130,0.16),transparent_55%)]" aria-hidden="true" />
-        <div className={`relative ${wrap}`}>
-          <p className={eyebrow}>How it works</p>
-          <h2 id="how-heading" className={title}>
-            Four steps. Then the system is yours.
-          </h2>
-          <ol className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {howSteps.map((step) => (
-              <li key={step.index} className="rounded-[1.4rem] border border-white/10 bg-paper/40 p-5">
-                <p className="font-serif text-3xl text-signal">{step.index}</p>
-                <h3 className="mt-3 font-serif text-2xl">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">{step.body}</p>
-              </li>
-            ))}
-          </ol>
-          <div className="mt-10">
-            <StartActions compact />
-          </div>
         </div>
       </section>
 
@@ -215,28 +234,6 @@ export function HomeSections() {
               </li>
             ))}
           </ol>
-        </div>
-      </section>
-
-      <section id="why" className="dm-rise scroll-mt-24 relative overflow-hidden bg-pine" aria-labelledby="why-heading">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(203,176,130,0.14),transparent_50%)]" aria-hidden="true" />
-        <div className={`relative ${wrap}`}>
-          <p className={eyebrow}>Why DigiMark101 and Ava</p>
-          <h2 id="why-heading" className={title}>
-            The best choice is the system you can actually run.
-          </h2>
-          <p className={lede}>
-            DigiMark101 is for people who want an all-in-one platform and a guide. Ava is that guide. The reasons below are capabilities you can check in the product, not borrowed awards.
-          </p>
-          <ul className="mt-10 grid gap-4 md:grid-cols-2">
-            {reasons.map((reason, index) => (
-              <li key={reason.title} className="rounded-[1.4rem] border border-white/10 bg-paper/35 p-5">
-                <p className="font-serif text-2xl text-signal">0{index + 1}</p>
-                <h3 className="mt-3 font-serif text-2xl">{reason.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">{reason.body}</p>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 
@@ -320,10 +317,10 @@ export function HomeSections() {
         </div>
       </section>
 
-      <section id="hire" className="dm-rise scroll-mt-24 border-b border-ink/10 bg-paper-deep" aria-labelledby="hire-heading">
+      <section id="plans" className="dm-rise scroll-mt-24 border-b border-ink/10 bg-paper-deep" aria-labelledby="plans-heading">
         <div className={wrap}>
-          <p className={eyebrow}>When you want the studio in the work</p>
-          <h2 id="hire-heading" className={title}>
+          <p className={eyebrow}>Plans</p>
+          <h2 id="plans-heading" className={title}>
             Use the platform yourself, or hire the studio.
           </h2>
           <p className={lede}>
@@ -354,23 +351,12 @@ export function HomeSections() {
               Write to the studio
             </Link>
           </div>
-          <div className="mt-16">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <h3 className="display text-3xl sm:text-4xl">Studio notes</h3>
-              <Link href="/blog" className="text-sm font-semibold text-signal">
-                The journal
-              </Link>
-            </div>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              {posts.map((post) => (
-                <Link key={post.slug} href={`/blog/${post.slug}`} className={`${card} block hover:border-signal/40`}>
-                  <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">{formatDate(post.date)}</p>
-                  <h4 className="mt-3 font-serif text-2xl leading-tight">{post.title}</h4>
-                  <p className="mt-3 text-sm leading-relaxed text-ink-soft">{post.description}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
+          <p className="mt-10 text-sm text-ink-soft">
+            <Link href="/blog" className="font-semibold text-signal">
+              Read the journal
+            </Link>{" "}
+            for how the studio thinks about the work. Those notes are methods, not client results.
+          </p>
         </div>
       </section>
 

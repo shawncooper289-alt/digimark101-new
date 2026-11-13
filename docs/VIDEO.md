@@ -16,6 +16,12 @@ A preview draft is a branded slideshow with captions. The words "PREVIEW DRAFT" 
 
 The spoken length follows the words. The maker does not freeze the picture to pad the clock.
 
+## Meet Ava
+
+The homepage film is already written. In the office, open `/video` and click **Load the Meet Ava intro**. In Studio, open `/studio/video` and use the same button. Then write the script, make a preview draft, or render a finished video once `HEYGEN_API_KEY`, `AVA_AVATAR_ID`, and a voice id are set.
+
+The script, the shot list, and the caption draft live in `docs/ava-intro-video-script.md` and `docs/ava-intro-video-captions.vtt`. The homepage player reads `NEXT_PUBLIC_AVA_INTRO_VIDEO_URL`. Until that address is set, it shows a Coming soon poster and does not autoplay.
+
 ## What a finished video requires
 
 Set the keys, then render. No code change.

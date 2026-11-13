@@ -16,15 +16,12 @@ export const earningsDisclaimer =
   "Earnings disclaimer: DigiMark101 helps you do the marketing work. Income is not guaranteed. What you make depends on your offer, your effort, and the people you reach."
 
 export const pageLinks = [
+  { href: "#meet", label: "Meet Ava" },
   { href: "#what", label: "What it is" },
-  { href: "#who", label: "Who it's for" },
-  { href: "#earn", label: "Make money" },
   { href: "#how", label: "How it works" },
-  { href: "#features", label: "Features" },
-  { href: "#disciplines", label: "Eight jobs" },
   { href: "#why", label: "Why Ava" },
-  { href: "#compare", label: "Compare" },
-  { href: "#beta-home", label: "Beta" },
+  { href: "#features", label: "Features" },
+  { href: "#plans", label: "Plans" },
   { href: "#faq", label: "Questions" },
 ] as const
 
@@ -110,6 +107,19 @@ export const features = [
     today: "She saves a change only after you confirm it. She answers through OpenAI when that connection is on. If it is off, she says so and does not guess. She does not invent proof.",
   },
   {
+    group: "Ava Skye",
+    name: "Voice or typing",
+    summary: "You can talk to Ava, or you can type. The same person answers either way. Her name is pronounced AY-vuh.",
+    today: "Sound starts when you tap. The page does not play her voice on its own. If speech is not connected, the words stay on the screen.",
+  },
+  {
+    group: "Ava Skye",
+    name: "Six helpers",
+    summary:
+      "For a long draft, six helpers can work with Ava: pages and offers, social posts, ad notes, search outlines, follow-up, and research. A seventh job waits until one finishes.",
+    today: "Ava still speaks to you in one voice. The helpers do not send, post, or spend. You confirm before anything is saved.",
+  },
+  {
     group: "People and sales",
     name: "Contacts",
     summary: "Your CRM: the people in this workspace, with name, email, company, and notes. CRM is the short name for that contact list.",
@@ -164,6 +174,19 @@ export const features = [
     name: "Media, files, and builds",
     summary: "A media library for images, video, and documents. Private files. Build records for pages and banners you want to reuse.",
     today: "Files sit in your own folder. Other clients cannot read them.",
+  },
+  {
+    group: "The business",
+    name: "Video maker",
+    summary:
+      "Ava can write a script, split it into scenes, and prepare a video of herself. A finished video is lip-synced at premium quality once the avatar and video keys are set.",
+    today: "Without those keys you can still make a preview draft. The draft is labeled. It is not a finished ad.",
+  },
+  {
+    group: "The business",
+    name: "Apps catalog",
+    summary: "A plain list of the jobs and outside tools, with a note on what works today and what is still coming.",
+    today: "Open it from Studio. A tool marked coming soon is not connected, and Ava will not pretend a send or a post already happened.",
   },
   {
     group: "The business",

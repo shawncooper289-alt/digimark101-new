@@ -22,13 +22,14 @@ export function buildScenes(script: string, spokenScript: string, brief: VideoBr
     const endMs = cursor + duration
     cursor = endMs
     const talking = brief.presenter !== "none" && brief.style !== "motion"
+    const directed = brief.scenePlan?.[index]
     return {
       index,
       spoken: spokenLine,
       caption,
-      visual: visualFor(brief, index),
-      camera: cameraMove(index),
-      transition: transitionFor(index),
+      visual: directed?.visual || visualFor(brief, index),
+      camera: directed?.camera || cameraMove(index),
+      transition: directed ? directedTransition(directed.transition, index) : transitionFor(index),
       lighting: LIGHTING,
       avatarId: talking ? avatarId : "",
       voiceId,
@@ -38,6 +39,15 @@ export function buildScenes(script: string, spokenScript: string, brief: VideoBr
       talking,
     }
   })
+}
+
+function directedTransition(transition: string, index: number) {
+  const line = transition.trim()
+  if (!line) return transitionFor(index)
+  if (index > 0 && !line.toLowerCase().includes("dissolve")) {
+    return `${line} Dissolve from the previous shot over a short beat.`
+  }
+  return line
 }
 
 function visualFor(brief: VideoBrief, index: number) {

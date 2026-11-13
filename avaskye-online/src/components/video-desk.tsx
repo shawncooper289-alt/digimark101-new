@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { AVA_INTRO_BRIEF } from "../../../../lib/video/ava-intro"
 
 type Scene = { caption: string; visual: string; camera: string; transition: string; startMs: number; endMs: number; talking: boolean }
 type Project = {
@@ -52,14 +53,16 @@ export function VideoDesk() {
   const [style, setStyle] = useState("presenter")
   const [attire, setAttire] = useState("navy-blazer")
   const [scriptOverride, setScriptOverride] = useState("")
+  const [scenePlan, setScenePlan] = useState<typeof AVA_INTRO_BRIEF.scenePlan>([])
+  const [title, setTitle] = useState("Ava video")
   const [caps, setCaps] = useState<Caps | null>(null)
   const [result, setResult] = useState<Result | null>(null)
   const [busy, setBusy] = useState(false)
   const [polls, setPolls] = useState(0)
   const [when, setWhen] = useState("")
   const brief = useMemo(() => ({
-    idea, audience, cta, seconds, aspect, style, presenter: "ava", attire, scriptOverride, title: "Ava video",
-  }), [idea, audience, cta, seconds, aspect, style, attire, scriptOverride])
+    idea, audience, cta, seconds, aspect, style, presenter: "ava", attire, scriptOverride, title, scenePlan,
+  }), [idea, audience, cta, seconds, aspect, style, attire, scriptOverride, title, scenePlan])
 
   useEffect(() => {
     void fetch("/api/office/video").then((response) => response.json()).then((data: Caps) => setCaps(data)).catch(() => setCaps(null))
@@ -160,6 +163,24 @@ export function VideoDesk() {
           </select>
         </label>
         <div className="flex flex-wrap gap-2">
+          <button
+            className="rounded-full border border-border px-4 py-2 text-sm"
+            type="button"
+            onClick={() => {
+              setIdea(AVA_INTRO_BRIEF.idea)
+              setAudience(AVA_INTRO_BRIEF.audience)
+              setCta(AVA_INTRO_BRIEF.cta)
+              setSeconds(AVA_INTRO_BRIEF.seconds)
+              setAspect(AVA_INTRO_BRIEF.aspect)
+              setStyle(AVA_INTRO_BRIEF.style)
+              setAttire(AVA_INTRO_BRIEF.attire)
+              setScriptOverride(AVA_INTRO_BRIEF.scriptOverride)
+              setScenePlan(AVA_INTRO_BRIEF.scenePlan)
+              setTitle(AVA_INTRO_BRIEF.title)
+            }}
+          >
+            Load the Meet Ava intro
+          </button>
           <button className="rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" type="submit" disabled={busy}>Write the script</button>
           <button className="rounded-full border border-border px-4 py-2 text-sm" type="button" disabled={busy} onClick={() => void send("preview")}>Make a preview draft</button>
           <button className="rounded-full border border-border px-4 py-2 text-sm" type="button" disabled={busy} onClick={() => { setPolls(0); void send("render") }}>Render a finished video</button>
