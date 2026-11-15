@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { HUB_PRODUCTS, hubProduct } from "@/lib/products"
 import Link from "next/link"
 
@@ -19,6 +19,7 @@ export type AccountOption = { id: string; label: string }
 
 const CHANNELS = ["email", "search", "social", "site"] as const
 const NEXT: Record<string, string> = { draft: "active", active: "paused", paused: "draft" }
+const DRAFT_KEY = "ava_office_campaign_draft"
 
 export function CampaignDesk({
   campaigns,
@@ -42,6 +43,26 @@ export function CampaignDesk({
   const labels = new Map(accounts.map((item) => [item.id, item.label]))
   const visible = campaigns.filter((campaign) => !campaign.productKey || campaign.productKey === product.key)
 
+  // Persist form draft in localStorage so inputs stay across refreshes or failed saves
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY)
+      if (saved) {
+        const draft = JSON.parse(saved) as { name?: string; channel?: string; brief?: string; account?: string }
+        if (draft.name) setName(draft.name)
+        if (draft.channel && CHANNELS.includes(draft.channel as any)) setChannel(draft.channel as any)
+        if (draft.brief) setBrief(draft.brief)
+        if (draft.account) setAccount(draft.account)
+      }
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ name, channel, brief, account }))
+    } catch {}
+  }, [name, channel, brief, account])
+
   async function save(body: Record<string, unknown>) {
     setPending(true)
     setNotice("")
@@ -53,12 +74,13 @@ export function CampaignDesk({
       })
       const data = (await response.json()) as { error?: string }
       if (!response.ok) {
-        setNotice(data.error || "That campaign was not saved.")
+        setNotice(data.error || "That campaign was not saved. Your inputs are still here so you can try again or edit.")
         return
       }
       setName("")
       setBrief("")
-      setNotice("Saved on digimark101.com. Open that account’s studio to see it.")
+      try { localStorage.removeItem(DRAFT_KEY) } catch {}
+      setNotice("Saved on digimark101.com. You can edit it later in the studio or here. Open that account’s studio to see it.")
       router.refresh()
     } finally {
       setPending(false)
@@ -69,10 +91,10 @@ export function CampaignDesk({
     <section>
       <h1 className="text-5xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Campaigns</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        These campaigns belong to {product.name}. There is no seat cap on this desk. Active means the record is live in that account’s studio. It does not buy ads or send mail.
+        These campaigns belong to {product.name}. There is no seat cap on this desk. Active means the record is live in that account’s studio. It does not buy ads or send mail. Drafts you type stay in this form until you save or clear them.
       </p>
       <p className="mt-2 text-sm">
-        <Link href="/social" className="underline">Open free social plays</Link> for Facebook, TikTok, Instagram, and YouTube. Save any play here as a campaign.
+        <Link href="/social" className="underline">Open free social plays</Link> for Facebook, TikTok, Instagram, and YouTube. Save any play here as a campaign (you can change it later).
       </p>
       {HUB_PRODUCTS.length > 1 ? (
         <label className="mt-6 grid max-w-sm gap-1 text-sm">
@@ -120,12 +142,12 @@ export function CampaignDesk({
           <textarea className="min-h-24 rounded-3xl border border-border bg-transparent px-4 py-3" value={brief} onChange={(event) => setBrief(event.target.value)} placeholder="The one job of this campaign" />
         </label>
         <button type="submit" className="w-fit rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" disabled={pending || name.trim().length < 2}>
-          Save on digimark101.com
+          Save on digimark101.com (editable later)
         </button>
       </form>
       {notice ? <p className="mt-4 text-sm">{notice}</p> : null}
       <ul className="mt-8 grid gap-3">
-        {visible.length === 0 ? <li className="text-muted">No campaigns yet.</li> : null}
+        {visible.length === 0 ? <li className="text-muted">No campaigns yet. Your form draft stays here until you save.</li> : null}
         {visible.map((campaign) => (
           <li key={campaign.id} className="rounded-3xl border border-border bg-surface p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
