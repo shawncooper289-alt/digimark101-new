@@ -17,7 +17,7 @@ export function Header() {
             </Link>
           ))}
         </nav>
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           <TrackedLink href="/contact" event="header_contact" className="btn btn-ghost">
             Contact
           </TrackedLink>
@@ -31,7 +31,7 @@ export function Header() {
             Free beta seat
           </TrackedLink>
         </div>
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 xl:hidden">
           <TrackedLink href="/beta" event="header_beta" className="btn btn-signal px-3">
             Free beta
           </TrackedLink>
@@ -40,7 +40,7 @@ export function Header() {
             <nav
               id="mobile-nav"
               className="absolute right-0 top-12 z-50 w-[min(20rem,calc(100vw-2.5rem))] rounded-2xl border border-ink/10 bg-paper p-3 shadow-xl"
-              aria-label="Mobile"
+              aria-label="Pages"
             >
               <ul className="grid gap-1">
                 {nav.map((item) => (
