@@ -1,13 +1,22 @@
+import { AvaOnPage } from "@/components/ava/ava-on-page"
 import { OpenAvaButton } from "@/components/ava/open-ava-button"
 import { AvaAvatar } from "@/components/branding/ava-avatar"
+import { Breadcrumbs } from "@/components/site/breadcrumbs"
+import { JsonLd } from "@/components/site/json-ld"
 import { PageHeader } from "@/components/site/page-header"
-import { pageMetadata } from "@/lib/seo"
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo"
 
 export const metadata = pageMetadata({
-  title: "Ava Skye",
-  description: "Ava Skye is DigiMark101's studio assistant for services, packages, and starting briefs.",
+  title: "Ava Skye, AI marketing assistant",
+  description:
+    "Ava Skye asks one question at a time, fills the forms, and saves only after you say yes. She does not send, post, or spend. Talk to her on this page.",
   path: "/ava",
 })
+
+const crumbs = [
+  { name: "Home", path: "/" },
+  { name: "Ava Skye", path: "/ava" },
+]
 
 const rules = [
   { title: "She explains the work", body: "Services, packages, and the order we usually turn channels on." },
@@ -19,6 +28,9 @@ const rules = [
 export default function AvaPage() {
   return (
     <>
+      <JsonLd data={breadcrumbJsonLd(crumbs)} />
+      <Breadcrumbs items={crumbs} />
+      <AvaOnPage />
       <PageHeader
         eyebrow="08 — Assistant"
         title="Ava Skye, on the record."

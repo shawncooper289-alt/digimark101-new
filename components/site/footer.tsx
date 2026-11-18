@@ -1,8 +1,9 @@
 import Link from "next/link"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
+import { ContactPath } from "@/components/site/contact-path"
 import type { PartnerLink } from "@/lib/partners"
 import { earningsDisclaimer } from "@/lib/home-content"
-import { nav, services, site } from "@/lib/site"
+import { nav, services } from "@/lib/site"
 
 export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
   return (
@@ -11,31 +12,51 @@ export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
         <div className="md:col-span-5">
           <DigiMarkLogo variant="paper" />
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-ink-soft">
-            An all-in-one marketing workspace you own. Eight kinds of marketing work, one workspace, and Ava Skye to set it up with you.
+            An online digital marketing agency for small businesses in the United States, and the workspace those businesses keep. Ava Skye sets it up with you.
           </p>
           <p className="mt-4 max-w-sm text-xs leading-relaxed text-ink-soft">{earningsDisclaimer}</p>
-          <a className="mt-4 inline-block text-sm underline decoration-ink/30 underline-offset-4" href={`mailto:${site.email}`}>
-            {site.email}
-          </a>
+          <div className="mt-4">
+            <ContactPath event="footer_contact" />
+          </div>
         </div>
         <div className="md:col-span-3">
           <p className="text-xs uppercase tracking-[0.18em] text-signal">Studio</p>
           <ul className="mt-4 grid gap-2 text-sm">
             {nav.map((item) => (
               <li key={item.href}>
-                <Link className="hover:text-signal" href={item.href}>
+                <Link prefetch={false} className="inline-flex min-h-11 items-center hover:text-signal" href={item.href}>
                   {item.label}
                 </Link>
               </li>
             ))}
             <li>
-              <Link className="hover:text-signal" href="/marketplace">
+              <Link prefetch={false} className="hover:text-signal" href="/marketplace">
                 Lead lists
               </Link>
             </li>
             <li>
-              <Link className="hover:text-signal" href="/contact">
+              <Link prefetch={false} className="hover:text-signal" href="/studio">
+                Studio
+              </Link>
+            </li>
+            <li>
+              <Link prefetch={false} className="hover:text-signal" href="/ava">
+                Ava Skye
+              </Link>
+            </li>
+            <li>
+              <Link prefetch={false} className="hover:text-signal" href="/contact">
                 Contact
+              </Link>
+            </li>
+            <li>
+              <Link prefetch={false} className="hover:text-signal" href="/agency/lead-generation">
+                Lead generation
+              </Link>
+            </li>
+            <li>
+              <Link prefetch={false} className="hover:text-signal" href="/agency/ai">
+                AI assistant
               </Link>
             </li>
           </ul>
@@ -45,7 +66,7 @@ export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
           <ul className="mt-4 grid grid-cols-2 gap-2 text-sm">
             {services.map((service) => (
               <li key={service.slug}>
-                <Link className="hover:text-signal" href={`/services/${service.slug}`}>
+                <Link prefetch={false} className="inline-flex min-h-11 items-center hover:text-signal" href={`/services/${service.slug}`}>
                   {service.name}
                 </Link>
               </li>
@@ -62,18 +83,21 @@ export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
                 {partner.label}
               </a>
             ))}
-            <Link href="/privacy" className="hover:text-signal">
+            <Link prefetch={false} href="/privacy" className="inline-flex min-h-11 items-center hover:text-signal">
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-signal">
+            <Link prefetch={false} href="/terms" className="inline-flex min-h-11 items-center hover:text-signal">
               Terms
             </Link>
-            <a href="https://www.avaskye.online" className="hover:text-signal">
-              Owner
+            <a href="https://www.avaskye.online" className="inline-flex min-h-11 items-center hover:text-signal" rel="nofollow">
+              Owner office
             </a>
-            <Link href="/sitemap.xml" className="hover:text-signal">
+            <Link prefetch={false} href="/sitemap.xml" className="inline-flex min-h-11 items-center hover:text-signal">
               Sitemap
             </Link>
+            <a href="/llms.txt" className="inline-flex min-h-11 items-center hover:text-signal">
+              llms.txt
+            </a>
           </div>
         </div>
       </div>

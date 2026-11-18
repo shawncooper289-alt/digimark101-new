@@ -5,46 +5,72 @@
  */
 
 export const hero = {
-  eyebrow: "DigiMark101",
-  lead: "Build your own dynasty.",
-  accent: "Own the system. Grow it with Ava.",
+  eyebrow: "Online digital marketing agency · United States",
+  lead: "An online digital marketing agency for small businesses.",
+  accent: "Ava asks one question at a time, fills the forms, and saves only after you say yes.",
   lede:
-    "DigiMark101 is an all-in-one marketing workspace for people who want to make money online. Ava Skye is the assistant who sets it up with you. She fills in the forms. You read them and say yes. The system stays yours.",
+    "You keep the people, the page, and the follow-up in one login. Search, ads, social, websites, email, and analytics live there. Clients are remote, across the United States.",
+  offer:
+    "Open while the product is in testing. No countdown. The form sends an email link and does not start a payment.",
 } as const
+
+export const trustFacts = [
+  {
+    title: "Saves only after yes",
+    body: "Ava fills the setup forms. A change is stored only after you confirm it.",
+  },
+  {
+    title: "Free beta seat",
+    body: "Testers use an email sign-in link. That form does not start a PayPal payment.",
+  },
+  {
+    title: "One workspace",
+    body: "Contacts, pipeline, calendar, email drafts, page plans, social drafts, files, and automations share one login.",
+  },
+  {
+    title: "No invented results",
+    body: "Work pages are labeled samples. This site does not publish client quotes, logos, or revenue.",
+  },
+] as const
 
 export const earningsDisclaimer =
   "Earnings disclaimer: DigiMark101 helps you do the marketing work. Income is not guaranteed. What you make depends on your offer, your effort, and the people you reach."
 
 export const pageLinks = [
-  { href: "#meet", label: "Meet Ava" },
+  { href: "#why-now", label: "Why now" },
+  { href: "#who", label: "Who it is for" },
+  { href: "#film", label: "Film" },
   { href: "#what", label: "What it is" },
   { href: "#how", label: "How it works" },
-  { href: "#why", label: "Why Ava" },
   { href: "#features", label: "Features" },
   { href: "#plans", label: "Plans" },
   { href: "#faq", label: "Questions" },
 ] as const
 
-export const audiences = [
+export const audiencePaths = [
   {
-    name: "Beginners",
-    body: "You want to make money online and you are not sure which screen to open first. Create an account and talk to Ava. She starts with plain questions, and she explains a word when you need it.",
+    name: "Local businesses",
+    href: "/agency/small-business",
+    cta: "Digital marketing for small businesses",
+    body: "You have one offer and you want people to find it and take the next step. Search, ads, the site, and email are the map. Calling and texting from inside the app are not connected yet.",
   },
   {
-    name: "Side hustlers",
-    body: "You have a job and a few hours. A useful system is small: one offer, one list of people, and one follow-up you can run after work.",
+    name: "Beginners",
+    href: "/start",
+    cta: "See the first campaign",
+    body: "You have one offer and you are not sure which screen to open. The first campaign asks five questions, then drafts one page, one form, and three emails. You approve it. Approving saves the draft. It does not publish or send yet.",
   },
   {
     name: "Creators",
-    body: "You already make videos, posts, or a newsletter. Studio keeps the people, the media, the drafts, and the next page in the same login.",
-  },
-  {
-    name: "Local businesses",
-    body: "You want people nearby to find you and take the next step. Search, ads, social, a site, and email are all on the map. Calling and texting from inside the app are not connected yet.",
+    href: "/services/content",
+    cta: "Content and social drafts",
+    body: "You already publish. Studio keeps the people, the files, and the drafts in one login. Ava can draft a post. Posting to the networks for you is not connected yet, so you copy the draft and post it yourself.",
   },
   {
     name: "Agencies",
-    body: "You run marketing for clients. Studio holds a pipeline, drafts, and files for your clients. A white-label backend under your own name is coming soon. Public lead lists hide personal details until an order is paid.",
+    href: "/contact",
+    cta: "Write to the studio",
+    body: "You run marketing for clients. Studio holds a pipeline, drafts, and files. A white-label backend under your own name is coming soon. Hire the studio when you want the work done with you.",
   },
 ] as const
 
@@ -333,7 +359,7 @@ export const homeFaqs = [
   {
     question: "Who is it for?",
     answer:
-      "Beginners, side hustlers, creators, local businesses, and agencies. If you want to make money online and you want one system instead of a pile of logins, you are in the right place. You do not need to know the jargon to start.",
+      "The homepage is written for a small business or solo operator in the United States with one offer. Beginners, creators, and agencies each have a path. Clients are remote. DigiMark101 does not pay you and does not guarantee income.",
   },
   {
     question: "Who is Ava Skye?",

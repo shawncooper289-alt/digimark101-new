@@ -8,19 +8,19 @@ export const site = {
   name: "DigiMark101",
   url: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.digimark101.com").replace(/\/$/, ""),
   email: "hello@digimark101.com",
-  tagline: "Build your own dynasty.",
+  tagline: "An online digital marketing agency for small businesses.",
   description:
-    "DigiMark101 is an all-in-one marketing workspace you own. Ava Skye sets it up with you. You confirm. Contacts, pipeline, email drafts, pages, and automations live in one studio.",
+    "DigiMark101 is an online digital marketing agency for small businesses in the United States. Ava Skye sets up the workspace with you and saves only after you say yes. A beta seat is free for testers.",
 } as const
 
 export const nav = [
+  { href: "/agency", label: "Agency" },
   { href: "/services", label: "Services" },
   { href: "/work", label: "Work" },
   { href: "/pricing", label: "Pricing" },
   { href: "/beta", label: "Beta" },
   { href: "/about", label: "About" },
   { href: "/blog", label: "Journal" },
-  { href: "/studio", label: "Studio" },
 ] as const
 
 export type Service = {

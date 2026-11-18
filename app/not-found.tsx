@@ -2,7 +2,7 @@ import Link from "next/link"
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-3xl px-5 py-24">
+    <main id="main" className="mx-auto max-w-3xl px-5 py-24">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-signal">404</p>
       <h1 className="display mt-4 text-5xl md:text-7xl">This page is not in the index.</h1>
       <p className="mt-4 text-lg text-ink-soft">The link may be old, or the page was never published. The studio is still here.</p>
@@ -14,6 +14,6 @@ export default function NotFound() {
           Contact
         </Link>
       </div>
-    </div>
+    </main>
   )
 }

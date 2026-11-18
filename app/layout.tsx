@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Fraunces, Outfit } from "next/font/google"
-import { AvaWidget } from "@/components/ava/ava-widget"
-import { SiteChrome } from "@/components/site/chrome"
 import { JsonLd } from "@/components/site/json-ld"
-import { PlatformProvider } from "@/components/studio/platform-provider"
-import { partnerLinks } from "@/lib/partners"
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo"
 import { site } from "@/lib/site"
 import "./globals.css"
@@ -13,14 +9,16 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-fraunces",
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600"],
+  adjustFontFallback: true,
 })
 
 const outfit = Outfit({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-outfit",
-  weight: ["400", "500", "600"],
+  weight: ["400", "600"],
+  adjustFontFallback: true,
 })
 
 export const viewport: Viewport = {
@@ -31,13 +29,13 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 }
 
-const pageTitle = "DigiMark101 \u2014 Build your own dynasty"
+const pageTitle = "Digital marketing agency for small businesses | DigiMark101"
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
     default: pageTitle,
-    template: "%s \u00b7 DigiMark101",
+    template: "%s | DigiMark101",
   },
   description: site.description,
   applicationName: site.name,
@@ -78,26 +76,17 @@ export const metadata: Metadata = {
 
 const authCatcher = `(function(){var p=location.pathname;if(p==="/auth/callback"||p==="/reset-password")return;var q=location.search,h=location.hash,s=q+h;if(!/[?&#](code|token_hash|access_token|refresh_token|error_description|error_code)=/.test(s))return;location.replace("/auth/callback"+q+h);})();`
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${fraunces.variable} ${outfit.variable} h-full`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: authCatcher }} />
-        <link rel="manifest" href="/manifest.webmanifest" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="DigiMark101" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="flex min-h-full flex-col antialiased">
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <PlatformProvider>
-          <SiteChrome partners={await partnerLinks()}>{children}</SiteChrome>
-          <AvaWidget />
-        </PlatformProvider>
+        {children}
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
       </body>
     </html>

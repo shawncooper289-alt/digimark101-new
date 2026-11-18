@@ -4,8 +4,9 @@ import { PageHeader } from "@/components/site/page-header"
 import { pageMetadata } from "@/lib/seo"
 
 export const metadata = pageMetadata({
-  title: "Beta",
-  description: "DigiMark101 is in beta. Request a free seat, then tell us what is missing or what broke.",
+  title: "Free beta seat",
+  description:
+    "Claim a free DigiMark101 beta seat. The form sends an email sign-in link and does not start a PayPal payment. For testers of the marketing workspace.",
   path: "/beta",
 })
 
