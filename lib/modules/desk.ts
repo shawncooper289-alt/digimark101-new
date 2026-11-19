@@ -214,6 +214,14 @@ export const DESKS: Record<DeskId, DeskConfig> = {
   },
 }
 
+export function fieldDefaults(config: DeskConfig) {
+  const next: Record<string, string> = {}
+  for (const field of config.fields) {
+    if (field.kind === "select" && field.options?.[0]) next[field.name] = field.options[0]
+  }
+  return next
+}
+
 export function deskById(value: string): DeskConfig | null {
   return deskIds.includes(value as DeskId) ? DESKS[value as DeskId] : null
 }

@@ -181,13 +181,18 @@ export async function executeTool(supabase: SupabaseClient, spec: ToolSpec, owne
     case "bookings.cancel": {
       const id = clip(args.id, 80)
       if (!isWorkspaceId(id)) throw new ToolFailure("That booking id is not valid.")
+      const booking = await one(supabase.from("bookings").select("id,appointment_id").eq("owner_id", ownerId).eq("id", id).maybeSingle())
+      const linkedAppointment = text(booking ?? {}, "appointment_id")
       const { error: byId } = await supabase.from("bookings").delete().eq("owner_id", ownerId).eq("id", id)
       if (byId) fail(byId)
       const { error: byAppointment } = await supabase.from("bookings").delete().eq("owner_id", ownerId).eq("appointment_id", id)
       if (byAppointment) fail(byAppointment)
-      const { error } = await supabase.from("appointments").delete().eq("owner_id", ownerId).eq("id", id)
-      if (error) fail(error)
-      return { rows: [], summary: "The booking was cancelled. No one was texted." }
+      const appointmentIds = [linkedAppointment, id].filter((item) => isWorkspaceId(item))
+      if (appointmentIds.length) {
+        const { error } = await supabase.from("appointments").delete().eq("owner_id", ownerId).in("id", appointmentIds)
+        if (error) fail(error)
+      }
+      return { rows: [], summary: "The booking and its calendar appointment were cancelled. No one was texted." }
     }
     case "funnels.list": {
       const funnels = await rowsOf(supabase.from("funnels").select("id,name,status").eq("owner_id", ownerId).order("created_at", { ascending: false }).limit(30))

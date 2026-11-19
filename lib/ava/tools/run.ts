@@ -1,5 +1,6 @@
 import "server-only"
 
+import { sensitiveKey } from "@/lib/ava/tools/args"
 import { executeTool, ToolFailure, type ToolRow } from "@/lib/ava/tools/effects"
 import type { PageContext } from "@/lib/ava/tools/page"
 import { authorize, confirmationCopy, resolveRole } from "@/lib/ava/tools/permissions"
@@ -21,7 +22,7 @@ function cleanArgs(value: unknown) {
   const args: Record<string, unknown> = {}
   for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
     if (key === "workspaceId" || key === "confirmed") continue
-    if (/token|secret|password|card|cvv|cvc|pan/i.test(key)) continue
+    if (sensitiveKey(key)) continue
     if (typeof item === "string" || typeof item === "number") args[key] = item
   }
   return args

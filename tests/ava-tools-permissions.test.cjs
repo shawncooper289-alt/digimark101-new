@@ -23,6 +23,12 @@ const permissions = load("lib/ava/tools/permissions.ts", (id) => {
 const page = load("lib/ava/tools/page.ts", (id) => {
   throw new Error(id)
 })
+const args = load("lib/ava/tools/args.ts", (id) => {
+  throw new Error(id)
+})
+const desks = load("lib/modules/desk.ts", (id) => {
+  throw new Error(id)
+})
 
 const member = { role: "member", confirmed: false, workspaceMatch: true, isPlatformOwner: false }
 const admin = { role: "admin", confirmed: false, workspaceMatch: true, isPlatformOwner: false }
@@ -106,4 +112,19 @@ test("page context does not change a permission", () => {
 
 test("an unknown tool is refused", () => {
   assert.equal(permissions.authorize("paypal.charge", { ...owner, confirmed: true }).allow, false)
+})
+
+test("company is kept and a card field is dropped", () => {
+  assert.equal(args.sensitiveKey("company"), false)
+  assert.equal(args.sensitiveKey("companyName"), false)
+  assert.equal(args.sensitiveKey("pan"), true)
+  assert.equal(args.sensitiveKey("cardNumber"), true)
+  assert.equal(args.sensitiveKey("password"), true)
+})
+
+test("selects submit their visible default", () => {
+  assert.equal(desks.fieldDefaults(desks.DESKS.inbox).channel, "sms")
+  assert.equal(desks.fieldDefaults(desks.DESKS.workflows).trigger, "contact.created")
+  assert.equal(desks.fieldDefaults(desks.DESKS.workflows).action, "log_inbox")
+  assert.equal(desks.fieldDefaults(desks.DESKS.social).platform, "facebook")
 })

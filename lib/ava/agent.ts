@@ -308,6 +308,7 @@ export async function answerAva(input: {
   const summaries: string[] = []
   const pendingActions: Action[] = user ? [...delegatedPending] : []
   const pendingTools: NonNullable<AvaAnswer["pendingTools"]> = []
+  let changedWorkspace = false
   for (const call of otherCalls) {
     let args: Record<string, unknown> = {}
     try {
@@ -323,6 +324,7 @@ export async function answerAva(input: {
         page: input.pageContext,
       })
       if (result.pending) pendingTools.push(result.pending)
+      else if (result.ok) changedWorkspace = true
       summaries.push(result.summary)
       continue
     }
@@ -356,6 +358,7 @@ export async function answerAva(input: {
     navigate,
     pendingActions: pendingActions.length ? pendingActions : undefined,
     pendingTools: pendingTools.length ? pendingTools : undefined,
+    refresh: changedWorkspace,
   }
 }
 

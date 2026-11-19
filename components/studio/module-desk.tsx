@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { forgetDesk, rememberDesk } from "@/components/ava/page-beacon"
 import { usePlatform } from "@/components/studio/platform-provider"
-import { DESKS, type DeskId } from "@/lib/modules/desk"
+import { DESKS, fieldDefaults, type DeskId } from "@/lib/modules/desk"
 import type { PageContext } from "@/lib/ava/tools/page"
 
 type Row = { id: string; title: string; meta: string; stage?: string }
@@ -14,13 +14,13 @@ export function ModuleDesk({ module, embedded = false }: { module: DeskId; embed
   const platform = usePlatform()
   const workspace = platform.workspaceId ? `&workspace=${encodeURIComponent(platform.workspaceId)}` : ""
   const [rows, setRows] = useState<Row[]>([])
-  const [values, setValues] = useState<Record<string, string>>({})
+  const [values, setValues] = useState<Record<string, string>>(() => fieldDefaults(desk))
   const [notice, setNotice] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState<Pending | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     try {
       const response = await fetch(`/api/studio/modules?module=${desk.id}${workspace}`)
@@ -32,7 +32,7 @@ export function ModuleDesk({ module, embedded = false }: { module: DeskId; embed
     } finally {
       setLoading(false)
     }
-  }
+  }, [desk.id, workspace])
 
   useEffect(() => {
     let cancelled = false
@@ -44,10 +44,15 @@ export function ModuleDesk({ module, embedded = false }: { module: DeskId; embed
       if (!response.ok && body.summary) setError(body.summary)
       setLoading(false)
     })()
+    const onRefresh = () => {
+      if (!cancelled) void load()
+    }
+    window.addEventListener("ava:refresh", onRefresh)
     return () => {
       cancelled = true
+      window.removeEventListener("ava:refresh", onRefresh)
     }
-  }, [desk.id, workspace])
+  }, [desk.id, load, workspace])
 
   useEffect(() => {
     const page: PageContext = {
@@ -81,7 +86,7 @@ export function ModuleDesk({ module, embedded = false }: { module: DeskId; embed
       return
     }
     setNotice(body.summary || "Saved.")
-    setValues({})
+    setValues(fieldDefaults(desk))
     await load()
   }
 
@@ -112,7 +117,7 @@ export function ModuleDesk({ module, embedded = false }: { module: DeskId; embed
             event.preventDefault()
             const action = desk.actions.find((item) => !item.confirm) ?? desk.actions[0]
             if (!action) return
-            void submit(action.tool, values, false)
+            void submit(action.tool, { ...fieldDefaults(desk), ...values }, false)
           }}
         >
           {desk.fields.map((field) => (
@@ -147,7 +152,7 @@ export function ModuleDesk({ module, embedded = false }: { module: DeskId; embed
                 key={action.tool}
                 type="button"
                 className={action.confirm ? "btn btn-ghost" : "btn btn-signal"}
-                onClick={() => void submit(action.tool, values, false)}
+                onClick={() => void submit(action.tool, { ...fieldDefaults(desk), ...values }, false)}
               >
                 {action.label}
               </button>
@@ -162,16 +167,65 @@ export function ModuleDesk({ module, embedded = false }: { module: DeskId; embed
           <li key={`${row.id}-${row.title}`} className="rounded-2xl border border-ink/10 bg-card px-4 py-3">
             <p className="font-medium">{row.title}</p>
             {row.meta ? <p className="text-sm text-ink-soft">{row.meta}</p> : null}
-            {module === "pipeline" && row.stage && row.stage !== "won" && row.stage !== "lost" ? (
-              <div className="mt-2 flex gap-3">
-                <button type="button" className="text-xs font-semibold text-signal" onClick={() => void submit("deals.move", { id: row.id, stage: row.stage === "new" ? "qualified" : row.stage === "qualified" ? "proposal" : "won" }, false)}>
-                  Move forward
+            {row.id ? <p className="mt-1 font-mono text-xs text-ink-soft">{row.id}</p> : null}
+            <div className="mt-2 flex flex-wrap gap-3">
+              {desk.fields.some((field) => field.name === "id" || field.name === "formId") ? (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-signal"
+                  onClick={() => {
+                    const key = desk.fields.some((field) => field.name === "formId") ? "formId" : "id"
+                    setValues((current) => ({ ...fieldDefaults(desk), ...current, [key]: row.id }))
+                    setNotice(`Using ${row.title}. The id is filled in below.`)
+                  }}
+                >
+                  Use this
                 </button>
-                <button type="button" className="text-xs font-semibold text-ink-soft" onClick={() => void submit("deals.move", { id: row.id, stage: "lost" }, false)}>
-                  Mark lost
+              ) : null}
+              {module === "pipeline" && row.stage && row.stage !== "won" && row.stage !== "lost" ? (
+                <>
+                  <button type="button" className="text-xs font-semibold text-signal" onClick={() => void submit("deals.move", { id: row.id, stage: row.stage === "new" ? "qualified" : row.stage === "qualified" ? "proposal" : "won" }, false)}>
+                    Move forward
+                  </button>
+                  <button type="button" className="text-xs font-semibold text-ink-soft" onClick={() => void submit("deals.move", { id: row.id, stage: "lost" }, false)}>
+                    Mark lost
+                  </button>
+                </>
+              ) : null}
+              {module === "calendar" && row.id ? (
+                <button type="button" className="text-xs font-semibold text-ink-soft" onClick={() => void submit("bookings.cancel", { id: row.id }, false)}>
+                  Cancel booking
                 </button>
-              </div>
-            ) : null}
+              ) : null}
+              {module === "invoices" && row.id ? (
+                <>
+                  <button type="button" className="text-xs font-semibold text-signal" onClick={() => void submit("invoices.mark_paid", { id: row.id }, false)}>
+                    Mark paid
+                  </button>
+                  <button type="button" className="text-xs font-semibold text-ink-soft" onClick={() => void submit("invoices.void", { id: row.id }, false)}>
+                    Void
+                  </button>
+                  <button type="button" className="text-xs font-semibold text-ink-soft" onClick={() => void submit("invoices.request_payment", { id: row.id }, false)}>
+                    Request payment
+                  </button>
+                </>
+              ) : null}
+              {module === "workflows" && row.id ? (
+                <button type="button" className="text-xs font-semibold text-signal" onClick={() => void submit("workflows.run", { id: row.id }, false)}>
+                  Run
+                </button>
+              ) : null}
+              {module === "campaigns" && row.id ? (
+                <button type="button" className="text-xs font-semibold text-ink-soft" onClick={() => void submit("campaigns.send", { id: row.id }, false)}>
+                  Queue send
+                </button>
+              ) : null}
+              {module === "social" && row.id ? (
+                <button type="button" className="text-xs font-semibold text-ink-soft" onClick={() => void submit("social.publish", { id: row.id }, false)}>
+                  Mark scheduled
+                </button>
+              ) : null}
+            </div>
           </li>
         ))}
       </ul>
