@@ -1,8 +1,16 @@
 import type { MetadataRoute } from "next"
+import { headers } from "next/headers"
 import { agencyPages } from "@/lib/agency-pages"
 import { caseStudies, posts, services, site } from "@/lib/site"
+import { bareHost, isStoreHost, STORE_ORIGIN } from "@/lib/store/hosts"
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic = "force-dynamic"
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const host = bareHost((await headers()).get("x-forwarded-host") || (await headers()).get("host"))
+  if (isStoreHost(host)) {
+    return [{ url: `${STORE_ORIGIN}/`, lastModified: new Date("2026-11-19T00:00:00Z"), changeFrequency: "weekly", priority: 1 }]
+  }
   const lastModified = new Date("2026-11-18T00:00:00Z")
   const staticPaths = [
     "",
@@ -16,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/ava",
     "/beta",
     "/marketplace",
+    "/store",
     "/start",
     "/privacy",
     "/terms",

@@ -1,5 +1,9 @@
 import type { MetadataRoute } from "next"
+import { headers } from "next/headers"
 import { site } from "@/lib/site"
+import { bareHost, isStoreHost, STORE_ORIGIN } from "@/lib/store/hosts"
+
+export const dynamic = "force-dynamic"
 
 const privatePaths = [
   "/api/",
@@ -15,6 +19,7 @@ const privatePaths = [
   "/cancel",
   "/unsubscribe",
   "/start/preview",
+  "/store/confirmation",
 ]
 
 const namedBots = [
@@ -28,7 +33,15 @@ const namedBots = [
   "Google-Extended",
 ]
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const host = bareHost((await headers()).get("x-forwarded-host") || (await headers()).get("host"))
+  if (isStoreHost(host)) {
+    return {
+      rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/store/confirmation", "/auth/"] }],
+      sitemap: `${STORE_ORIGIN}/sitemap.xml`,
+      host: STORE_ORIGIN,
+    }
+  }
   return {
     rules: [
       ...namedBots.map((userAgent) => ({

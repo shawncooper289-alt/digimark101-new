@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import { storeRewritePath } from "@/lib/store/hosts"
 import { supabasePublicConfig } from "@/lib/supabase/config"
 
 function requestHost(request: NextRequest) {
@@ -15,7 +16,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url, 308)
   }
 
-  let response = NextResponse.next({ request })
+  const rewritten = storeRewritePath(requestHost(request), request.nextUrl.pathname)
+  const rewriteUrl = request.nextUrl.clone()
+  if (rewritten) rewriteUrl.pathname = rewritten
+  const pass = () => (rewritten ? NextResponse.rewrite(rewriteUrl) : NextResponse.next({ request }))
+
+  let response = pass()
   const config = supabasePublicConfig()
   if (!config) return response
 
@@ -26,7 +32,7 @@ export async function proxy(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-        response = NextResponse.next({ request })
+        response = pass()
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
       },
     },
