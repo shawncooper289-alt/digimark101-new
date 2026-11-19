@@ -22,6 +22,17 @@ Open the project from `NEXT_PUBLIC_SUPABASE_URL` → Authentication → URL conf
 
 Production emails use `https://www.digimark101.com` for customer signup, recovery, and invites, and `https://www.avaskye.online` for office login and password reset. Only local development uses localhost. Confirm the email templates keep the redirect, then test a real login and reset on both sites. Add any other required redirect URLs without removing these.
 
+### When a magic link opens localhost
+
+The office already sends `redirect_to=https://www.avaskye.online/auth/callback` (or `/reset-password` for recovery). Setting `NEXT_PUBLIC_SITE_URL` again does not change Supabase's hosted redirect allowlist or email templates.
+
+- Check **URL Configuration** on the exact Supabase project used by the office's `NEXT_PUBLIC_SUPABASE_URL`, not an unrelated Marketplace resource. Set **Site URL** to the customer origin above because the two apps share Auth. Add the exact callback and reset URLs above; allowing only `https://avaskye.online` does not allow `https://www.avaskye.online/auth/callback`.
+- Check **Email Templates** for magic links and recovery. A template must preserve the requested destination rather than hardcoding localhost or always using `.SiteURL`. The standard `.ConfirmationURL` contains the verification link and its redirect. See [Supabase's redirect and template guidance](https://supabase.com/docs/guides/auth/redirect-urls).
+- Save the hosted settings, then request a **new** link and open it in the same browser that requested it. Previously sent links are not repaired by changing the settings. Do not share login links or tokens.
+- For a password rejection, use the recovery form after correcting the redirect settings. A 401 response alone does not prove whether the password, email confirmation, or owner authorization failed. Do not disable confirmation or owner checks to bypass it.
+
+`supabase/config.toml` configures local Supabase. Editing it, merging this repository, or redeploying Next.js does **not** update hosted Supabase Auth settings. The hosted configuration must be saved separately; a successful deployment is not proof that an email login completed.
+
 Authentication → Providers → Email: enable Email. Turn on email/password if the password form should work. Magic links use the same provider. Confirm the built-in mailer or custom SMTP is sending, or the link never arrives.
 
 ## Vercel env for the office project

@@ -24,7 +24,19 @@ port = 54323
 [auth]
 enabled = true
 site_url = "https://www.digimark101.com"
-additional_redirect_urls = ["https://avaskye.online"]
+# Exact callback paths are required; an allowed origin alone does not allow its paths.
+# This config is local. Mirror these entries in the hosted Auth URL Configuration.
+additional_redirect_urls = [
+  "https://avaskye.online",
+  "https://www.digimark101.com/auth/callback",
+  "https://www.digimark101.com/reset-password",
+  "https://digimark101.com/auth/callback",
+  "https://www.avaskye.online/auth/callback",
+  "https://www.avaskye.online/reset-password",
+  "https://avaskye.online/auth/callback",
+  "http://localhost:3000/auth/callback",
+  "http://localhost:3000/reset-password",
+]
 
 [functions.leads-collect]
 verify_jwt = false

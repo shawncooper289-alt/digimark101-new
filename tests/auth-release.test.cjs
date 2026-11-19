@@ -49,6 +49,19 @@ test("office emails and password reset never follow a preview or forwarded host"
   }
 })
 
+test("Supabase config allows the exact production email destinations used by both apps", () => {
+  const config = fs.readFileSync("supabase/config.toml", "utf8")
+  const redirectList = config.match(/^additional_redirect_urls\s*=\s*\[([^\]]*)\]/m)
+  assert.ok(redirectList, "Auth redirect allowlist must be configured")
+  const allowed = new Set([...redirectList[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]))
+  for (const origin of ["https://www.digimark101.com", "https://www.avaskye.online"]) {
+    for (const path of ["/auth/callback", "/reset-password"]) {
+      assert.ok(allowed.has(`${origin}${path}`), `missing exact redirect ${origin}${path}`)
+    }
+  }
+  assert.match(config, /^site_url = "https:\/\/www\.digimark101\.com"$/m)
+})
+
 test("supabase email rate limit becomes a clear office message", async () => {
   const { readAuthError } = load("avaskye-online/src/lib/auth-failure.ts")
   const response = new Response(JSON.stringify({
