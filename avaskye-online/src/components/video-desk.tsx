@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { AVA_INTRO_BRIEF } from "../../../../lib/video/ava-intro"
+import { AVA_INTRO_BRIEF } from "../../../lib/video/ava-intro"
 
 type Scene = { caption: string; visual: string; camera: string; transition: string; startMs: number; endMs: number; talking: boolean }
 type Project = {
@@ -35,11 +35,14 @@ type Result = {
   fileName?: string
   videoUrl?: string
   videoId?: string
+  jobId?: string
+  stageLabel?: string
   provider?: string
   attempt?: number
   project?: Project
   saved?: string
   error?: string
+  cost?: { note?: string }
 }
 
 const field = "rounded-2xl border border-border bg-transparent px-3 py-2"
@@ -48,9 +51,9 @@ export function VideoDesk() {
   const [idea, setIdea] = useState("")
   const [audience, setAudience] = useState("")
   const [cta, setCta] = useState("")
-  const [seconds, setSeconds] = useState(60)
+  const [seconds, setSeconds] = useState(210)
   const [aspect, setAspect] = useState("9:16")
-  const [style, setStyle] = useState("presenter")
+  const [style, setStyle] = useState("cinematic")
   const [attire, setAttire] = useState("navy-blazer")
   const [scriptOverride, setScriptOverride] = useState("")
   const [scenePlan, setScenePlan] = useState<typeof AVA_INTRO_BRIEF.scenePlan>([])
@@ -87,15 +90,13 @@ export function VideoDesk() {
   }
 
   useEffect(() => {
-    if (result?.delivery !== "rendering" || !result.videoId || !result.provider || polls > 40) return
-    const videoId = result.videoId
-    const provider = result.provider
-    const attempt = result.attempt || 1
+    if (result?.delivery !== "working" || !result.jobId || polls > 80) return
+    const jobId = result.jobId
     const timer = window.setTimeout(() => {
       void fetch("/api/office/video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "status", brief, videoId, provider, attempt }),
+        body: JSON.stringify({ action: "job", brief, jobId }),
       })
         .then((response) => response.json())
         .then((data: Result) => {
@@ -105,7 +106,7 @@ export function VideoDesk() {
         .catch(() => setPolls((count) => count + 1))
     }, 4000)
     return () => window.clearTimeout(timer)
-  }, [brief, result?.delivery, result?.videoId, result?.provider, result?.attempt, polls])
+  }, [brief, result?.delivery, result?.jobId, polls])
 
   function download(name: string, contents: string, type: string) {
     const blob = new Blob([contents], { type })
@@ -136,7 +137,8 @@ export function VideoDesk() {
               <option value={30}>30 seconds</option>
               <option value={60}>1 minute</option>
               <option value={180}>3 minutes</option>
-              <option value={300}>5 minutes</option>
+              <option value={210}>3.5 minutes</option>
+              <option value={240}>4 minutes</option>
             </select>
           </label>
           <label className="grid gap-1 text-sm">Shape
@@ -183,7 +185,7 @@ export function VideoDesk() {
           </button>
           <button className="rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" type="submit" disabled={busy}>Write the script</button>
           <button className="rounded-full border border-border px-4 py-2 text-sm" type="button" disabled={busy} onClick={() => void send("preview")}>Make a preview draft</button>
-          <button className="rounded-full border border-border px-4 py-2 text-sm" type="button" disabled={busy} onClick={() => { setPolls(0); void send("render") }}>Render a finished video</button>
+          <button className="rounded-full border border-border px-4 py-2 text-sm" type="button" disabled={busy} onClick={() => { setPolls(0); void send("render") }}>Make the film</button>
         </div>
       </form>
       <section className="rounded-3xl border border-border p-5 text-sm text-muted" aria-live="polite">
@@ -202,7 +204,16 @@ export function VideoDesk() {
           <ul className="mt-3 grid gap-1 text-sm">{result.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
         </div>
       ) : null}
-      {result?.delivery === "rendering" ? <p className="text-sm">Render in progress. Nothing is marked finished yet.</p> : null}
+      {result?.delivery === "working" ? <p className="text-sm">{result.stageLabel || "Working"}. You can close this page. The film keeps going, and it is not published yet.</p> : null}
+      {result?.cost?.note ? <p className="text-sm text-muted">{result.cost.note}</p> : null}
+      {result?.delivery === "review" && result.videoUrl ? (
+        <div className="grid gap-3">
+          <h2 className="text-2xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Ready for your approval</h2>
+          <p className="text-sm text-muted">{result.note}</p>
+          <video className="w-full rounded-2xl" controls src={result.videoUrl} />
+          <button type="button" className="w-fit rounded-full bg-accent px-4 py-2 text-sm text-accent-fg" disabled={busy} onClick={() => void send("approve", { jobId: result.jobId })}>Approve and publish</button>
+        </div>
+      ) : null}
       {result?.delivery === "preview-draft" && result.html ? (
         <div className="grid gap-3">
           <h2 className="text-2xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>{result.label}</h2>

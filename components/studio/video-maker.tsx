@@ -55,6 +55,8 @@ type Result = {
   subtitleUrl?: string
   soundtrackUrl?: string
   videoId?: string
+  jobId?: string
+  stageLabel?: string
   provider?: string
   attempt?: number
   picture?: string
@@ -62,6 +64,7 @@ type Result = {
   saved?: string
   error?: string
   posted?: boolean
+  cost?: { usd?: number; note?: string; lines?: { label: string; usd: number }[] }
 }
 
 type Brief = {
@@ -90,9 +93,9 @@ const EMPTY: Brief = {
   offer: "",
   cta: "",
   proof: "",
-  seconds: 60,
+  seconds: 210,
   aspect: "9:16",
-  style: "presenter",
+  style: "cinematic",
   presenter: "ava",
   stockLabel: "",
   voiceChoice: "",
@@ -121,19 +124,18 @@ export function VideoMaker() {
   const [busy, setBusy] = useState(false)
   const [when, setWhen] = useState("")
   const [network, setNetwork] = useState("tiktok")
-  const [library, setLibrary] = useState<{ title: string; delivery: string; at: string }[]>([])
+  const [library, setLibrary] = useState<{ id: string; title: string; stageLabel: string }[]>([])
   const [polls, setPolls] = useState(0)
 
   useEffect(() => {
     void fetch("/api/studio/video").then((response) => response.json()).then((data: Capabilities) => setCaps(data)).catch(() => setCaps(null))
-    queueMicrotask(() => {
-      try {
-        const saved = JSON.parse(localStorage.getItem("digimark-video-library") || "[]") as { title: string; delivery: string; at: string }[]
-        if (Array.isArray(saved)) setLibrary(saved.slice(0, 8))
-      } catch {
-        setLibrary([])
-      }
-    })
+    void fetch("/api/studio/video", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "library", brief: EMPTY }),
+    }).then((response) => response.json()).then((data: { jobs?: { id: string; title: string; stageLabel: string }[] }) => {
+      if (Array.isArray(data.jobs)) setLibrary(data.jobs)
+    }).catch(() => setLibrary([]))
   }, [])
 
   function patch(partial: Partial<Brief>) {
@@ -151,11 +153,8 @@ export function VideoMaker() {
       const data = (await response.json()) as Result
       setResult(data)
       if (data.project?.script && action === "prepare") patch({ scriptOverride: data.project.script, title: data.project.title || brief.title })
-      if (data.delivery === "preview-draft" || data.delivery === "final") {
-        const entry = { title: data.project?.title || brief.title || "Video", delivery: data.delivery, at: new Date().toISOString() }
-        const next = [entry, ...library].slice(0, 8)
-        setLibrary(next)
-        localStorage.setItem("digimark-video-library", JSON.stringify(next))
+      if (data.jobId && data.project?.title) {
+        setLibrary((current) => [{ id: data.jobId || "", title: data.project?.title || "Video", stageLabel: data.stageLabel || data.delivery || "" }, ...current.filter((item) => item.id !== data.jobId)].slice(0, 8))
       }
       return data
     } catch {
@@ -167,15 +166,13 @@ export function VideoMaker() {
   }
 
   useEffect(() => {
-    if (result?.delivery !== "rendering" || !result.videoId || !result.provider || polls > 40) return
-    const videoId = result.videoId
-    const provider = result.provider
-    const attempt = result.attempt || 1
+    if (result?.delivery !== "working" || !result.jobId || polls > 80) return
+    const jobId = result.jobId
     const timer = window.setTimeout(() => {
       void fetch("/api/studio/video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "status", brief, videoId, provider, attempt }),
+        body: JSON.stringify({ action: "job", brief, jobId }),
       })
         .then((response) => response.json())
         .then((data: Result) => {
@@ -185,7 +182,7 @@ export function VideoMaker() {
         .catch(() => setPolls((count) => count + 1))
     }, 4000)
     return () => window.clearTimeout(timer)
-  }, [brief, result?.delivery, result?.videoId, result?.provider, result?.attempt, polls])
+  }, [brief, result?.delivery, result?.jobId, polls])
 
   const project = result?.project
   return (
@@ -205,7 +202,8 @@ export function VideoMaker() {
               <option value={30}>30 seconds</option>
               <option value={60}>1 minute</option>
               <option value={180}>3 minutes</option>
-              <option value={300}>5 minutes</option>
+              <option value={210}>3.5 minutes</option>
+              <option value={240}>4 minutes</option>
             </select>
           </label>
           <label className="grid gap-1 text-sm"><span className="font-medium">Shape</span>
@@ -267,7 +265,7 @@ export function VideoMaker() {
           <button className="btn btn-ghost" type="button" onClick={() => setBrief({ ...AVA_INTRO_BRIEF })}>Load the Meet Ava intro</button>
           <button className="btn btn-signal" type="submit" disabled={busy}>Write the script</button>
           <button className="btn btn-ghost" type="button" disabled={busy} onClick={() => void send("preview")}>Make a preview draft</button>
-          <button className="btn btn-ghost" type="button" disabled={busy} onClick={() => { setPolls(0); void send("render") }}>Render a finished video</button>
+          <button className="btn btn-ghost" type="button" disabled={busy} onClick={() => { setPolls(0); void send("render") }}>Make the film</button>
         </div>
       </form>
 
@@ -298,12 +296,21 @@ export function VideoMaker() {
           {result.note ? <p className="mt-2 text-sm text-ink-soft">{result.note}</p> : null}
         </div>
       ) : null}
-      {result?.delivery === "rendering" ? <p className="text-sm">Render in progress. This page checks again on its own. Nothing is marked finished yet.{polls > 40 ? " It is still working. Use Render a finished video to check again." : ""}</p> : null}
+      {result?.delivery === "working" ? <p className="text-sm">{result.stageLabel || "Working"}. This page checks again on its own. You can close it. The film is not published yet.</p> : null}
+      {result?.cost?.note ? <p className="text-sm text-ink-soft">{result.cost.note}</p> : null}
       {result?.delivery === "preview-draft" && result.html ? (
         <section className="grid gap-3">
           <h2 className="font-serif text-2xl">{result.label}</h2>
           <iframe title="Preview draft" className="h-[640px] w-full rounded-3xl border border-ink/10 bg-paper" sandbox="allow-scripts" srcDoc={result.html} />
           <button type="button" className="btn btn-ghost w-fit" onClick={() => download(result.fileName || "preview-draft.html", result.html || "", "text/html")}>Download the preview draft</button>
+        </section>
+      ) : null}
+      {result?.delivery === "review" && result.videoUrl ? (
+        <section className="grid gap-3 rounded-3xl border border-ink/10 bg-card p-5">
+          <h2 className="font-serif text-2xl">Ready for your approval</h2>
+          <p className="text-sm text-ink-soft">Watch it before it is published. {result.note}</p>
+          <video className="w-full rounded-2xl" controls src={result.videoUrl} />
+          <button type="button" className="btn btn-signal w-fit" disabled={busy} onClick={() => void send("approve", { jobId: result.jobId })}>Approve and publish</button>
         </section>
       ) : null}
       {result?.delivery === "final" && result.delivered && result.videoUrl ? (
@@ -365,11 +372,11 @@ export function VideoMaker() {
       ) : null}
 
       <section>
-        <h2 className="font-serif text-2xl">Library on this browser</h2>
-        {library.length === 0 ? <p className="mt-2 text-sm text-ink-soft">Finished videos and preview drafts you make here show up in this list.</p> : null}
+        <h2 className="font-serif text-2xl">Saved films</h2>
+        {library.length === 0 ? <p className="mt-2 text-sm text-ink-soft">Films saved in the library show up here. If the library is not connected yet, that is named above.</p> : null}
         <ul className="mt-3 grid gap-2 text-sm">
-          {library.map((item, index) => (
-            <li key={`${item.at}-${index}`}>{item.title} · {item.delivery === "final" ? "Finished video" : "Preview draft"}</li>
+          {library.map((item) => (
+            <li key={item.id}>{item.title} · {item.stageLabel}</li>
           ))}
         </ul>
       </section>

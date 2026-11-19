@@ -88,7 +88,10 @@ export type QualityCheck = {
 }
 
 export type DeliveryDecision = {
+  /** True only after a person approves a cut that has no hard failures. */
   deliver: boolean
+  /** The file can be watched. A person still has to approve it before it is published. */
+  review: boolean
   retryable: boolean
   reasons: string[]
   checks: QualityCheck[]
