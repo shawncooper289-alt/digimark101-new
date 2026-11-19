@@ -45,10 +45,9 @@ async function requestTranscript(plan: TranscribePlan, file: Blob, filename: str
   } else {
     body.append("model", plan.model)
     if (plan.model === "gpt-transcribe" || plan.model.startsWith("gpt-transcribe")) {
-      body.append("languages", "en")
+      body.append("languages", JSON.stringify(["en"]))
       body.append("prompt", "A DigiMark101 studio conversation with Ava Skye.")
-      body.append("keywords", "Ava Skye")
-      body.append("keywords", "DigiMark101")
+      body.append("keywords", JSON.stringify(["Ava Skye", "DigiMark101"]))
     } else {
       body.append("language", "en")
     }

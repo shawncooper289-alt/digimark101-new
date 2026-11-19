@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react"
 
 type TurnstileApi = {
   render: (element: HTMLElement, options: { sitekey: string; callback: (token: string) => void }) => string
+  reset: (id?: string) => void
   remove: (id: string) => void
 }
 
@@ -13,10 +14,11 @@ declare global {
   }
 }
 
-/** Renders nothing until NEXT_PUBLIC_TURNSTILE_SITE_KEY is set. */
-export function TurnstileField({ onToken }: { onToken: (token: string) => void }) {
+/** Renders nothing until NEXT_PUBLIC_TURNSTILE_SITE_KEY is set. Increase resetKey after a rejected submit so the widget issues a new token. */
+export function TurnstileField({ onToken, resetKey = 0 }: { onToken: (token: string) => void; resetKey?: number }) {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || ""
   const host = useRef<HTMLDivElement>(null)
+  const widgetId = useRef("")
   const onTokenRef = useRef(onToken)
 
   useEffect(() => {
@@ -24,12 +26,17 @@ export function TurnstileField({ onToken }: { onToken: (token: string) => void }
   }, [onToken])
 
   useEffect(() => {
+    if (!resetKey) return
+    onTokenRef.current("")
+    if (widgetId.current) window.turnstile?.reset(widgetId.current)
+  }, [resetKey])
+
+  useEffect(() => {
     if (!siteKey || !host.current) return
-    let widgetId = ""
     let cancelled = false
     const render = () => {
       if (cancelled || !host.current || !window.turnstile) return
-      widgetId = window.turnstile.render(host.current, {
+      widgetId.current = window.turnstile.render(host.current, {
         sitekey: siteKey,
         callback: (token) => onTokenRef.current(token),
       })
@@ -50,7 +57,7 @@ export function TurnstileField({ onToken }: { onToken: (token: string) => void }
     }
     return () => {
       cancelled = true
-      if (widgetId) window.turnstile?.remove(widgetId)
+      if (widgetId.current) window.turnstile?.remove(widgetId.current)
     }
   }, [siteKey])
 

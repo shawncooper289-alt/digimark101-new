@@ -24,6 +24,9 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null)
   const facts = callFacts(body)
+  if (facts.direction === "outbound") {
+    return NextResponse.json({ type: "conversation_initiation_client_data" })
+  }
   const caller = facts.phone
   if (caller && (await tooManyRequests(`inbound-caller:${caller}`, 5, 10 * 60_000))) {
     return NextResponse.json({ error: "Too many calls from that number. Wait a few minutes." }, { status: 429 })

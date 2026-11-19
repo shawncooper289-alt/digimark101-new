@@ -54,6 +54,7 @@ const fieldClass = "min-h-11 rounded-2xl border border-ink/15 bg-mist px-3 text-
 export function LeadForm({ initialInterest = "" }: LeadFormProps) {
   const [form, setForm] = useState<FormState>({ ...EMPTY, service: initialInterest })
   const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileReset, setTurnstileReset] = useState(0)
   const [status, setStatus] = useState<"idle" | "sending" | "saved" | "fallback" | "suppressed" | "error">("idle")
   const [error, setError] = useState("")
   const applyFill = useCallback((fills: Record<string, string>) => {
@@ -104,6 +105,8 @@ export function LeadForm({ initialInterest = "" }: LeadFormProps) {
       if (!response.ok || !data.ok) {
         setStatus("error")
         setError(data.error || "The note could not be sent.")
+        setTurnstileToken("")
+        setTurnstileReset((value) => value + 1)
         return
       }
       if (data.reason === "suppressed") {
@@ -114,6 +117,8 @@ export function LeadForm({ initialInterest = "" }: LeadFormProps) {
     } catch {
       setStatus("error")
       setError("The note could not be sent. Email the studio instead.")
+      setTurnstileToken("")
+      setTurnstileReset((value) => value + 1)
     }
   }
 
@@ -262,7 +267,7 @@ export function LeadForm({ initialInterest = "" }: LeadFormProps) {
           {error} You can also email {site.email}.
         </p>
       ) : null}
-      <TurnstileField onToken={setTurnstileToken} />
+      <TurnstileField onToken={setTurnstileToken} resetKey={turnstileReset} />
       <button type="submit" className="btn btn-signal w-full sm:w-auto" disabled={status === "sending"}>
         {status === "sending" ? "Sending…" : "Send the note"}
       </button>

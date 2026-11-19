@@ -166,6 +166,7 @@ test("the call route refuses an unauthenticated dial and places an allowlisted o
     assert.equal(placed[0].url, "https://api.elevenlabs.io/v1/convai/twilio/outbound-call")
     assert.equal(placed[0].body.to_number, "+15551234567")
     assert.equal(placed[0].body.agent_id, "agent-1")
+    assert.deepEqual(placed[0].body.conversation_initiation_client_data, {})
   } finally {
     global.fetch = originalFetch
     for (const key of Object.keys(env)) {

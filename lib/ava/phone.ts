@@ -97,6 +97,8 @@ export async function placeOutboundCall(
         agent_id: dial.agentId,
         agent_phone_number_id: dial.phoneNumberId,
         to_number: dial.to,
+        // Present so ElevenLabs does not also call the inbound initiation webhook.
+        conversation_initiation_client_data: {},
       }),
     })
     const data = (await response.json().catch(() => null)) as { success?: unknown; callSid?: unknown; conversation_id?: unknown; message?: unknown } | null
@@ -187,10 +189,10 @@ export function signElevenLabsBody(raw: string, secret: string, now = Date.now()
   return `t=${timestamp},v0=${digest}`
 }
 
-export type CallFacts = { ids: string[]; duration: number | null; phone: string }
+export type CallFacts = { ids: string[]; duration: number | null; phone: string; direction: "" | "inbound" | "outbound" }
 
 export function callFacts(event: unknown): CallFacts {
-  const found: CallFacts = { ids: [], duration: null, phone: "" }
+  const found: CallFacts = { ids: [], duration: null, phone: "", direction: "" }
   walk(event, found, 0)
   found.ids = [...new Set(found.ids)]
   return found
@@ -213,6 +215,9 @@ function walk(value: unknown, found: CallFacts, depth: number) {
     }
     if ((name === "caller_id" || name === "to_number" || name === "called" || name === "phone_number") && typeof item === "string" && item.startsWith("+")) {
       found.phone = item.slice(0, 20)
+    }
+    if (name === "direction" && (item === "inbound" || item === "outbound") && !found.direction) {
+      found.direction = item
     }
     if (item && typeof item === "object") walk(item, found, depth + 1)
   }

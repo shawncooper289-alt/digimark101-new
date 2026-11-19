@@ -12,6 +12,7 @@ export function BetaJoinForm({ inviteRequired }: { inviteRequired: boolean }) {
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileReset, setTurnstileReset] = useState(0)
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
@@ -31,10 +32,15 @@ export function BetaJoinForm({ inviteRequired }: { inviteRequired: boolean }) {
         signal: AbortSignal.timeout(30000),
       })
       const body = (await response.json()) as { error?: string }
-      if (!response.ok) setError(body.error || "Could not send the sign-in email.")
-      else setMessage(`Check ${email.trim()} for a sign-in link, including spam. That link opens a free beta seat. It does not start a payment.`)
+      if (!response.ok) {
+        setError(body.error || "Could not send the sign-in email.")
+        setTurnstileToken("")
+        setTurnstileReset((value) => value + 1)
+      } else setMessage(`Check ${email.trim()} for a sign-in link, including spam. That link opens a free beta seat. It does not start a payment.`)
     } catch {
       setError("Could not send the sign-in email.")
+      setTurnstileToken("")
+      setTurnstileReset((value) => value + 1)
     } finally {
       setBusy(false)
     }
@@ -72,7 +78,7 @@ export function BetaJoinForm({ inviteRequired }: { inviteRequired: boolean }) {
           Ava will not publish, spend, or email my customers until I say yes. This seat is free and does not use PayPal.
         </span>
       </label>
-      <TurnstileField onToken={setTurnstileToken} />
+      <TurnstileField onToken={setTurnstileToken} resetKey={turnstileReset} />
       <button type="submit" className="btn btn-signal" disabled={busy}>{busy ? "Sending…" : "Email me a beta link"}</button>
       {error ? <p className="text-sm text-signal" role="alert">{error}</p> : null}
       {message ? <p className="text-sm">{message}</p> : null}

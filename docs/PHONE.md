@@ -49,4 +49,4 @@ The owner, signed in on digimark101.com, sends:
 { "to": "+15551234567", "consent": true }
 ```
 
-A successful answer includes `callSid` and `conversationId`. To hang up from the site, the owner sends those to `POST /api/ava/end-call`. The person on the phone can also hang up. Inbound calls are answered by ElevenLabs on the Twilio number. The site only checks the secret, writes the call down, and lets Ava speak.
+A successful answer includes `callSid` and `conversationId`. The outbound request already includes conversation data, so ElevenLabs does not also treat that call as someone dialing in. To hang up from the site, the owner sends those ids to `POST /api/ava/end-call`. The person on the phone can also hang up. Inbound calls are answered by ElevenLabs on the Twilio number. The site only checks the secret, writes the call down, and lets Ava speak.
