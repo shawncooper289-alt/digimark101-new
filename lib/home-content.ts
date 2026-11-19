@@ -40,6 +40,7 @@ export const pageLinks = [
   { href: "#why-now", label: "Why now" },
   { href: "#who", label: "Who it is for" },
   { href: "#film", label: "Film" },
+  { href: "#walkthrough", label: "Walkthrough" },
   { href: "#what", label: "What it is" },
   { href: "#how", label: "How it works" },
   { href: "#features", label: "Features" },

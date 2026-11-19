@@ -8,6 +8,7 @@ import { useDictate } from "@/components/ava/use-dictate"
 import { omitBannedLine } from "@/lib/ava/banned-line"
 import { DEVICE_VOICE_NOTE, prepareAvaSpeech, speakAva, stopAvaSpeech } from "@/lib/ava/speech"
 import { spokenCommand } from "@/lib/ava/voice-command"
+import { AVA_DISMISS_KEY, helpfulAvaPath } from "@/lib/ava/presence"
 import { applySetupSnapshot, readSetupDraft } from "@/lib/onboarding/setup-draft"
 import { usePlatform } from "@/components/studio/platform-provider"
 import { rosterFrom, type Action } from "@/lib/platform/types"
@@ -162,6 +163,27 @@ function writeAnchor(id: string, point: Anchor) {
   return next
 }
 
+let memoryDismiss: boolean | null = null
+
+function dismissSnapshot() {
+  if (memoryDismiss !== null) return memoryDismiss
+  try {
+    return localStorage.getItem(AVA_DISMISS_KEY) === "1"
+  } catch {
+    return false
+  }
+}
+
+function writeDismiss(next: boolean) {
+  memoryDismiss = next
+  try {
+    localStorage.setItem(AVA_DISMISS_KEY, next ? "1" : "0")
+  } catch {
+    // The choice still holds for this visit when storage is blocked.
+  }
+  emitPrefs()
+}
+
 function writeVoice(id: string, next: boolean) {
   memoryVoice.set(id, next)
   voiceCache.delete(id)
@@ -176,9 +198,10 @@ function writeVoice(id: string, next: boolean) {
 export function AvaWidget() {
   const titleId = useId()
   const liveId = useId()
+  const dialogId = useId()
   const router = useRouter()
   const pathname = usePathname()
-  const showBubble = pathname.startsWith("/studio") || pathname.startsWith("/")
+  const helpful = pathname.startsWith("/studio") || helpfulAvaPath(pathname)
   const platform = usePlatform()
   const identity = identityKey(platform.email)
   const [open, setOpen] = useState(false)
@@ -195,6 +218,9 @@ export function AvaWidget() {
   const readVoice = useCallback(() => voiceSnapshot(identity), [identity])
   const storedAnchor = useSyncExternalStore(subscribePrefs, readAnchor, () => null)
   const voice = useSyncExternalStore(subscribePrefs, readVoice, () => true)
+  const dismissed = useSyncExternalStore(subscribePrefs, dismissSnapshot, () => false)
+  const showLauncher = helpful && !dismissed
+  const showRestore = helpful && dismissed
   const [viewportKey, setViewportKey] = useState("0x0")
   useEffect(() => {
     const update = () => setViewportKey(`${window.innerWidth}x${window.innerHeight}`)
@@ -206,6 +232,9 @@ export function AvaWidget() {
   const anchor = dragAnchor?.id === identity ? dragAnchor.point : storedAnchor
   const scroller = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const launcherRef = useRef<HTMLButtonElement>(null)
+  const wasOpen = useRef(false)
+  const dragged = useRef(false)
   const sendRef = useRef<(text: string, source?: "voice" | "typed") => Promise<void>>(async () => {})
   const speakRef = useRef<(text: string) => Promise<void>>(async () => {})
   const messagesRef = useRef<Turn[]>([])
@@ -325,6 +354,16 @@ export function AvaWidget() {
     sendRef.current = send
     speakRef.current = (text) => speakAndWait(text, false)
   })
+
+  useEffect(() => {
+    if (open) {
+      inputRef.current?.focus()
+      wasOpen.current = true
+    } else if (wasOpen.current) {
+      launcherRef.current?.focus()
+      wasOpen.current = false
+    }
+  }, [open])
 
   useEffect(() => {
     if (!open) {
@@ -507,17 +546,35 @@ export function AvaWidget() {
     if (drag.moved && anchorRef.current) {
       writeAnchor(identityRef.current, anchorRef.current)
       setDragAnchor(null)
+      dragged.current = true
+      return
+    }
+  }
+
+  function onLauncherClick() {
+    if (dragged.current) {
+      dragged.current = false
       return
     }
     openChat()
   }
 
-  function onAvatarKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
-    if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+  function onDialogKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+    if (event.key !== "Tab") return
+    const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("button, textarea, a[href], input, select")).filter((item) => !item.hasAttribute("disabled"))
+    const first = items[0]
+    const last = items[items.length - 1]
+    if (!first || !last) return
+    if (event.shiftKey && document.activeElement === first) {
       event.preventDefault()
-      openChat()
-      return
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
     }
+  }
+
+  function onAvatarKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
     if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return
     event.preventDefault()
     const rect = event.currentTarget.getBoundingClientRect()
@@ -551,41 +608,67 @@ export function AvaWidget() {
         ? "Turning speech into text…"
         : ""
 
-  if (!open && !showBubble) return null
+  if (!open && !showLauncher && !showRestore) return null
+
+  const launcherStyle = anchor ? { left: anchor.x, top: anchor.y, width: AVATAR_W, height: AVATAR_H } : { width: AVATAR_W, height: AVATAR_H }
+  const launcherClass = `ava-float fixed z-50 ${anchor ? "" : "right-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))]"}`
 
   return (
     <>
-      {open || !showBubble ? null : (
+      {open || !showRestore ? null : (
         <button
+          ref={launcherRef}
           type="button"
-          className={`ava-float fixed z-50 cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing ${
-            anchor ? "" : "right-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))]"
-          }`}
-          style={anchor ? { left: anchor.x, top: anchor.y, width: AVATAR_W, height: AVATAR_H } : { width: AVATAR_W, height: AVATAR_H }}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onKeyDown={onAvatarKeyDown}
-          aria-haspopup="dialog"
-          aria-expanded={false}
-          aria-label="Ask Ava for help. Drag to move her."
+          className={`${launcherClass} btn btn-signal px-4`}
+          style={anchor ? { left: anchor.x, top: anchor.y } : undefined}
+          onClick={() => writeDismiss(false)}
         >
-          <Image
-            src="/media/ava-float-full.png"
-            alt=""
-            draggable={false}
-            width={712}
-            height={836}
-            className="pointer-events-none h-full w-full object-contain object-center drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]"
-          />
+          Show Ava
         </button>
+      )}
+      {open || !showLauncher ? null : (
+        <div className={launcherClass} style={launcherStyle}>
+          <button
+            type="button"
+            className="absolute -top-3 right-0 z-10 min-h-11 rounded-full border border-ink/20 bg-paper px-3 py-2 text-[0.7rem] font-semibold text-ink"
+            aria-label="Dismiss Ava"
+            onClick={() => writeDismiss(true)}
+          >
+            Dismiss
+          </button>
+          <button
+            ref={launcherRef}
+            type="button"
+            className="h-full w-full cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onClick={onLauncherClick}
+            onKeyDown={onAvatarKeyDown}
+            aria-haspopup="dialog"
+            aria-expanded={false}
+            aria-controls={dialogId}
+            aria-label="Ask Ava for help. Drag to move her. Dismiss hides her on this browser."
+          >
+            <Image
+              src="/media/ava-float-full.png"
+              alt=""
+              draggable={false}
+              width={712}
+              height={836}
+              className="pointer-events-none h-full w-full object-contain object-center drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]"
+            />
+          </button>
+        </div>
       )}
 
       {open ? (
         <section
+          id={dialogId}
           role="dialog"
           aria-modal="false"
           aria-labelledby={titleId}
+          onKeyDown={onDialogKeyDown}
           className="fixed inset-x-3 bottom-3 z-50 flex h-[min(680px,calc(100dvh-1.5rem))] flex-col overflow-hidden rounded-3xl border border-signal/25 bg-card shadow-[0_0_40px_rgba(203,176,130,0.16)] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[400px]"
           style={viewportWidth >= 640 ? panelStyle() : undefined}
         >

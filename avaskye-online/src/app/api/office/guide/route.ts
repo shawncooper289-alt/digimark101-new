@@ -6,6 +6,8 @@ import { readOfficeOwner } from "@/lib/office-store"
 import { SOCIAL_PLAYS } from "@/lib/social-strategies"
 import { extractUrl, readWebsite } from "@/lib/ava/website"
 import { avaSkillBrief } from "@/lib/ava/knowledge-base"
+import { answerAboutPage, guideForPath } from "@/lib/page-guide"
+import { officeSetupReply } from "@/lib/setup-chat"
 import { delegateWorkTool, isHelperRole } from "@/lib/openai/helpers"
 import { openAiChat, openAiEnv, OPENAI_FAILED_MESSAGE, OPENAI_MISSING_OWNER } from "@/lib/openai/server"
 
@@ -38,16 +40,15 @@ function draftContact(text: string) {
   return { name: named?.[1] || "New contact", email, company }
 }
 
-const SETUP_STEPS = [
-  "What should I call you?",
-  "What's the business called?",
-  "What do you sell?",
-  "Who is it for?",
-  "Do you have a website, or not yet?",
-  "Which email should the account use?",
-]
-
 type Turn = { role?: string; content?: string }
+
+function pageFrom(input: unknown) {
+  if (!input || typeof input !== "object") return { path: "/", title: "" }
+  const record = input as { path?: unknown; title?: unknown }
+  const path = typeof record.path === "string" && record.path.startsWith("/") ? record.path.slice(0, 120) : "/"
+  const title = typeof record.title === "string" ? record.title.slice(0, 140) : ""
+  return { path, title }
+}
 
 function priorTurns(input: unknown): Turn[] {
   if (!Array.isArray(input)) return []
@@ -58,22 +59,6 @@ function priorTurns(input: unknown): Turn[] {
       return (turn.role === "user" || turn.role === "assistant") && typeof turn.content === "string" && turn.content.trim().length > 0 && turn.content.length < 800
     })
     .slice(-12)
-}
-
-function offlineReply(message: string, history: Turn[]) {
-  const said = history.filter((turn) => turn.role === "assistant").map((turn) => turn.content || "").join("\n")
-  const lower = message.toLowerCase()
-  const starting = /set up|setup|free account|get started|i(?:'|’)m new|help me start/.test(lower)
-  const underway = SETUP_STEPS.some((step) => said.includes(step))
-  if (!starting && !underway) return null
-  const next = SETUP_STEPS.find((step) => !said.includes(step))
-  if (!next) return "That's enough for now. I can open the login whenever you want."
-  if (starting && !said.includes(SETUP_STEPS[0])) return SETUP_STEPS[0]
-  if (said.includes("What should I call you?") && !said.includes("What's the business called?")) {
-    const name = message.trim().replace(/[.?!]+$/g, "")
-    if (name && name.length < 40) return `${name}. What's the business called?`
-  }
-  return next
 }
 
 function naturalize(reply: string) {
@@ -118,7 +103,7 @@ function jobsFromTools(toolCalls: { name: string; arguments: string }[]) {
   return jobs
 }
 
-async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSnapshot>>, history: Turn[], ownerId: string): Promise<string | null> {
+async function liveReply(message: string, snap: Awaited<ReturnType<typeof deskSnapshot>>, history: Turn[], ownerId: string, pageLabel: string): Promise<string | null> {
   if (!openAiEnv()) return null
 
   let websiteContext = ""
@@ -165,7 +150,8 @@ Desk snapshot (use only these numbers):
 Social desk is free organic only.
 ${socialHint(message)}${websiteContext}
 
-If he asks to set up a free account or is new, ask the next unanswered question naturally. Do not announce a process.`
+The owner is on ${pageLabel}. Answer with that page in mind. Use only the desk numbers above.
+If he asks to set up a free account or is new, the app already runs that interview before you are called. Do not restart it.`
 
   const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
     { role: "system", content: system },
@@ -198,9 +184,11 @@ function officeReply(body: { reply: string; href?: string; draft?: { name: strin
 export async function POST(request: Request) {
   const owner = await readOfficeOwner()
   if (!owner) return NextResponse.json({ error: "The owner office is closed." }, { status: 403 })
-  const body = (await request.json().catch(() => null)) as { message?: string; history?: unknown } | null
+  const body = (await request.json().catch(() => null)) as { message?: string; history?: unknown; page?: unknown } | null
   const message = body?.message?.trim() || ""
   const history = priorTurns(body?.history)
+  const page = pageFrom(body?.page)
+  const guide = guideForPath(page.path)
   if (!message || message.length > 1000) return NextResponse.json({ error: "Send a short question." }, { status: 400 })
 
   const draft = draftContact(message)
@@ -219,6 +207,12 @@ export async function POST(request: Request) {
     })
   }
 
+  const setup = officeSetupReply(message, history)
+  if (setup) return officeReply({ reply: setup })
+
+  const aboutPage = answerAboutPage(message, page.path)
+  if (aboutPage) return officeReply({ reply: aboutPage })
+
   const route = routes.find((item) => item.phrase.test(message.toLowerCase()))
   if (route && /open|show|go|take me/.test(message.toLowerCase())) {
     return officeReply({ reply: `Opening ${route.label}.`, href: route.href })
@@ -235,14 +229,11 @@ export async function POST(request: Request) {
       ].filter(Boolean)
       return officeReply({ reply: parts.join(" ") })
     }
-    return officeReply({ reply: OPENAI_MISSING_OWNER })
+    return officeReply({ reply: `${OPENAI_MISSING_OWNER} You're on ${guide.label}.` })
   }
 
-  const live = await liveReply(message, snap, history, owner.id)
+  const live = await liveReply(message, snap, history, owner.id, guide.label)
   if (live) return officeReply({ reply: live, href: route?.href })
-
-  const casual = offlineReply(message, history)
-  if (casual) return officeReply({ reply: casual })
 
   if (/how many|summary|status|what is on the desk/.test(message.toLowerCase())) {
     const parts = [
