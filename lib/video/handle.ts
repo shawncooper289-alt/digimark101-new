@@ -1,15 +1,17 @@
-import { decide, localChecks, probeChecks } from "./gate"
-import { readHeygenPayload, fourKRejected } from "./heygen"
+import { localChecks } from "./gate"
 import { handoffCaption, readNetwork } from "./handoff"
+import { approveVideoJob, jobSummary, runVideoJob, startVideoJob, sweepJobs, webhookOk, type PipelineDeps } from "./pipeline"
 import { prepareProject } from "./prepare"
 import { previewDraftHtml, previewFileName } from "./preview"
-import { musicRequest, publicStatus, renderCall, statusCall } from "./render"
-import { VIDEO_QUALITY_POLICY, type VideoResolution } from "./quality"
+import { publicStatus } from "./render"
+import { planShots } from "./shots"
+import { estimateShots } from "./cost"
+import { memoryVideoStore, type VideoStore } from "./job"
+import { supabaseVideoStore } from "./supabase-job"
+import { brollProvider, referenceImageUrls, type Env } from "./providers"
 import type { TextTools } from "./text"
-import type { Env } from "./providers"
-import type { MediaProbe, VideoProject } from "./types"
-
-type FetchLike = (url: string, init?: RequestInit) => Promise<Response>
+import type { VideoProject } from "./types"
+import type { FetchLike } from "./vendors"
 
 function publicProject(project: VideoProject) {
   return {
@@ -41,56 +43,29 @@ function publicProject(project: VideoProject) {
   }
 }
 
-function blocked(project: VideoProject | null, reasons: string[], extra: Record<string, unknown> = {}) {
+function depsFor(input: {
+  env: Env
+  tools: TextTools
+  fetchImpl: FetchLike
+  store: VideoStore
+  app: "studio" | "office"
+  ownerId?: string
+  callbackBase?: string
+  editorReady?: PipelineDeps["editorReady"]
+  render?: PipelineDeps["render"]
+  probe?: PipelineDeps["probe"]
+}): PipelineDeps {
   return {
-    status: 200,
-    body: {
-      delivery: "blocked",
-      delivered: false,
-      reasons,
-      project: project ? publicProject(project) : null,
-      ...extra,
-    },
-  }
-}
-
-async function readJson(response: Response) {
-  return response.json().catch(() => null)
-}
-
-function probeFrom(payload: ReturnType<typeof readHeygenPayload>): MediaProbe {
-  return {
-    status: payload.status,
-    resolution: payload.resolution,
-    resolutionNote: payload.resolutionNote,
-    width: payload.width,
-    height: payload.height,
-    fps: payload.fps,
-    videoDurationMs: payload.videoDurationMs,
-    audioDurationMs: payload.audioDurationMs,
-    lipSyncOffsetMs: payload.lipSyncOffsetMs,
-    blackFrameCount: payload.blackFrameCount,
-    frozenSeconds: payload.frozenSeconds,
-    videoUrl: payload.videoUrl,
-    subtitleUrl: payload.subtitleUrl,
-  }
-}
-
-function finished(project: VideoProject, probe: MediaProbe, picture: string, soundtrack: string): { status: number; body: Record<string, unknown> } {
-  return {
-    status: 200,
-    body: {
-      delivery: "final",
-      delivered: true,
-      videoUrl: probe.videoUrl || "",
-      subtitleUrl: probe.subtitleUrl || "",
-      soundtrackUrl: soundtrack,
-      picture,
-      resolution: probe.resolution || "",
-      resolutionNote: probe.resolutionNote || "",
-      project: publicProject(project),
-      reasons: [],
-    },
+    env: input.env,
+    tools: input.tools,
+    fetchImpl: input.fetchImpl,
+    store: input.store,
+    app: input.app,
+    ownerId: input.ownerId,
+    callbackBase: input.callbackBase,
+    editorReady: input.editorReady || (async () => ({ ok: false, reason: "The film editor is not configured. Nothing was sent to a paid service." })),
+    render: input.render || (async () => ({ error: "The film editor is not configured." })),
+    probe: input.probe,
   }
 }
 
@@ -100,14 +75,88 @@ export async function handleVideoRequest(input: {
   env: Env
   tools: TextTools
   fetchImpl?: FetchLike
+  store?: VideoStore | null
+  app?: "studio" | "office"
+  ownerId?: string
+  callbackBase?: string
+  editorReady?: PipelineDeps["editorReady"]
+  render?: PipelineDeps["render"]
+  probe?: PipelineDeps["probe"]
 }): Promise<{ status: number; body: Record<string, unknown> }> {
   const fetchImpl = input.fetchImpl || globalThis.fetch
   const env = input.env
+  const app = input.app || "studio"
   if (input.action === "capabilities") {
     return { status: 200, body: publicStatus(env) as unknown as Record<string, unknown> }
   }
 
+  const store = input.store !== undefined ? input.store : null
+  const durableStore = () => store || supabaseVideoStore(env, fetchImpl as typeof fetch)
   const record = input.payload && typeof input.payload === "object" ? input.payload as Record<string, unknown> : {}
+
+  if (input.action === "library") {
+    const library = durableStore()
+    if (!library) return { status: 200, body: { jobs: [], note: "The video library is not connected. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY." } }
+    const jobs = (await library.list(12)).filter((job) => !input.ownerId || (job.ownerId === input.ownerId && job.app === app))
+    return {
+      status: 200,
+      body: {
+        jobs: jobs.map((job) => ({ id: job.id, title: job.title, stage: job.stage, stageLabel: jobSummary(job).stageLabel, updatedAt: job.updatedAt })),
+      },
+    }
+  }
+
+  if (input.action === "sweep") {
+    const library = durableStore()
+    if (!library) return { status: 200, body: { ok: false, error: "The video library is not connected." } }
+    const result = await sweepJobs(depsFor({ ...input, env, fetchImpl, store: library, app }))
+    return { status: 200, body: result }
+  }
+
+  if (input.action === "job" || input.action === "approve" || input.action === "vendor-event") {
+    const library = durableStore()
+    if (!library) return { status: 200, body: { delivery: "blocked", delivered: false, reasons: ["The video library is not connected."] } }
+    const jobId = typeof record.jobId === "string" ? record.jobId : ""
+    const job = jobId ? await library.load(jobId) : null
+    if (!job) return { status: 404, body: { error: "That film could not be found." } }
+    const privileged = input.action === "vendor-event"
+    if (!privileged && input.ownerId && (job.ownerId !== input.ownerId || job.app !== app)) {
+      return { status: 404, body: { error: "That film could not be found." } }
+    }
+    if (input.action === "job" && (job.stage === "review" || job.stage === "published" || job.stage === "blocked")) {
+      const project = job.project ? publicProject(job.project) : null
+      return { status: 200, body: { ...jobSummary(job), project } }
+    }
+    if (input.action === "vendor-event") {
+      const token = typeof record.token === "string" ? record.token : ""
+      if (!webhookOk(env, token)) return { status: 401, body: { error: "That callback was refused." } }
+      const shotId = typeof record.shotId === "string" ? record.shotId : ""
+      const providerId = typeof record.providerId === "string" ? record.providerId : ""
+      const url = typeof record.url === "string" ? record.url : ""
+      const status = typeof record.status === "string" ? record.status.toLowerCase() : ""
+      const error = typeof record.error === "string" ? record.error : ""
+      job.shots = job.shots.map((shot) => {
+        if (shot.id !== shotId && shot.providerId !== providerId) return shot
+        if (url && ["completed", "complete", "ready", "done", "ok"].includes(status)) {
+          return { ...shot, status: "ready", outputUrl: url, error: "" }
+        }
+        if (["failed", "error"].includes(status)) return { ...shot, status: "failed", error: error || "The shot failed." }
+        return shot
+      })
+      await library.save(job)
+    }
+    if (input.action === "approve") {
+      const approved = approveVideoJob(job)
+      if ("error" in approved) return { status: 400, body: { error: approved.error } }
+      await library.save(approved)
+      const project = approved.project ? publicProject(approved.project) : null
+      return { status: 200, body: { ...jobSummary(approved), project } }
+    }
+    const next = await runVideoJob(job, depsFor({ ...input, env, fetchImpl, store: library, app }))
+    const project = next.project ? publicProject(next.project) : null
+    return { status: 200, body: { ...jobSummary(next), project } }
+  }
+
   const prepared = prepareProject(record.brief ?? record, env, input.tools)
   if ("error" in prepared) return { status: 400, body: { error: prepared.error } }
   const project = prepared.project
@@ -115,9 +164,16 @@ export async function handleVideoRequest(input: {
   if (input.action === "prepare" || input.action === "preview") {
     const local = localChecks(project, { containsBanned: (text) => input.tools.omitBannedLine(text) !== text })
     const problems = local.filter((item) => item.state === "fail").map((item) => item.detail)
-    if (problems.length) return blocked(project, problems)
+    if (problems.length) {
+      return { status: 200, body: { delivery: "blocked", delivered: false, reasons: problems, project: publicProject(project) } }
+    }
+    const shots = planShots(project, {
+      allowBroll: brollProvider(env) !== "none" || project.brief.style !== "presenter",
+      allowAvaCutaway: referenceImageUrls(env).length > 0,
+    })
+    const cost = estimateShots(shots, env, project.spokenScript)
     if (input.action === "prepare") {
-      return { status: 200, body: { delivery: "script", delivered: false, project: publicProject(project) } }
+      return { status: 200, body: { delivery: "script", delivered: false, project: publicProject(project), cost, shotCount: shots.length } }
     }
     return {
       status: 200,
@@ -128,59 +184,29 @@ export async function handleVideoRequest(input: {
         fileName: previewFileName(project.title),
         html: previewDraftHtml(project),
         project: publicProject(project),
+        cost,
       },
     }
   }
 
-  if (input.action === "render" || input.action === "status") {
-    const attempt = Math.min(VIDEO_QUALITY_POLICY.maxAttempts, Math.max(1, Number(record.attempt) || 1))
-    const asked = record.resolution === "1080p" ? "1080p" : "4k"
-    const resolution = asked as VideoResolution
-    if (input.action === "status") {
-      const provider = typeof record.provider === "string" ? record.provider : ""
-      const videoId = typeof record.videoId === "string" ? record.videoId : ""
-      const call = statusCall(env, provider, videoId)
-      if (!call) return blocked(project, ["That render could not be checked. Nothing was marked finished."])
-      const response = await fetchImpl(call.url, { headers: call.headers, signal: AbortSignal.timeout(20000) }).catch(() => null)
-      if (!response) return { status: 200, body: { delivery: "rendering", delivered: false, videoId, provider, attempt, project: publicProject(project) } }
-      const payload = await readJson(response)
-      const parsed = readHeygenPayload(payload)
-      if (!response.ok || parsed.errorMessage) {
-        return blocked(project, [parsed.errorMessage || "The video service rejected the status check. Nothing was marked finished."])
+  if (input.action === "render" || input.action === "produce") {
+    const activeStore = durableStore()
+    if (!activeStore) {
+      return {
+        status: 200,
+        body: {
+          delivery: "blocked",
+          delivered: false,
+          reasons: ["The video library is not connected. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Nothing was rendered."],
+          project: publicProject(project),
+        },
       }
-      if (parsed.status === "failed" || parsed.status === "error") {
-        return blocked(project, [parsed.errorMessage || "The render failed. Nothing was marked finished."], { attempt })
-      }
-      const stillWorking = !parsed.status || /wait|pending|process|queue|render/.test(parsed.status)
-      if (stillWorking && parsed.status !== "completed" && parsed.status !== "complete" && parsed.status !== "ready") {
-        return { status: 200, body: { delivery: "rendering", delivered: false, videoId, provider, attempt, project: publicProject(project) } }
-      }
-      const probe = probeFrom(parsed)
-      if (!probe.videoUrl) return blocked(project, ["The video service did not return a file. Nothing was marked finished."], { attempt })
-      const decision = decide([...localChecks(project, { containsBanned: (text) => input.tools.omitBannedLine(text) !== text }), ...probeChecks(project, probe)], attempt)
-      if (decision.deliver) {
-        const soundtrack = await requestMusic(env, project.title, fetchImpl)
-        return finished(project, probe, "Finished video.", soundtrack)
-      }
-      if (decision.retryable) {
-        const next = await startRender(project, env, input.tools, resolution, fetchImpl)
-        if (next.body.delivery === "rendering") {
-          return {
-            status: 200,
-            body: {
-              ...next.body,
-              attempt: attempt + 1,
-              reasons: decision.reasons,
-              note: "A quality check failed, so another render was started. The failed file was not delivered.",
-            },
-          }
-        }
-        return { status: next.status, body: next.body }
-      }
-      return blocked(project, decision.reasons, { attempt, delivered: false })
     }
-
-    return startRender(project, env, input.tools, resolution, fetchImpl)
+    const job = await startVideoJob({
+      brief: project.brief,
+      deps: depsFor({ ...input, env, fetchImpl, store: activeStore, app }),
+    })
+    return { status: 200, body: { ...jobSummary(job), project: job.project ? publicProject(job.project) : publicProject(project) } }
   }
 
   if (input.action === "handoff") {
@@ -206,80 +232,4 @@ export async function handleVideoRequest(input: {
   return { status: 400, body: { error: "That video action is not supported." } }
 }
 
-async function requestMusic(env: Env, title: string, fetchImpl: FetchLike) {
-  const music = musicRequest(env, title)
-  if (!music) return ""
-  const response = await fetchImpl(music.url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${music.key}`, "Content-Type": "application/json" },
-    body: JSON.stringify(music.body),
-    signal: AbortSignal.timeout(20000),
-  }).catch(() => null)
-  if (!response?.ok) return ""
-  const payload = await readJson(response)
-  const parsed = readHeygenPayload(payload)
-  return parsed.videoUrl || ""
-}
-
-async function startRender(
-  project: VideoProject,
-  env: Env,
-  tools: TextTools,
-  resolution: VideoResolution,
-  fetchImpl: FetchLike,
-): Promise<{ status: number; body: Record<string, unknown>; delivery?: string }> {
-  let note = ""
-  let current = resolution
-  for (let pass = 0; pass < 2; pass += 1) {
-    const call = renderCall(project, env, tools, current)
-    if (!call.ok) return blocked(project, call.reasons)
-    const response = await fetchImpl(call.url, {
-      method: "POST",
-      headers: call.headers,
-      body: JSON.stringify(call.body),
-      signal: AbortSignal.timeout(30000),
-    }).catch(() => null)
-    if (!response) return blocked(project, ["The video service did not answer. Nothing was marked finished."])
-    const payload = await readJson(response)
-    const parsed = readHeygenPayload(payload)
-    if (!response.ok || parsed.errorMessage) {
-      if (current === "4k" && fourKRejected(parsed.errorMessage || "")) {
-        current = "1080p"
-        note = "4K was refused, so the next render asked for 1080p, which is still the premium floor."
-        continue
-      }
-      return blocked(project, [parsed.errorMessage || "The video service rejected the render. Nothing was marked finished."], { note })
-    }
-    const probe = probeFrom(parsed)
-    if (probe.resolutionNote) note = [note, probe.resolutionNote].filter(Boolean).join(" ")
-    if (parsed.status === "failed" || parsed.status === "error") {
-      return blocked(project, [parsed.errorMessage || "The render failed. Nothing was marked finished."], { note })
-    }
-    const done = parsed.status === "completed" || parsed.status === "complete" || parsed.status === "ready"
-    if (!done) {
-      if (!parsed.videoId) return blocked(project, ["The video service did not return a job id. Nothing was marked finished."], { note })
-      return {
-        status: 200,
-        delivery: "rendering",
-        body: {
-          delivery: "rendering",
-          delivered: false,
-          videoId: parsed.videoId,
-          provider: call.provider,
-          attempt: 1,
-          picture: call.picture,
-          note,
-          project: publicProject(project),
-        },
-      }
-    }
-    if (!probe.videoUrl) return blocked(project, ["The video service did not return a file. Nothing was marked finished."], { note })
-    const decision = decide([...localChecks(project, { containsBanned: (text) => tools.omitBannedLine(text) !== text }), ...probeChecks(project, probe)], 1)
-    if (!decision.deliver) return blocked(project, decision.reasons, { note, delivered: false })
-    const soundtrack = await requestMusic(env, project.title, fetchImpl)
-    const result = finished(project, probe, call.picture, soundtrack)
-    if (note) result.body.note = note
-    return result
-  }
-  return blocked(project, ["The video service would not render at 1080p or 4K. Nothing was marked finished."])
-}
+export { memoryVideoStore }
