@@ -62,7 +62,7 @@ export function AuthForm({
         setMessage(`We sent a confirmation email to ${email.trim()}. Open it to confirm your account. If you don't see it, check spam.`)
         return
       }
-      const destination = nextPath.startsWith("/start") || nextPath.startsWith("/studio") ? nextPath : "/studio"
+      const destination = nextPath.startsWith("/start") || nextPath.startsWith("/studio") || nextPath.startsWith("/store") ? nextPath : "/studio"
       window.location.assign(destination)
     } catch {
       setError("Could not reach the sign-in service. Please try again.")

@@ -1,6 +1,7 @@
 import { isHandledPaypalEvent } from "@/lib/paypal/events"
 import { recordPaypalEvent } from "@/lib/paypal/store"
 import { verifyPaypalWebhook } from "@/lib/paypal/verify"
+import { fulfillCapturedPayment } from "@/lib/store/fulfill"
 
 export const runtime = "nodejs"
 
@@ -22,6 +23,15 @@ export async function POST(request: Request) {
 
   const body = record(event)
   const eventType = typeof body?.event_type === "string" ? body.event_type : ""
+  if (eventType === "PAYMENT.CAPTURE.COMPLETED") {
+    try {
+      const result = await fulfillCapturedPayment(body?.resource)
+      return Response.json({ received: true, ignored: result.ignored })
+    } catch (error) {
+      console.error("Store capture fulfill failed", error instanceof Error ? error.message : "error")
+      return Response.json({ error: "store_failed" }, { status: 500 })
+    }
+  }
   if (!isHandledPaypalEvent(eventType)) return Response.json({ received: true, ignored: true })
 
   try {
