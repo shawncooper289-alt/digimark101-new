@@ -1,4 +1,3 @@
-import { AvaOnPage } from "@/components/ava/ava-on-page"
 import { OpenAvaButton } from "@/components/ava/open-ava-button"
 import { AvaAvatar } from "@/components/branding/ava-avatar"
 import { Breadcrumbs } from "@/components/site/breadcrumbs"
@@ -30,7 +29,6 @@ export default function AvaPage() {
     <>
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
       <Breadcrumbs items={crumbs} />
-      <AvaOnPage />
       <PageHeader
         eyebrow="08 — Assistant"
         title="Ava Skye, on the record."

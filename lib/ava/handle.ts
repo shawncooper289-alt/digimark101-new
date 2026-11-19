@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { answerAva } from "@/lib/ava/agent"
+import { parsePageContext } from "@/lib/ava/tools/page"
 import { omitBannedLine } from "@/lib/ava/banned-line"
 import { sanitizeSetupDraft } from "@/lib/ava/onboarding-playbook"
 import { sanitizeTurns } from "@/lib/ava/respond"
@@ -43,6 +44,8 @@ export async function handleAvaPost(request: Request) {
     rosterHint,
     spoken: record.spoken === true,
     setupDraft: sanitizeSetupDraft(record.setupDraft),
+    pageContext: parsePageContext(record.pageContext),
+    workspaceId: typeof record.workspaceId === "string" ? record.workspaceId : "",
   })
   const userText = turns
     .filter((turn) => turn.role === "user")
@@ -64,6 +67,7 @@ export async function handleAvaPost(request: Request) {
     navigate: reply.navigate ?? null,
     clientActions: reply.clientActions ?? null,
     pendingActions: reply.pendingActions ?? null,
+    pendingTools: reply.pendingTools ?? null,
     refresh: reply.refresh ?? false,
     setup: reply.setup ?? null,
   })

@@ -178,7 +178,7 @@ export function AvaWidget() {
   const liveId = useId()
   const router = useRouter()
   const pathname = usePathname()
-  const showBubble = pathname.startsWith("/studio")
+  const showBubble = pathname.startsWith("/studio") || pathname.startsWith("/")
   const platform = usePlatform()
   const identity = identityKey(platform.email)
   const [open, setOpen] = useState(false)
@@ -189,6 +189,7 @@ export function AvaWidget() {
   const [live, setLive] = useState<boolean | null>(null)
   const [messages, setMessages] = useState<Turn[]>([])
   const [queued, setQueued] = useState<Action[] | null>(null)
+  const [toolQueue, setToolQueue] = useState<{ name: string; args: Record<string, unknown>; summary: string }[] | null>(null)
   const [dragAnchor, setDragAnchor] = useState<{ id: string; point: Anchor } | null>(null)
   const readAnchor = useCallback(() => anchorSnapshot(identity), [identity])
   const readVoice = useCallback(() => voiceSnapshot(identity), [identity])
@@ -214,12 +215,14 @@ export function AvaWidget() {
   const identityRef = useRef(identity)
   const anchorRef = useRef<Anchor | null>(null)
   const queuedRef = useRef<Action[] | null>(null)
+  const toolQueueRef = useRef<{ name: string; args: Record<string, unknown>; summary: string }[] | null>(null)
   const dictate = useDictate(async (text) => {
     await sendRef.current(text, "voice")
   })
   const dictateRef = useRef(dictate)
   dictateRef.current = dictate
   queuedRef.current = queued
+  toolQueueRef.current = toolQueue
   const dragRef = useRef<{
     pointerId: number
     originX: number
@@ -251,12 +254,23 @@ export function AvaWidget() {
 
   async function confirmQueued() {
     const actions = queuedRef.current
-    if (!actions?.length) return
+    const tools = toolQueueRef.current
+    if (!actions?.length && !tools?.length) return
     prepareAvaSpeech()
     try {
       const summaries: string[] = []
-      for (const action of actions) summaries.push(await platform.run(action))
+      for (const action of actions ?? []) summaries.push(await platform.run(action))
+      for (const call of tools ?? []) {
+        const response = await fetch("/api/ava/tools", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: call.name, args: { ...call.args, workspaceId: platform.workspaceId }, confirmed: true, page: window.__AVA_PAGE__ ?? null }),
+        })
+        const body = (await response.json()) as { summary?: string }
+        summaries.push(body.summary || (response.ok ? "Saved." : "Could not do that."))
+      }
       setQueued(null)
+      setToolQueue(null)
       const reply = omitBannedLine(summaries.join(" ") || "Saved.")
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: reply }])
       window.dispatchEvent(new Event("ava:refresh"))
@@ -270,6 +284,7 @@ export function AvaWidget() {
 
   function discardQueued() {
     setQueued(null)
+    setToolQueue(null)
     const reply = "Discarded. Nothing was saved."
     setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: reply }])
     void speakAndWait(reply, false)
@@ -337,7 +352,7 @@ export function AvaWidget() {
   async function send(text: string, source: "voice" | "typed" = "typed") {
     const content = text.trim()
     if (!content || pendingRef.current) return
-    const command = queuedRef.current?.length ? spokenCommand(content) : null
+    const command = queuedRef.current?.length || toolQueueRef.current?.length ? spokenCommand(content) : null
     if (command) {
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: "user", content }])
       setDraft("")
@@ -360,6 +375,8 @@ export function AvaWidget() {
         body: JSON.stringify({
           messages: nextMessages.map(({ role, content: value }) => ({ role, content: value })),
           pageFields: visibleFields(),
+          pageContext: window.__AVA_PAGE__ ?? { path: pathname, module: "page", title: document.title, visible: [] },
+          workspaceId: platform.workspaceId,
           roster: platform.mode === "preview" ? rosterFrom(platform.workspace) : null,
           spoken: source === "voice",
           setupDraft: readSetupDraft(),
@@ -374,6 +391,7 @@ export function AvaWidget() {
         navigate?: string | null
         clientActions?: Action[] | null
         pendingActions?: Action[] | null
+        pendingTools?: { name: string; args: Record<string, unknown>; summary: string }[] | null
         refresh?: boolean
         setup?: unknown
       }
@@ -387,8 +405,9 @@ export function AvaWidget() {
         if (detail.summaries.length) reply = omitBannedLine(detail.summaries.join(" "))
       }
       if (data.pendingActions?.length) setQueued(data.pendingActions)
+      if (data.pendingTools?.length) setToolQueue(data.pendingTools)
       if (data.refresh) window.dispatchEvent(new Event("ava:refresh"))
-      if (data.navigate && !data.pendingActions?.length) router.push(data.navigate)
+      if (data.navigate && !data.pendingActions?.length && !data.pendingTools?.length) router.push(data.navigate)
       setLive(Boolean(data.live))
       setNotice(data.notice ?? null)
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", content: reply }])
@@ -619,9 +638,9 @@ export function AvaWidget() {
               ))
             )}
             {pending ? <p className="text-sm text-ink-soft">Ava is thinking…</p> : null}
-            {queued ? (
+            {queued || toolQueue ? (
               <div className="rounded-2xl border border-ink/10 bg-mist p-3">
-                <p className="text-sm text-ink">This stays a draft until you confirm it. You can say yes, or tap Confirm save.</p>
+                <p className="text-sm text-ink">{toolQueue?.[0]?.summary || "This stays a draft until you confirm it. You can say yes, or tap Confirm save."}</p>
                 <div className="mt-2 flex gap-2">
                   <button type="button" className="btn btn-signal" onClick={() => void confirmQueued()}>
                     Confirm save

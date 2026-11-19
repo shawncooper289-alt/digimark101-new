@@ -4,7 +4,9 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useAvaForm } from "@/components/ava/use-ava-form"
 import { CatalogBoard } from "@/components/studio/catalog-board"
+import { ModuleDesk } from "@/components/studio/module-desk"
 import { usePlatform } from "@/components/studio/platform-provider"
+import type { DeskId } from "@/lib/modules/desk"
 import type { Action, Stage } from "@/lib/platform/types"
 
 export type StudioSection =
@@ -20,16 +22,26 @@ export type StudioSection =
   | "files"
   | "memory"
 
+const desks: Partial<Record<StudioSection, DeskId>> = {
+  inbox: "inbox",
+  pipeline: "pipeline",
+  calendar: "calendar",
+  campaigns: "campaigns",
+  sites: "funnels",
+  automations: "workflows",
+  reports: "reports",
+}
+
 const copy: Record<StudioSection, { title: string; lede: string }> = {
   today: { title: "Today", lede: "One workspace. Ask Ava to add a contact, book a time, or open a section." },
   contacts: { title: "Contacts", lede: "People in this client workspace only." },
   pipeline: { title: "Pipeline", lede: "Deals move from new to won. Nothing here is a reported result." },
   calendar: { title: "Calendar", lede: "Appointments you or Ava book in this workspace." },
-  inbox: { title: "Inbox", lede: "Notes and automation logs. External email and SMS are not connected yet." },
+  inbox: { title: "Inbox", lede: "One thread list for notes, SMS, email, and social chats. Queueing a reply keeps it in this workspace." },
   campaigns: { title: "Email", lede: "Campaign drafts, including email. Creating one does not send it." },
-  sites: { title: "Funnels", lede: "A record of a site or funnel. The visual builder is a later phase, so nothing here is published." },
+  sites: { title: "Funnels", lede: "Draft the steps of a funnel. Nothing here is published." },
   automations: { title: "Automations", lede: "Rules that run inside this workspace. The list below turns on a note or a memory. Anything marked coming soon on Apps does not send mail or post for you." },
-  reports: { title: "Reports", lede: "Counts of your own rows. These are not benchmarks and not client results." },
+  reports: { title: "Reports", lede: "Counts of your own rows, including the modules below. These are not ad results." },
   files: { title: "Files", lede: "Files are stored in your own private folder. Other clients cannot read them." },
   memory: { title: "Memory", lede: "Facts Ava keeps for this client. They are not shared with any other login." },
 }
@@ -68,6 +80,11 @@ export function StudioScreen({ section }: { section: StudioSection }) {
         {section === "reports" ? <Reports /> : null}
         {section === "files" ? <Files /> : null}
         {section === "memory" ? <Memory onSubmit={submit} rows={workspace.memory} /> : null}
+        {desks[section] ? (
+          <div className="mt-10">
+            <ModuleDesk module={desks[section]} embedded />
+          </div>
+        ) : null}
       </div>
     </section>
   )

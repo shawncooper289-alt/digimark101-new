@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Fraunces, Outfit } from "next/font/google"
+import { SitePageBeacon } from "@/components/ava/page-beacon"
 import { JsonLd } from "@/components/site/json-ld"
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo"
 import { site } from "@/lib/site"
@@ -87,6 +88,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         {children}
+        <SitePageBeacon />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
       </body>
     </html>

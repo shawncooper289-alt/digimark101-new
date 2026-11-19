@@ -10,6 +10,9 @@ import { OPENAI_MISSING_CLIENT, OPENAI_MISSING_OWNER } from "@/lib/openai/server
 import { setOwnerVisitorMode } from "@/lib/office/appearance"
 import { visitorModeIntent, visitorModeReply } from "@/lib/office/intent"
 import { isOwnerIdentity } from "@/lib/owner/access"
+import { answerFromPage, type PageContext } from "@/lib/ava/tools/page"
+import { registryToolDefs, toolByApiName } from "@/lib/ava/tools/registry"
+import { runTool } from "@/lib/ava/tools/run"
 import { interpret } from "@/lib/platform/interpret"
 import { rosterFor } from "@/lib/platform/db"
 import type { Action, Roster, Stage, Trigger, AutomationAction, SocialPlatform } from "@/lib/platform/types"
@@ -25,6 +28,7 @@ export type AvaAnswer = {
   navigate?: string
   clientActions?: Action[]
   pendingActions?: Action[]
+  pendingTools?: { name: string; args: Record<string, unknown>; summary: string }[]
   refresh?: boolean
   setup?: SetupSnapshot | null
 }
@@ -177,6 +181,8 @@ export async function answerAva(input: {
   rosterHint: Roster | null
   spoken?: boolean
   setupDraft?: SetupDraftInput
+  pageContext?: PageContext | null
+  workspaceId?: string
 }): Promise<AvaAnswer> {
   const latest = input.turns[input.turns.length - 1]?.content ?? ""
   const session = await createSupabaseServer()
@@ -219,6 +225,8 @@ export async function answerAva(input: {
     }
     return { text, mode: "guide", live: false, setup }
   }
+  const fromPage = answerFromPage(latest, input.pageContext ?? null)
+  if (fromPage) return { text: fromPage, mode: "guide", live: false }
   const roster = user && session ? await rosterFor(session, user.id).catch(() => input.rosterHint) : input.rosterHint
   const found = interpret(latest, input.pageFields, { spoken: input.spoken === true })
   const fromRoster = rosterReply(latest, roster)
@@ -244,8 +252,8 @@ export async function answerAva(input: {
   }
 
   const model = await respondToAva(input.turns, {
-    tools: user ? toolDefs : [delegateWorkTool()],
-    extra: `Workspace roster, which is the only set of names and counts you may cite:\n${JSON.stringify(roster ?? { contacts: [], deals: [], appointments: [], campaigns: [], memory: [] })}\nVisible form fields: ${input.pageFields.join(", ") || "none"}.\nYou may call tools to prepare this client's workspace. Never invent clients, revenue, or campaign results. Campaign, site, and record tools return drafts. Nothing is saved until the person confirms. delegate_work is internal. Do not name those helpers in the reply.`,
+    tools: user ? [...toolDefs, ...registryToolDefs()] : [delegateWorkTool()],
+    extra: `Workspace roster, which is the only set of names and counts you may cite:\n${JSON.stringify(roster ?? { contacts: [], deals: [], appointments: [], campaigns: [], memory: [] })}\nVisible form fields: ${input.pageFields.join(", ") || "none"}.\nPage on screen: ${JSON.stringify(input.pageContext ?? { path: "unknown", module: "page", visible: [] })}.\nUse the workspace tools for contacts, deals, calendars, funnels, forms, campaigns, inbox, social drafts, workflows, reviews, invoices, sites, reports, office records, and stored videos. Reads and ordinary saves run now. Deletes, queues, and payment requests wait for confirmation. A payment request does not charge a card and does not change PayPal. A queued message is not delivered. Never invent clients, revenue, or campaign results. delegate_work is internal. Do not name those helpers in the reply.`,
   })
 
   if (model.reason === "missing" || model.reason === "failed") {
@@ -299,12 +307,26 @@ export async function answerAva(input: {
   let navigate: string | undefined
   const summaries: string[] = []
   const pendingActions: Action[] = user ? [...delegatedPending] : []
+  const pendingTools: NonNullable<AvaAnswer["pendingTools"]> = []
+  let changedWorkspace = false
   for (const call of otherCalls) {
     let args: Record<string, unknown> = {}
     try {
       args = JSON.parse(call.function.arguments) as Record<string, unknown>
     } catch {
       args = {}
+    }
+    if (toolByApiName(call.function.name)) {
+      const result = await runTool({
+        name: call.function.name,
+        args: input.workspaceId ? { ...args, workspaceId: input.workspaceId } : args,
+        confirmed: false,
+        page: input.pageContext,
+      })
+      if (result.pending) pendingTools.push(result.pending)
+      else if (result.ok) changedWorkspace = true
+      summaries.push(result.summary)
+      continue
     }
     if (call.function.name === "navigate" && typeof args.href === "string" && allowedHref(args.href)) {
       navigate = args.href
@@ -335,6 +357,8 @@ export async function answerAva(input: {
     fills: Object.keys(fills).length ? fills : undefined,
     navigate,
     pendingActions: pendingActions.length ? pendingActions : undefined,
+    pendingTools: pendingTools.length ? pendingTools : undefined,
+    refresh: changedWorkspace,
   }
 }
 
