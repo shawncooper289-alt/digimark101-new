@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useAvaForm } from "@/components/ava/use-ava-form"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
+import { TurnstileField } from "@/components/security/turnstile-field"
 import { authCallbackUrl } from "@/lib/auth/site-url"
 import { EMAIL_PATTERN, emailFieldError, PASSWORD_RULE, signupPasswordError } from "@/lib/auth/password"
 import { createSupabaseBrowser } from "@/lib/supabase/browser"
@@ -24,6 +25,8 @@ export function AuthForm({
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileReset, setTurnstileReset] = useState(0)
   const supabase = createSupabaseBrowser()
   useAvaForm((fills) => {
     if (fills.email) setEmail(fills.email)
@@ -44,7 +47,22 @@ export function AuthForm({
       return
     }
     setPending(true)
+    const expireTurnstile = () => {
+      setTurnstileToken("")
+      setTurnstileReset((value) => value + 1)
+    }
     try {
+      const guard = await fetch("/api/auth/guard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: mode, turnstileToken }),
+      })
+      if (!guard.ok) {
+        const payload = (await guard.json().catch(() => null)) as { error?: string } | null
+        setError(payload?.error || "Too many tries. Wait a minute and try again.")
+        expireTurnstile()
+        return
+      }
       const result = mode === "login"
         ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
         : await supabase.auth.signUp({
@@ -56,16 +74,19 @@ export function AuthForm({
         setError(mode === "login"
           ? "Sign-in failed. Check your email and password, or try again later."
           : "Could not create your account. Please try again later.")
+        expireTurnstile()
         return
       }
       if (mode === "signup" && !result.data.session) {
         setMessage(`We sent a confirmation email to ${email.trim()}. Open it to confirm your account. If you don't see it, check spam.`)
+        expireTurnstile()
         return
       }
       const destination = nextPath.startsWith("/start") || nextPath.startsWith("/studio") ? nextPath : "/studio"
       window.location.assign(destination)
     } catch {
       setError("Could not reach the sign-in service. Please try again.")
+      expireTurnstile()
     } finally {
       setPending(false)
     }
@@ -135,6 +156,7 @@ export function AuthForm({
             </Link>
           </p>
         ) : null}
+        <TurnstileField onToken={setTurnstileToken} resetKey={turnstileReset} />
         {error ? <p className="text-sm text-signal" role="alert">{error}</p> : null}
         {message ? <p className="text-sm">{message}</p> : null}
         <button type="submit" disabled={pending} className="btn btn-signal">

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import { TurnstileField } from "@/components/security/turnstile-field"
 
 export function RequestAccess({ planKey, planName }: { planKey: string; planName: string }) {
   const [name, setName] = useState("")
@@ -11,6 +12,8 @@ export function RequestAccess({ planKey, planName }: { planKey: string; planName
   const [pending, setPending] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileReset, setTurnstileReset] = useState(0)
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -29,17 +32,22 @@ export function RequestAccess({ planKey, planName }: { planKey: string; planName
           plan: planKey,
           consent_contact: consent,
           company_website_confirm: "",
+          turnstileToken,
         }),
       })
       const data = (await response.json()) as { error?: string }
       if (!response.ok) {
         setError(data.error || "The request was not saved.")
+        setTurnstileToken("")
+        setTurnstileReset((value) => value + 1)
         return
       }
       setNote("Request received. We will send a studio login when the seat is open.")
       setMessage("")
     } catch {
       setError("The request was not saved.")
+      setTurnstileToken("")
+      setTurnstileReset((value) => value + 1)
     } finally {
       setPending(false)
     }
@@ -70,6 +78,7 @@ export function RequestAccess({ planKey, planName }: { planKey: string; planName
         <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1" />
         You may email me about this membership. This is not a charge.
       </label>
+      <TurnstileField onToken={setTurnstileToken} resetKey={turnstileReset} />
       <button type="submit" className="btn btn-signal w-fit" disabled={pending || !consent}>
         {pending ? "Sending…" : "Request access"}
       </button>

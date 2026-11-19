@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { clientIp, sameOrigin, tooManyRequests } from "@/lib/http"
 import { ingestLead } from "@/lib/leads/engine"
+import { TURNSTILE_REJECTED, turnstileOk } from "@/lib/security/turnstile"
 import { listPlans } from "@/lib/paypal/plans"
 import { deliverSeat } from "@/lib/seats/deliver"
 
@@ -14,12 +15,15 @@ function text(value: unknown, max: number) {
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
-  if (tooManyRequests(`seat-request:${clientIp(request)}`, 6)) {
+  if (await tooManyRequests(`seat-request:${clientIp(request)}`, 6)) {
     return NextResponse.json({ error: "Too many requests. Try again in a minute." }, { status: 429 })
   }
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null
   const record = body ?? {}
   if (text(record.company_website_confirm, 200)) return NextResponse.json({ ok: true })
+  if (!(await turnstileOk(record.turnstileToken, clientIp(request)))) {
+    return NextResponse.json({ error: TURNSTILE_REJECTED }, { status: 400 })
+  }
   const name = text(record.name, 80)
   const email = text(record.email, 160).toLowerCase()
   const company = text(record.company, 120)

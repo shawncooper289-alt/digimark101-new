@@ -6,7 +6,8 @@ import "server-only"
  * Never log the key, the request body, or a reply that may contain personal data.
  */
 
-export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+/** OpenAI's recommended replacement for gpt-4o-mini, which shuts down on Jan 14, 2027. */
+export const DEFAULT_OPENAI_MODEL = "gpt-6-luna"
 
 /** OpenAI Realtime and speech fallback. ElevenLabs stays the main voice when it is configured. */
 export const OPENAI_PLATFORM_VOICE = "coral"
@@ -52,6 +53,22 @@ export function openAiStatus(env: Env = process.env) {
   }
 }
 
+/** gpt-6-luna and gpt-6-sol only accept Chat Completions tool calls when reasoning is off. */
+function chatPayload(
+  model: string,
+  input: { messages: ChatMessage[]; tools?: unknown[]; temperature?: number; maxTokens?: number },
+) {
+  const noneReasoning = model === "gpt-6-luna" || model.startsWith("gpt-6-luna-") || model === "gpt-6-sol" || model.startsWith("gpt-6-sol-")
+  const limit = input.maxTokens ?? 900
+  return {
+    model,
+    temperature: input.temperature ?? 0.4,
+    messages: input.messages,
+    ...(noneReasoning ? { reasoning_effort: "none", max_completion_tokens: limit } : { max_tokens: limit }),
+    ...(input.tools?.length ? { tools: input.tools, tool_choice: "auto" } : {}),
+  }
+}
+
 export async function openAiChat(input: {
   messages: ChatMessage[]
   tools?: unknown[]
@@ -72,13 +89,7 @@ export async function openAiChat(input: {
         "Content-Type": "application/json",
       },
       signal: AbortSignal.timeout(input.timeoutMs ?? 25000),
-      body: JSON.stringify({
-        model: config.model,
-        temperature: input.temperature ?? 0.4,
-        max_tokens: input.maxTokens ?? 900,
-        messages: input.messages,
-        ...(input.tools?.length ? { tools: input.tools, tool_choice: "auto" } : {}),
-      }),
+      body: JSON.stringify(chatPayload(config.model, input)),
     })
     if (!response.ok) {
       console.error("OpenAI chat failed", response.status)

@@ -1,7 +1,7 @@
 import { transcriptText } from "@/lib/ava/transcript"
 
-export const SCRIBE_MODEL = "scribe_v2"
-export const OPENAI_TRANSCRIBE_MODEL = "gpt-4o-mini-transcribe"
+export const SCRIBE_MODEL = "scribe_v3"
+export const OPENAI_TRANSCRIBE_MODEL = "gpt-transcribe"
 
 type Env = Record<string, string | undefined>
 
@@ -44,7 +44,13 @@ async function requestTranscript(plan: TranscribePlan, file: Blob, filename: str
     body.append("keyterms", "DigiMark101")
   } else {
     body.append("model", plan.model)
-    body.append("language", "en")
+    if (plan.model === "gpt-transcribe" || plan.model.startsWith("gpt-transcribe")) {
+      body.append("languages", JSON.stringify(["en"]))
+      body.append("prompt", "A DigiMark101 studio conversation with Ava Skye.")
+      body.append("keywords", JSON.stringify(["Ava Skye", "DigiMark101"]))
+    } else {
+      body.append("language", "en")
+    }
   }
   const response = await fetch(plan.url, {
     method: "POST",

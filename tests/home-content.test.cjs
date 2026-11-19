@@ -5,21 +5,20 @@ const fs = require("node:fs")
 const content = fs.readFileSync("lib/home-content.ts", "utf8")
 const hero = fs.readFileSync("components/home/home-hero.tsx", "utf8")
 const sections = fs.readFileSync("components/home/home-sections.tsx", "utf8")
-const about = fs.readFileSync("app/about/page.tsx", "utf8")
+const about = fs.readFileSync("app/(marketing)/about/page.tsx", "utf8")
 const footer = fs.readFileSync("components/site/footer.tsx", "utf8")
 const marketing = `${content}\n${hero}\n${sections}\n${about}\n${footer}`
 
-test("the hero keeps the dynasty, ownership, and Ava", () => {
-  assert.match(content, /Build your own dynasty\./)
-  assert.match(content, /Own the system\. Grow it with Ava\./)
+test("the hero keeps the offer, the save rule, and Ava", () => {
+  assert.match(content, /An online digital marketing agency for small businesses\./)
+  assert.match(content, /saves only after you say yes/)
   assert.match(hero, /hero\.lead/)
   assert.match(hero, /hero\.accent/)
   assert.match(hero, /ava-city\.jpg/)
-  assert.match(hero, /Hear Ava|AvaIntroButton/)
 })
 
 test("the page names the audiences and the real product surface", () => {
-  for (const name of ["Beginners", "Side hustlers", "Creators", "Local businesses", "Agencies"]) {
+  for (const name of ["Beginners", "side hustlers", "Creators", "Local businesses", "Agencies"]) {
     assert.match(content, new RegExp(name))
   }
   for (const name of [

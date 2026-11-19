@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { omitBannedLine } from "@/lib/ava/banned-line"
 import { AVA_IDENTITY } from "@/lib/ava/identity"
 import { officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-store"
+import { clientIp, tooManyRequests } from "../../../../../../lib/http"
 import { handleVideoRequest } from "../../../../../../lib/video/handle"
 
 export const runtime = "nodejs"
@@ -50,6 +51,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (await tooManyRequests(`office-video:${clientIp(request)}`, 20)) {
+    return NextResponse.json({ error: "Too many video requests. Wait a minute and try again." }, { status: 429 })
+  }
   const owner = await readOfficeOwner()
   if (!owner) return NextResponse.json({ error: "The owner office is closed." }, { status: 403 })
   const payload = await request.json().catch(() => null) as { action?: unknown } | null

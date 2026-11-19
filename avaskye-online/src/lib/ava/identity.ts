@@ -20,7 +20,7 @@ export const AVA_IDENTITY = {
   speech: {
     browserLang: "en-US",
     browserRate: 1,
-    ttsModel: "gpt-4o-mini-tts",
+    ttsModel: "gpt-realtime-2.1-mini",
     ttsVoice: "coral",
     realtimeVoice: "coral",
   },

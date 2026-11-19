@@ -1,4 +1,4 @@
-import { sameOrigin } from "@/lib/http"
+import { clientIp, sameOrigin, tooManyRequests } from "@/lib/http"
 import { suppressEmail } from "@/lib/leads/engine"
 
 export const runtime = "nodejs"
@@ -7,6 +7,9 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: "forbidden" }, { status: 403 })
+  if (await tooManyRequests(`opt-out:${clientIp(request)}`, 8)) {
+    return Response.json({ error: "Too many tries. Wait a minute and try again." }, { status: 429 })
+  }
   let email = ""
   try {
     const body = (await request.json()) as { email?: unknown; deletion?: unknown }

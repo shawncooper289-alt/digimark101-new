@@ -33,7 +33,7 @@ export const agencyPages: AgencyPage[] = [
         heading: "What you can run from one login",
         paragraphs: [
           "Studio holds contacts, a pipeline, a calendar, email drafts, page and funnel records, social drafts, files, and automations. Ava Skye asks one question at a time, fills the forms, and saves only after you say yes.",
-          "Email sending waits on an email provider. Phone and texting from inside the app are not connected. The visual page builder is a later phase, so a funnel record is a plan, not a live site. Social posting from Studio is coming soon. You copy a draft and post it yourself until then.",
+          "Email sending waits on an email provider. Texting from inside the app is not connected. Phone calls can be placed by the owner, only to a number on an approved list, and only after that person agreed. The visual page builder is a later phase, so a funnel record is a plan, not a live site. Social posting from Studio is coming soon. You copy a draft and post it yourself until then.",
         ],
       },
       {
@@ -95,7 +95,7 @@ export const agencyPages: AgencyPage[] = [
       {
         heading: "What the studio will and will not propose",
         paragraphs: [
-          "A proposal can include the page, the form, the measurement, and the follow-up. It will not include a guaranteed lead volume, a purchased list of private phone numbers, or a claim that Studio already dials or texts those people. Phone and texting from inside the app are not connected.",
+          "A proposal can include the page, the form, the measurement, and the follow-up. It will not include a guaranteed lead volume, a purchased list of private phone numbers, or a claim that Studio already dials or texts those people. Texting is not connected. A phone call happens only when the owner starts it, the person agreed, and the number is on the approved list.",
         ],
       },
     ],
@@ -121,7 +121,7 @@ export const agencyPages: AgencyPage[] = [
       {
         question: "Do you call the leads for me?",
         answer:
-          "No. Phone and texting from inside the app are not connected. DigiMark101 will not claim a call or a text was made.",
+          "Texting is not connected. A phone call is placed only by the owner, only after the person agreed, and only to a number on the approved list. DigiMark101 will not claim a call or a text was made when it was not.",
       },
       {
         question: "What should I hire first if I need leads?",

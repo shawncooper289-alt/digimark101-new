@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react"
 import { useAvaForm } from "@/components/ava/use-ava-form"
+import { TurnstileField } from "@/components/security/turnstile-field"
 import { services, site } from "@/lib/site"
 
 const BUDGETS = ["Not sure yet", "Under $5,000 / month", "$5,000–$10,000 / month", "$10,000–$20,000 / month", "$20,000+ / month"]
@@ -52,6 +53,8 @@ const fieldClass = "min-h-11 rounded-2xl border border-ink/15 bg-mist px-3 text-
 
 export function LeadForm({ initialInterest = "" }: LeadFormProps) {
   const [form, setForm] = useState<FormState>({ ...EMPTY, service: initialInterest })
+  const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileReset, setTurnstileReset] = useState(0)
   const [status, setStatus] = useState<"idle" | "sending" | "saved" | "fallback" | "suppressed" | "error">("idle")
   const [error, setError] = useState("")
   const applyFill = useCallback((fills: Record<string, string>) => {
@@ -96,12 +99,14 @@ export function LeadForm({ initialInterest = "" }: LeadFormProps) {
       const response = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, turnstileToken }),
       })
       const data = (await response.json()) as { ok?: boolean; persisted?: boolean; reason?: string; error?: string }
       if (!response.ok || !data.ok) {
         setStatus("error")
         setError(data.error || "The note could not be sent.")
+        setTurnstileToken("")
+        setTurnstileReset((value) => value + 1)
         return
       }
       if (data.reason === "suppressed") {
@@ -112,6 +117,8 @@ export function LeadForm({ initialInterest = "" }: LeadFormProps) {
     } catch {
       setStatus("error")
       setError("The note could not be sent. Email the studio instead.")
+      setTurnstileToken("")
+      setTurnstileReset((value) => value + 1)
     }
   }
 
@@ -260,6 +267,7 @@ export function LeadForm({ initialInterest = "" }: LeadFormProps) {
           {error} You can also email {site.email}.
         </p>
       ) : null}
+      <TurnstileField onToken={setTurnstileToken} resetKey={turnstileReset} />
       <button type="submit" className="btn btn-signal w-full sm:w-auto" disabled={status === "sending"}>
         {status === "sending" ? "Sending…" : "Send the note"}
       </button>

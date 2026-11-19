@@ -67,4 +67,4 @@ Vercel already runs these routes. The edge functions in `supabase/functions` wri
 | Provision | `POST /api/managed/backend` calls the Management API and writes `managed_backends` plus `provisioning_jobs` | `platforms-provision` records the job and calls the Management API when the token is present |
 | Ava memory | Studio confirm on `client_memory` | `ava-memory` upserts one memory row |
 
-Phone calling is still not connected. Campaign sends stay drafts until an email provider is added.
+Phone calls use an ElevenLabs agent on a Twilio number. They stay off until the variables in [PHONE.md](./PHONE.md) are set, and Ava only dials numbers on the approved list. Campaign sends stay drafts until an email provider is added. Call rows use the existing `ava_voice_calls` table. No new migration is required.

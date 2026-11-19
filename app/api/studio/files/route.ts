@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { sameOrigin } from "@/lib/http"
+import { clientIp, sameOrigin, tooManyRequests } from "@/lib/http"
 import { isOwnerIdentity, isWorkspaceId } from "@/lib/owner/access"
 import { createSupabaseAdmin } from "@/lib/supabase/admin"
 import { currentUser } from "@/lib/supabase/server"
@@ -8,6 +8,9 @@ export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
+  if (await tooManyRequests(`studio-files:${clientIp(request)}`, 12)) {
+    return NextResponse.json({ error: "Too many files. Wait a minute and try again." }, { status: 429 })
+  }
   const { supabase, user } = await currentUser()
   if (!supabase || !user) return NextResponse.json({ error: "Sign in to store files." }, { status: 401 })
 

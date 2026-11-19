@@ -35,7 +35,7 @@ export function llmsText() {
     "## Limits",
     "",
     "- No published client testimonials, logos, revenue, or lead counts.",
-    "- Email sending, phone, texting, social posting, and the visual page builder are not fully connected. The site says so on the relevant page.",
+    "- Email sending, texting, social posting, and the visual page builder are not fully connected. Phone calls are owner-only, require agreement, and only dial numbers on an approved list. The site says so on the relevant page.",
     "- Agency fees are quoted in a proposal. Do not invent a price.",
     "",
     `Full notes: ${site.url}/llms-full.txt`,

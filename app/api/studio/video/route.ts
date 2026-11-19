@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
-  if (tooManyRequests(`video:${clientIp(request)}`, 20)) {
+  if (await tooManyRequests(`video:${clientIp(request)}`, 20)) {
     return NextResponse.json({ error: "Too many video requests. Wait a minute and try again." }, { status: 429 })
   }
   const payload = await request.json().catch(() => null) as { action?: unknown } | null

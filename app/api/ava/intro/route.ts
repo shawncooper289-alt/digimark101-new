@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   if (!sameOrigin(request)) {
     return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
   }
-  if (tooManyRequests(`intro:${clientIp(request)}`, 8)) return browserSpeech()
+  if (await tooManyRequests(`intro:${clientIp(request)}`, 8)) return browserSpeech()
   const audio = await synthesizeSpeech(avaIntroScript)
   if (!audio) return browserSpeech()
   return new NextResponse(audio.audio, {

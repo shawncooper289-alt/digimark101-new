@@ -14,7 +14,7 @@ function browserSpeech() {
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
-  if (tooManyRequests(`speak:${clientIp(request)}`, 24)) return browserSpeech()
+  if (await tooManyRequests(`speak:${clientIp(request)}`, 24)) return browserSpeech()
   const body = (await request.json().catch(() => null)) as { text?: unknown } | null
   const text = typeof body?.text === "string" ? body.text : ""
   if (!text.trim()) return NextResponse.json({ error: "Nothing to say." }, { status: 400 })

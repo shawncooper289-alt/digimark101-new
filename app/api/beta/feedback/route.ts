@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server"
-import { sameOrigin } from "@/lib/http"
+import { clientIp, sameOrigin, tooManyRequests } from "@/lib/http"
 import { currentUser } from "@/lib/supabase/server"
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
+  if (await tooManyRequests(`beta-feedback:${clientIp(request)}`, 8)) {
+    return NextResponse.json({ error: "Too many notes. Wait a minute and try again." }, { status: 429 })
+  }
   const { supabase, user } = await currentUser()
   if (!supabase || !user) return NextResponse.json({ error: "Sign in to send feedback." }, { status: 401 })
 
