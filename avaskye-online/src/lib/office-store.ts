@@ -192,6 +192,38 @@ export async function readVisitorMode() {
   return { visitorMode: data === true, configured: true }
 }
 
+export async function readGuidedMode(ownerId: string) {
+  const { url, service, configured } = officeConfig()
+  if (!configured || !ownerId) return { guidedMode: null as boolean | null, stored: false }
+  const response = await fetch(`${url}/rest/v1/owner_office_appearance?owner_id=eq.${encodeURIComponent(ownerId)}&select=guided_mode`, {
+    headers: supabaseKeyHeaders(service, { Accept: "application/json" }),
+    cache: "no-store",
+  })
+  if (!response.ok) return { guidedMode: null as boolean | null, stored: false }
+  const rows = (await response.json()) as { guided_mode?: boolean }[]
+  if (!Array.isArray(rows) || rows.length === 0) return { guidedMode: false, stored: true }
+  return { guidedMode: rows[0]?.guided_mode === true, stored: true }
+}
+
+export async function saveGuidedMode(ownerId: string, guidedMode: boolean) {
+  const { url, service, configured } = officeConfig()
+  if (!configured || !ownerId) return false
+  const response = await fetch(`${url}/rest/v1/owner_office_appearance?on_conflict=owner_id`, {
+    method: "POST",
+    headers: supabaseKeyHeaders(service, {
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    }),
+    body: JSON.stringify({
+      owner_id: ownerId,
+      guided_mode: guidedMode,
+      updated_at: new Date().toISOString(),
+    }),
+    cache: "no-store",
+  })
+  return response.ok
+}
+
 export async function saveVisitorMode(ownerId: string, visitorMode: boolean) {
   const { url, service, configured } = officeConfig()
   if (!configured) return false

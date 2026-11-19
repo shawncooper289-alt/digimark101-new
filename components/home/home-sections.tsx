@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { StartActions } from "@/components/home/start-actions"
+import { PlatformWalkthrough } from "@/components/home/platform-walkthrough"
 import { VslSection } from "@/components/home/vsl-section"
 import { TrackedLink } from "@/components/site/tracked-link"
 import {
@@ -92,6 +93,7 @@ export function HomeSections() {
       </section>
 
       <VslSection />
+      <PlatformWalkthrough />
 
       <section id="what" className="scroll-mt-24 border-b border-ink/10" aria-labelledby="what-heading">
         <div className={wrap}>

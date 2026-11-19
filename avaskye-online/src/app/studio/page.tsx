@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { Header } from "@/components/header";
+import { PlatformVideo } from "@/components/platform-video";
+import { PublicAva } from "@/components/public-ava";
+import { platformWalkthroughUrl } from "@/lib/platform-video";
 
 const KINDS = [
   { id: "post", label: "Post" },
@@ -45,6 +48,12 @@ export default function StudioPage() {
         </div>
         <pre className="min-h-80 whitespace-pre-wrap rounded-3xl border border-border bg-surface p-6 text-sm">{draft || "The draft lands here. Nothing sends until you approve it."}</pre>
       </section>
+      <section className="mx-auto max-w-6xl px-5 pb-16">
+        <h2 className="text-4xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>See the public platform</h2>
+        <p className="mt-3 max-w-2xl text-sm text-muted">About twelve seconds, with no narration. It shows the live DigiMark101 homepage, the platform section, pricing, and the contact form. It does not autoplay, and it is not a client story.</p>
+        <PlatformVideo src={platformWalkthroughUrl()} poster="/media/platform-walkthrough-poster.jpg" />
+      </section>
+      <PublicAva />
     </div>
   );
 }

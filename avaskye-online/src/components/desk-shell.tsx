@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState, type FormEvent, type ReactNode } from "react"
 import { AvaDesk } from "@/components/ava-desk"
 import { AvaFloat } from "@/components/ava-float"
+import { OfficeGuide } from "@/components/office-guide"
 import { OwnerAccountsButton } from "@/components/owner-accounts-button"
 
 const links = [
@@ -69,9 +70,12 @@ export function DeskShell({ children, founderEmails }: { children: ReactNode; fo
       <div className="relative min-h-dvh" onClick={() => setMenuOpen(true)}>
         <img src="/ava/desk-sitting.jpg" alt="Ava Skye at the night-city desk" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-black/20" />
-        <div className="relative z-10 flex min-h-dvh items-end justify-center pb-12">
-          <p className="rounded-full bg-black/60 px-6 py-3 text-sm text-white backdrop-blur">Click to open Ava&apos;s Skye Studio</p>
+        <div className="relative z-10 flex min-h-dvh items-end justify-center pb-36">
+          <button type="button" className="rounded-full bg-black/60 px-6 py-3 text-sm text-white backdrop-blur" onClick={(event) => { event.stopPropagation(); setMenuOpen(true) }}>
+            Open the studio
+          </button>
         </div>
+        <OfficeGuide menuOpen={false} onOpenMenu={() => setMenuOpen(true)} />
         <AvaFloat />
       </div>
     )
@@ -111,8 +115,9 @@ export function DeskShell({ children, founderEmails }: { children: ReactNode; fo
           })}
         </nav>
       </header>
-      <main className={pathname === "/" ? "" : "mx-auto max-w-6xl px-5 py-8"}>{children}</main>
+      <main className={pathname === "/" ? "pb-40" : "mx-auto max-w-6xl px-5 py-8 pb-44"}>{children}</main>
       {pathname === "/" ? null : <AvaDesk />}
+      <OfficeGuide menuOpen onOpenMenu={() => setMenuOpen(true)} />
       <AvaFloat />
     </div>
   )
