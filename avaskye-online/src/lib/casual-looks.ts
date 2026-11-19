@@ -1,5 +1,5 @@
 export type CasualLook = {
-  id: "knit" | "tee" | "sweater" | "hoodie"
+  id: string
   name: string
   note: string
 }
@@ -13,19 +13,25 @@ export type OfficeLook = CasualLook | {
 export const PROFESSIONAL_LOOK: OfficeLook = {
   id: "professional",
   name: "Professional",
-  note: "A tailored blazer for visitor mode. The daily casual rotation stays off while guests are here.",
+  note: "A tailored blazer for visitor mode. The daily nightie rotation stays off while guests are here.",
 }
 
 export function officeLook(visitorMode: boolean, date = new Date()): OfficeLook {
   return visitorMode ? PROFESSIONAL_LOOK : casualLookFor(date)
 }
 
-/** Swap or reorder this list to change the office rotation. The public sites do not use it. */
+/** Private office nightie / fishnet rotation for Shawn. Expand as needed for unlimited looks. */
 export const CASUAL_LOOKS: CasualLook[] = [
-  { id: "knit", name: "Cozy knit", note: "A relaxed cream knit with the sleeves pushed up." },
-  { id: "tee", name: "Tee and joggers", note: "A fitted tee with heather joggers." },
-  { id: "sweater", name: "Off-shoulder sweater", note: "A soft sweater sitting on one shoulder, still fully covered." },
-  { id: "hoodie", name: "Soft hoodie", note: "An easy hoodie with the hood down." },
+  { id: "black-satin-nightie", name: "Black satin nightie", note: "Sheer black satin nightie, short and clinging, lace trim." },
+  { id: "emerald-silk-nightie", name: "Emerald silk nightie", note: "Emerald silk nightie with thin straps, high cut." },
+  { id: "red-lace-nightie", name: "Red lace nightie", note: "Red lace nightie, semi-sheer, very revealing." },
+  { id: "white-fishnet", name: "White fishnet", note: "White fishnet bodysuit with minimal coverage." },
+  { id: "black-fishnet", name: "Black fishnet", note: "Black fishnet with garters, highly revealing." },
+  { id: "purple-satin-slip", name: "Purple satin slip", note: "Short purple satin slip nightie, deep V." },
+  { id: "pink-babydoll", name: "Pink babydoll", note: "Pink sheer babydoll nightie, barely there." },
+  { id: "navy-lace", name: "Navy lace nightie", note: "Navy lace nightie with open back." },
+  { id: "gold-silk", name: "Gold silk nightie", note: "Gold silk mini nightie, luxurious and revealing." },
+  { id: "sheer-black", name: "Sheer black mesh", note: "Sheer black mesh nightie, transparent in places." },
 ]
 
 export function casualLookFor(date = new Date()): CasualLook {
