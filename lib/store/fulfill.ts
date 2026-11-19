@@ -2,6 +2,7 @@ import "server-only"
 
 import { readFile } from "node:fs/promises"
 import path from "node:path"
+import { copyLeadsToWorkspace } from "@/lib/leads/deliver"
 import { productBySku, type StoreProduct } from "@/lib/store/catalog"
 import { leadIsDeliverable, leadsToCsv, type LeadCsvRow, type LeadFlags } from "@/lib/store/leads"
 import { capturePaypalCheckout, createPaypalCheckout } from "@/lib/store/paypal"
@@ -23,6 +24,8 @@ export type StoreOrder = {
   workspace_id: string | null
   paypal_order_id: string | null
   paypal_capture_id: string | null
+  delivery: string
+  detail: Record<string, unknown>
 }
 
 function missingTable(message: string) {
@@ -47,6 +50,8 @@ function asOrder(row: Record<string, unknown> | null): StoreOrder | null {
     workspace_id: typeof row.workspace_id === "string" ? row.workspace_id : null,
     paypal_order_id: typeof row.paypal_order_id === "string" ? row.paypal_order_id : null,
     paypal_capture_id: typeof row.paypal_capture_id === "string" ? row.paypal_capture_id : null,
+    delivery: String(row.delivery || ""),
+    detail: row.detail && typeof row.detail === "object" && !Array.isArray(row.detail) ? (row.detail as Record<string, unknown>) : {},
   }
 }
 
@@ -196,9 +201,61 @@ async function notify(admin: Admin, order: StoreOrder) {
   if (error && !missingTable(error.message)) throw new Error(error.message)
 }
 
+async function deliverCatalog(admin: Admin, order: StoreOrder) {
+  const items = Array.isArray(order.detail.items) ? order.detail.items : []
+  const ids = items
+    .map((item) => (item && typeof item === "object" ? String((item as { productId?: string }).productId || "") : ""))
+    .filter(Boolean)
+  if (!ids.length || !order.buyer_id) return
+  const { data, error } = await admin.from("products").select("id, name, kind, credits, prompt_body").in("id", ids)
+  if (error || !data) return
+  const byId = new Map((data as Record<string, unknown>[]).map((row) => [String(row.id), row]))
+  const owned = await admin.from("prompt_entitlements").select("product_id").eq("order_id", order.id)
+  const have = new Set((owned.data ?? []).map((row) => String((row as { product_id?: string }).product_id)))
+  let credits = 0
+  for (const item of items) {
+    if (!item || typeof item !== "object") continue
+    const productId = String((item as { productId?: string }).productId || "")
+    const qty = Math.min(10, Math.max(1, Number((item as { qty?: number }).qty) || 1))
+    const product = byId.get(productId)
+    if (!product) continue
+    if (String(product.kind) === "token") credits += (Number(product.credits) || 0) * qty
+    const body = String(product.prompt_body || "")
+    if (String(product.kind) === "prompt_pack" && body && !have.has(productId)) {
+      await admin.from("prompt_entitlements").insert({
+        order_id: order.id,
+        product_id: productId,
+        owner_id: order.buyer_id,
+        workspace_id: order.workspace_id,
+        title: String(product.name || "Prompt pack"),
+        body,
+      })
+    }
+  }
+  if (credits > 0) await grantCredits(admin, order, { sku: order.sku, name: order.title, priceCents: order.amount_cents, blurb: "", includes: [], kind: "credits", credits })
+}
+
 async function deliver(admin: Admin, order: StoreOrder) {
+  if (order.status !== "paid") return
+  if (order.delivery === "crm") {
+    const niche = typeof order.detail.niche === "string" ? order.detail.niche : ""
+    const packSize = Number(order.detail.packSize) || 0
+    if (order.buyer_id && niche && packSize > 0) {
+      await copyLeadsToWorkspace({ orderId: order.id, buyerId: order.buyer_id, niche, packSize })
+    }
+    await notify(admin, order)
+    return
+  }
+  if (order.delivery === "catalog") {
+    await deliverCatalog(admin, order)
+    await notify(admin, order)
+    return
+  }
   const product = productBySku(order.sku)
-  if (!product || order.status !== "paid") return
+  if (!product) {
+    await notify(admin, order)
+    return
+  }
   if (product.kind === "leads") await reserveLeads(admin, order, product)
   if (product.kind === "credits") await grantCredits(admin, order, product)
   await notify(admin, order)
@@ -239,6 +296,50 @@ export async function createStoreCheckout(sku: string, buyerId: string | null) {
   }
   const orderId = String(inserted.data.id)
   const paypal = await createPaypalCheckout({ orderId, amountCents: product.priceCents, title: product.name })
+  if (!paypal.ok) {
+    await admin.from("store_orders").update({ status: "failed" }).eq("id", orderId).eq("status", "pending")
+    const error = paypal.reason === "unconfigured" ? "PayPal checkout is not configured on this server." : "PayPal did not open checkout."
+    return { ok: false as const, status: paypal.reason === "unconfigured" ? 503 : 502, error }
+  }
+  const saved = await admin.from("store_orders").update({ paypal_order_id: paypal.id }).eq("id", orderId).select("id").single()
+  if (saved.error) return { ok: false as const, status: 502, error: "Could not save the PayPal order." }
+  return { ok: true as const, paypalOrderId: paypal.id }
+}
+
+export async function startCheckout(input: {
+  sku: string
+  title: string
+  amountCents: number
+  delivery: string
+  buyerId: string | null
+  detail?: Record<string, unknown>
+}) {
+  if (!Number.isInteger(input.amountCents) || input.amountCents <= 0) {
+    return { ok: false as const, status: 400, error: "That product does not have a price." }
+  }
+  const admin = createSupabaseAdmin()
+  if (!admin) return { ok: false as const, status: 503, error: "Checkout needs the Supabase service role." }
+  const row: Record<string, unknown> = {
+    sku: input.sku,
+    title: input.title,
+    amount_cents: input.amountCents,
+    currency: "USD",
+    status: "pending",
+    buyer_id: input.buyerId,
+    buyer_email: "",
+    delivery: input.delivery,
+  }
+  if (input.detail) row.detail = input.detail
+  const inserted = await admin.from("store_orders").insert(row).select("id").single()
+  if (inserted.error || !inserted.data?.id) {
+    const message = inserted.error?.message || ""
+    if (missingTable(message) || /detail/i.test(message)) {
+      return { ok: false as const, status: 503, error: "Apply the store migrations before taking payment." }
+    }
+    return { ok: false as const, status: 502, error: "Could not start checkout." }
+  }
+  const orderId = String(inserted.data.id)
+  const paypal = await createPaypalCheckout({ orderId, amountCents: input.amountCents, title: input.title })
   if (!paypal.ok) {
     await admin.from("store_orders").update({ status: "failed" }).eq("id", orderId).eq("status", "pending")
     const error = paypal.reason === "unconfigured" ? "PayPal checkout is not configured on this server." : "PayPal did not open checkout."

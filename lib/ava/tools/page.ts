@@ -20,6 +20,8 @@ const modules: [string, string][] = [
   ["/studio/automations", "workflows"],
   ["/studio/reputation", "reputation"],
   ["/studio/invoices", "invoices"],
+  ["/studio/products", "products"],
+  ["/studio/offers", "offers"],
   ["/studio/reports", "reports"],
   ["/studio/leads", "leads"],
   ["/studio/files", "files"],

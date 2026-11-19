@@ -1,4 +1,4 @@
-export const deskIds = ["inbox", "pipeline", "calendar", "funnels", "forms", "workflows", "reputation", "invoices", "reports", "campaigns", "social"] as const
+export const deskIds = ["inbox", "pipeline", "calendar", "funnels", "forms", "workflows", "reputation", "invoices", "reports", "campaigns", "social", "products", "offers"] as const
 export type DeskId = (typeof deskIds)[number]
 
 export type DeskField = {
@@ -210,6 +210,50 @@ export const DESKS: Record<DeskId, DeskConfig> = {
     actions: [
       { label: "Save draft", tool: "social.draft", confirm: false },
       { label: "Mark scheduled", tool: "social.publish", confirm: true },
+    ],
+  },
+  products: {
+    id: "products",
+    title: "Store products",
+    lede: "Draft a token bundle, prompt pack, or one-time product. Publishing puts it on the store. Nothing is charged from this page, and PayPal plans stay as they are.",
+    page: "/studio/products",
+    listTool: "products.list",
+    fields: [
+      { name: "name", label: "Name" },
+      { name: "slug", label: "Slug" },
+      { name: "kind", label: "Kind", kind: "select", options: ["token", "prompt_pack", "one_time"] },
+      { name: "amount", label: "Price in dollars", kind: "number" },
+      { name: "credits", label: "Credits, for a token product", kind: "number" },
+      { name: "description", label: "Description", kind: "textarea" },
+      { name: "promptBody", label: "Prompt text", kind: "textarea" },
+      { name: "id", label: "Product id" },
+    ],
+    actions: [
+      { label: "Save draft", tool: "products.create", confirm: false },
+      { label: "Publish", tool: "products.publish", confirm: false },
+      { label: "Delete", tool: "products.delete", confirm: true },
+    ],
+  },
+  offers: {
+    id: "offers",
+    title: "Offers",
+    lede: "Upsells, order bumps, and plan upgrades for appdm101.ink. An upgrade page sends people to the existing membership pricing. It does not create a PayPal plan.",
+    page: "/studio/offers",
+    listTool: "offers.list",
+    fields: [
+      { name: "name", label: "Name" },
+      { name: "slug", label: "Slug" },
+      { name: "kind", label: "Kind", kind: "select", options: ["upsell", "bump", "upgrade"] },
+      { name: "headline", label: "Headline" },
+      { name: "body", label: "Page", kind: "textarea" },
+      { name: "cta", label: "Button" },
+      { name: "amount", label: "Price in dollars", kind: "number" },
+      { name: "id", label: "Offer id" },
+    ],
+    actions: [
+      { label: "Save draft", tool: "offers.create", confirm: false },
+      { label: "Publish", tool: "offers.publish", confirm: false },
+      { label: "Unpublish", tool: "offers.unpublish", confirm: true },
     ],
   },
 }
