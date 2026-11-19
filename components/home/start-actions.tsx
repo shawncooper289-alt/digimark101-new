@@ -1,17 +1,15 @@
-import Link from "next/link"
-import { OpenAvaButton } from "@/components/ava/open-ava-button"
+import { TrackedLink } from "@/components/site/tracked-link"
 
-export function StartActions({ compact = false }: { compact?: boolean }) {
+export function StartActions({ eventPrefix = "cta", compact = false }: { eventPrefix?: string; compact?: boolean }) {
   const size = compact ? "" : "text-base"
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-      <Link href="/signup" className={`btn btn-signal w-full sm:w-auto ${size}`}>
-        Create your account
-      </Link>
-      <OpenAvaButton className={`btn btn-ink w-full sm:w-auto ${size}`}>Try Ava</OpenAvaButton>
-      <Link href="/beta" className={`btn btn-ghost w-full sm:w-auto ${size}`}>
-        Join the beta
-      </Link>
+      <TrackedLink href="/beta" event={`${eventPrefix}_beta`} className={`btn btn-signal w-full sm:w-auto ${size}`}>
+        Claim a free beta seat
+      </TrackedLink>
+      <TrackedLink href="/signup" event={`${eventPrefix}_signup`} className={`btn btn-ghost w-full sm:w-auto ${size}`}>
+        Create an account
+      </TrackedLink>
     </div>
   )
 }

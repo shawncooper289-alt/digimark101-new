@@ -1,94 +1,74 @@
-"use client"
-
 import Image from "next/image"
-import { useRef } from "react"
-import { AvaIntroButton } from "@/components/home/ava-intro-button"
+import Link from "next/link"
 import { StartActions } from "@/components/home/start-actions"
-import { hero } from "@/lib/home-content"
-
-const assurances = [
-  "You say yes before it is saved",
-  "One login for the work",
-  "No invented results",
-]
+import { ContactPath } from "@/components/site/contact-path"
+import { hero, trustFacts } from "@/lib/home-content"
 
 export function HomeHero() {
-  const frameRef = useRef<HTMLDivElement>(null)
-
-  function onPointerMove(event: React.PointerEvent<HTMLElement>) {
-    const bounds = event.currentTarget.getBoundingClientRect()
-    const x = (event.clientX - bounds.left) / bounds.width
-    const y = (event.clientY - bounds.top) / bounds.height
-    event.currentTarget.style.setProperty("--mx", `${x * 100}%`)
-    event.currentTarget.style.setProperty("--my", `${y * 100}%`)
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    const fine = window.matchMedia("(pointer: fine)").matches
-    if (!reduce && fine && frameRef.current) {
-      const tiltX = (0.5 - y) * 2.5
-      const tiltY = (x - 0.5) * 3
-      frameRef.current.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`
-    }
-  }
-
-  function onPointerLeave(event: React.PointerEvent<HTMLElement>) {
-    event.currentTarget.style.removeProperty("--mx")
-    event.currentTarget.style.removeProperty("--my")
-    if (frameRef.current) frameRef.current.style.transform = ""
-  }
-
   return (
-    <section
-      className="hero-stage relative isolate overflow-hidden"
-      onPointerMove={onPointerMove}
-      onPointerLeave={onPointerLeave}
-    >
-      <div className="hero-glow pointer-events-none absolute inset-0" aria-hidden="true" />
-      <div className="hero-grid pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
-      <div className="relative mx-auto grid w-full max-w-[90rem] lg:min-h-[calc(100svh-4rem)] lg:grid-cols-12">
-        <div className="hero-perspective relative order-1 min-h-[13.75rem] sm:min-h-[22rem] lg:order-2 lg:col-span-7 lg:min-h-full">
-          <div ref={frameRef} className="hero-portrait absolute inset-0 lg:inset-y-8 lg:right-8 lg:left-4 lg:rounded-[1.8rem] lg:border lg:border-signal/40 lg:shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+    <section className="relative isolate overflow-hidden border-b border-ink/10" aria-labelledby="hero-heading">
+      <div className="mx-auto grid w-full max-w-6xl gap-6 px-5 py-6 sm:py-14 lg:grid-cols-12 lg:items-center lg:gap-12 lg:py-16">
+        <div className="order-2 lg:order-1 lg:col-span-7">
+          <div className="relative mb-4 h-14 w-14 overflow-hidden rounded-full border border-signal/40 lg:hidden">
             <Image
               src="/media/ava-city.jpg"
-              alt="Ava Skye, in a blazer, in a dark studio with the city behind her"
+              alt="Ava Skye"
               fill
-              preload
-              sizes="(min-width: 1024px) 58vw, 100vw"
-              className="hero-still object-cover object-[center_16%]"
+              sizes="56px"
+              quality={70}
+              className="object-cover object-[center_16%]"
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-paper via-paper/15 to-transparent lg:bg-gradient-to-l lg:from-transparent lg:via-transparent lg:to-paper/80" />
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 sm:p-7">
-              <div>
-                <p className="font-serif text-4xl leading-none text-ink sm:text-5xl">Ava Skye</p>
-                <p className="mt-2 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-signal">Pronounced AY-vuh · Your setup guide</p>
-              </div>
-            </div>
           </div>
-        </div>
-        <div className="order-2 flex flex-col justify-center px-5 py-6 sm:px-8 sm:py-10 lg:order-1 lg:col-span-5 lg:px-10 lg:py-16">
           <p className="home-kicker">{hero.eyebrow}</p>
-          <h1 className="display mt-3 max-w-[12ch] text-[2.35rem] text-ink sm:text-6xl lg:text-[4.6rem]">
+          <h1 id="hero-heading" className="display mt-3 max-w-[16ch] text-[2.15rem] text-ink sm:text-5xl lg:text-[3.4rem]">
             {hero.lead}
           </h1>
-          <p className="mt-4 max-w-[16ch] font-serif text-[1.7rem] leading-[1.05] text-signal sm:text-4xl">{hero.accent}</p>
-          <p className="mt-5 max-w-md text-base leading-relaxed text-ink-soft max-sm:pr-24 sm:mt-6 sm:text-lg">{hero.lede}</p>
-          <div className="mt-8">
-            <StartActions />
+          <p className="mt-4 max-w-xl font-serif text-2xl leading-snug text-signal sm:text-3xl">{hero.accent}</p>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">{hero.lede}</p>
+          <p className="mt-4 max-w-xl rounded-2xl border border-signal/40 bg-mist px-4 py-3 text-sm leading-relaxed text-ink">
+            <span className="font-semibold text-signal">Free beta seat. </span>
+            {hero.offer}
+          </p>
+          <div className="mt-6">
+            <StartActions eventPrefix="hero" />
           </div>
-          <ul className="mt-8 grid gap-3 border-t border-signal/30 pt-5 sm:grid-cols-3">
-            {assurances.map((item) => (
-              <li key={item} className="text-sm leading-snug text-ink">
-                {item}
+          <div className="mt-3">
+            <ContactPath event="hero_contact" />
+          </div>
+          <p className="mt-1 flex flex-col items-start gap-1 text-sm text-ink-soft sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
+            <Link href="/studio" prefetch={false} className="inline-flex min-h-12 items-center underline decoration-ink/30 underline-offset-4 hover:text-signal">
+              Preview Studio before you create an account
+            </Link>
+            <Link href="/ava" prefetch={false} className="inline-flex min-h-12 items-center underline decoration-ink/30 underline-offset-4 hover:text-signal">
+              Talk to Ava
+            </Link>
+          </p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {trustFacts.map((fact) => (
+              <li key={fact.title}>
+                <p className="text-sm font-semibold text-ink">{fact.title}</p>
+                <p className="text-sm leading-snug text-ink-soft">{fact.body}</p>
               </li>
             ))}
           </ul>
-          <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <AvaIntroButton />
-            <a href="#meet" className="text-sm font-semibold text-signal underline decoration-signal/40 underline-offset-4">
-              Meet Ava
-            </a>
+        </div>
+        <div className="order-1 lg:order-2 lg:col-span-5">
+          <div className="relative hidden aspect-[4/5] w-full overflow-hidden rounded-[1.4rem] border border-signal/40 lg:block">
+            <Image
+              src="/media/ava-city.jpg"
+              alt="Ava Skye, the DigiMark101 setup guide, in a dark studio"
+              fill
+              sizes="420px"
+              quality={70}
+              className="object-cover object-[center_16%]"
+            />
           </div>
+          <p className="mt-3 hidden text-sm text-ink-soft lg:block">Ava Skye, pronounced AY-vuh, your setup guide</p>
         </div>
       </div>
+      <p className="mx-auto max-w-6xl px-5 pb-8 text-xs leading-relaxed text-ink-soft">
+        Quotes, client logos, and customer counts are not published. A quote is added only after that person approves the words.
+      </p>
     </section>
   )
 }

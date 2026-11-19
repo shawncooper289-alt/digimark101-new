@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { StartActions } from "@/components/home/start-actions"
+import { VslSection } from "@/components/home/vsl-section"
+import { TrackedLink } from "@/components/site/tracked-link"
 import {
-  audiences,
+  audiencePaths,
   comparison,
   disciplinePlain,
   earningsDisclaimer,
@@ -37,7 +39,61 @@ export function HomeSections() {
         </ul>
       </nav>
 
-      <section id="what" className="dm-rise scroll-mt-24 border-b border-ink/10" aria-labelledby="what-heading">
+      <section id="why-now" className="scroll-mt-24 border-b border-ink/10" aria-labelledby="why-now-heading">
+        <div className={wrap}>
+          <p className={eyebrow}>Why us, why now</p>
+          <h2 id="why-now-heading" className={title}>
+            A guide who waits for yes, and a tester seat that is actually free.
+          </h2>
+          <div className="mt-10 grid gap-8 md:grid-cols-2">
+            <article>
+              <h3 className="font-serif text-3xl">Why us</h3>
+              <ul className="mt-4 grid gap-3 text-sm leading-relaxed text-ink-soft">
+                <li>Ava sets the workspace up with you. She does not hand you a menu and leave.</li>
+                <li>The jobs that work today share one login. Where something is not connected, the page says so.</li>
+                <li>You confirm before a change is saved. Memory stays on that login.</li>
+                <li>The studio will not invent a client, a rank, or a revenue number to win the pitch.</li>
+              </ul>
+            </article>
+            <article>
+              <h3 className="font-serif text-3xl">Why now</h3>
+              <p className="mt-4 text-sm leading-relaxed text-ink-soft">
+                The product is in beta, so a tester seat is free. There is no countdown and no published seat limit, because we do not have one to show. The beta form does not charge a card. Agency work is separate and is quoted in a proposal when you want a person on the job.
+              </p>
+              <div className="mt-6">
+                <StartActions eventPrefix="why" compact />
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="who" className="scroll-mt-24 border-b border-ink/10 bg-paper-deep" aria-labelledby="who-heading">
+        <div className={wrap}>
+          <p className={eyebrow}>Who it is for</p>
+          <h2 id="who-heading" className={title}>
+            Written for a small business with one offer.
+          </h2>
+          <p className={lede}>
+            Beginners, creators, and agencies can still start. Each path goes to a page that already exists. The hero is not “anyone who wants to make money online.”
+          </p>
+          <ul className="mt-10 grid gap-3 sm:grid-cols-2">
+            {audiencePaths.map((audience) => (
+              <li key={audience.name} className={card}>
+                <h3 className="font-serif text-3xl tracking-tight">{audience.name}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft">{audience.body}</p>
+                <TrackedLink href={audience.href} event={`path_${audience.name.toLowerCase().replace(/\s+/g, "_")}`} className="mt-4 inline-flex font-semibold text-signal underline decoration-signal/40 underline-offset-4">
+                  {audience.cta}
+                </TrackedLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <VslSection />
+
+      <section id="what" className="scroll-mt-24 border-b border-ink/10" aria-labelledby="what-heading">
         <div className={wrap}>
           <p className={eyebrow}>The platform</p>
           <h2 id="what-heading" className={title}>
@@ -75,26 +131,6 @@ export function HomeSections() {
               </div>
             </aside>
           </div>
-        </div>
-      </section>
-
-      <section id="who" className="dm-rise scroll-mt-24 border-b border-ink/10 bg-paper-deep" aria-labelledby="who-heading">
-        <div className={wrap}>
-          <p className={eyebrow}>Who it is for</p>
-          <h2 id="who-heading" className={title}>
-            Built for anyone who wants to make money online.
-          </h2>
-          <p className={lede}>
-            The same platform holds a starting point for each of these. Ava adjusts the questions. She does not assume you already run an agency.
-          </p>
-          <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {audiences.map((audience) => (
-              <li key={audience.name} className={card}>
-                <h3 className="font-serif text-3xl tracking-tight">{audience.name}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-ink-soft">{audience.body}</p>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 
@@ -192,11 +228,11 @@ export function HomeSections() {
             ))}
           </div>
           <p className="mt-8 text-sm text-ink-soft">
-            <Link href="/studio" className="font-semibold text-signal">
+            <Link prefetch={false} href="/studio" className="font-semibold text-signal">
               Open Studio
             </Link>{" "}
             to walk the screens, or{" "}
-            <Link href="/start" className="font-semibold text-signal">
+            <Link prefetch={false} href="/start" className="font-semibold text-signal">
               start the first campaign
             </Link>{" "}
             if you want Ava to draft one page, one form, and three emails for you to approve.
@@ -213,7 +249,7 @@ export function HomeSections() {
                 The eight kinds of marketing work.
               </h2>
             </div>
-            <Link href="/services" className="btn btn-ghost">
+            <Link prefetch={false} href="/services" className="btn btn-ghost">
               All services
             </Link>
           </div>
@@ -223,7 +259,7 @@ export function HomeSections() {
           <ol className="mt-10 grid gap-3 md:grid-cols-2">
             {services.map((service) => (
               <li key={service.slug}>
-                <Link
+                <Link prefetch={false}
                   href={`/services/${service.slug}`}
                   className="group flex h-full flex-col rounded-[1.4rem] border border-ink/10 bg-card/80 p-5 transition hover:border-signal/50"
                 >
@@ -306,10 +342,10 @@ export function HomeSections() {
               </p>
             </div>
             <div className="flex flex-col gap-3 md:col-span-5">
-              <Link href="/beta" className="btn btn-signal w-full">
+              <Link prefetch={false} href="/beta" className="btn btn-signal w-full">
                 Join the beta
               </Link>
-              <Link href="/signup" className="btn btn-ghost w-full">
+              <Link prefetch={false} href="/signup" className="btn btn-ghost w-full">
                 Create your account
               </Link>
             </div>
@@ -344,15 +380,15 @@ export function HomeSections() {
             ))}
           </div>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/pricing" className="btn btn-signal w-full sm:w-auto">
+            <Link prefetch={false} href="/pricing" className="btn btn-signal w-full sm:w-auto">
               See pricing
             </Link>
-            <Link href="/contact" className="btn btn-ghost w-full sm:w-auto">
+            <Link prefetch={false} href="/contact" className="btn btn-ghost w-full sm:w-auto">
               Write to the studio
             </Link>
           </div>
           <p className="mt-10 text-sm text-ink-soft">
-            <Link href="/blog" className="font-semibold text-signal">
+            <Link prefetch={false} href="/blog" className="font-semibold text-signal">
               Read the journal
             </Link>{" "}
             for how the studio thinks about the work. Those notes are methods, not client results.
@@ -391,13 +427,13 @@ export function HomeSections() {
         <div className={`${wrap} text-center`}>
           <p className={eyebrow}>Start</p>
           <h2 id="close-heading" className="display mx-auto mt-3 max-w-3xl text-4xl sm:text-6xl">
-            Build your own dynasty. Own the system. Grow it with Ava.
+            Bring one offer. Leave with a workspace you can keep.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-ink-soft">
-            Create an account, talk to Ava, or take a free beta seat. Bring one offer. Leave with a workspace you can keep.
+            Claim a free beta seat, or create an account when you want the work saved. Ava sets it up with you and waits for yes.
           </p>
           <div className="mx-auto mt-8 flex max-w-xl flex-col items-stretch sm:max-w-none sm:items-center">
-            <StartActions />
+            <StartActions eventPrefix="close" />
           </div>
         </div>
       </section>

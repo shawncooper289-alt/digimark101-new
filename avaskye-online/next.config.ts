@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
-        headers: [{ key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" }],
+        headers: [
+          { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
       },
     ]
   },

@@ -3,8 +3,9 @@ import { PageHeader } from "@/components/site/page-header"
 import { pageMetadata } from "@/lib/seo"
 
 export const metadata = pageMetadata({
-  title: "About",
-  description: "DigiMark101 is an all-in-one marketing platform and a studio. Ava Skye sets it up with you. You keep the system.",
+  title: "About DigiMark101",
+  description:
+    "DigiMark101 is an online digital marketing agency and workspace for small businesses in the United States. Ava Skye sets it up with you. You confirm before anything is saved.",
   path: "/about",
 })
 
@@ -33,7 +34,7 @@ export default function AboutPage() {
       <PageHeader
         eyebrow="About"
         title="A platform you own, and a studio when you want help."
-        lede="DigiMark101 is an all-in-one marketing workspace for people who want to make money online. Studio is the workspace. Ava Skye is the assistant who sets it up with you. You confirm before anything is saved."
+        lede="DigiMark101 is an online digital marketing agency for small businesses in the United States, and the workspace those businesses keep. Ava Skye sets it up with you. You confirm before anything is saved."
       />
       <div className="mx-auto grid max-w-6xl gap-12 px-5 py-14 md:grid-cols-12">
         <div className="prose-studio md:col-span-7">

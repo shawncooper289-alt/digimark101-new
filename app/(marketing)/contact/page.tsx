@@ -4,8 +4,9 @@ import { pageMetadata } from "@/lib/seo"
 import { services, site } from "@/lib/site"
 
 export const metadata = pageMetadata({
-  title: "Contact",
-  description: "Start a project with DigiMark101. Send a note about the channel that feels stuck.",
+  title: "Contact the studio",
+  description:
+    "Talk to a person at DigiMark101. Email hello@digimark101.com or send the contact form. The studio serves small businesses online across the United States.",
   path: "/contact",
 })
 

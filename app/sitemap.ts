@@ -1,16 +1,38 @@
 import type { MetadataRoute } from "next"
+import { agencyPages } from "@/lib/agency-pages"
 import { caseStudies, posts, services, site } from "@/lib/site"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-10-15T00:00:00Z")
-  const staticPaths = ["", "/services", "/work", "/pricing", "/about", "/contact", "/blog", "/ava", "/marketplace", "/start", "/privacy", "/terms"]
+  const lastModified = new Date("2026-11-18T00:00:00Z")
+  const staticPaths = [
+    "",
+    "/agency",
+    "/services",
+    "/work",
+    "/pricing",
+    "/about",
+    "/contact",
+    "/blog",
+    "/ava",
+    "/beta",
+    "/marketplace",
+    "/start",
+    "/privacy",
+    "/terms",
+  ]
 
   return [
     ...staticPaths.map((path) => ({
       url: `${site.url}${path || "/"}`,
       lastModified,
       changeFrequency: path === "" || path === "/blog" ? ("weekly" as const) : ("monthly" as const),
-      priority: path === "" ? 1 : 0.7,
+      priority: path === "" ? 1 : path === "/agency" || path === "/services" ? 0.9 : 0.7,
+    })),
+    ...agencyPages.map((page) => ({
+      url: `${site.url}${page.path}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
     })),
     ...services.map((service) => ({
       url: `${site.url}/services/${service.slug}`,

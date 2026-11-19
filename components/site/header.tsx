@@ -1,91 +1,75 @@
-"use client"
-
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState } from "react"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
+import { TrackedLink } from "@/components/site/tracked-link"
 import { nav } from "@/lib/site"
 
-function isActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`)
-}
-
 export function Header() {
-  const pathname = usePathname()
-  const [open, setOpen] = useState(false)
-
   return (
-    <header className="sticky top-0 z-40 border-b border-ink/10 bg-paper/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-ink/10 bg-paper/95">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-5">
-        <Link href="/" aria-label="DigiMark101 home" onClick={() => setOpen(false)}>
+        <Link href="/" prefetch={false} aria-label="DigiMark101 home">
           <DigiMarkLogo variant="paper" compact />
         </Link>
-        <nav className="hidden items-center gap-3 xl:gap-5 lg:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-4 xl:flex" aria-label="Primary">
           {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`whitespace-nowrap text-[0.8125rem] xl:text-sm ${isActive(pathname, item.href) ? "text-signal" : "text-ink-soft hover:text-ink"}`}
-              aria-current={isActive(pathname, item.href) ? "page" : undefined}
-            >
+            <Link key={item.href} href={item.href} prefetch={false} className="whitespace-nowrap text-sm text-ink-soft hover:text-ink">
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
-          <Link href="/signup" className="btn btn-ghost hidden sm:inline-flex">
+        <div className="hidden items-center gap-2 xl:flex">
+          <TrackedLink href="/contact" event="header_contact" className="btn btn-ghost">
+            Contact
+          </TrackedLink>
+          <Link href="/login" prefetch={false} className="btn btn-ghost">
+            Log in
+          </Link>
+          <TrackedLink href="/signup" event="header_signup" className="btn btn-ghost">
             Create account
-          </Link>
-          <Link href="/login" className="btn btn-ghost hidden sm:inline-flex">
-            Client login
-          </Link>
-          <Link href="/start" className="btn btn-signal hidden xl:inline-flex">
-            First campaign
-          </Link>
-          <button
-            type="button"
-            className="btn btn-ghost lg:hidden"
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            onClick={() => setOpen((value) => !value)}
-          >
-            {open ? "Close" : "Menu"}
-          </button>
+          </TrackedLink>
+          <TrackedLink href="/beta" event="header_beta" className="btn btn-signal">
+            Free beta seat
+          </TrackedLink>
+        </div>
+        <div className="flex items-center gap-2 xl:hidden">
+          <TrackedLink href="/beta" event="header_beta" className="btn btn-signal px-3">
+            Free beta
+          </TrackedLink>
+          <details className="nav-disclosure relative">
+            <summary className="btn btn-ghost cursor-pointer px-3">Menu</summary>
+            <nav
+              id="mobile-nav"
+              className="absolute right-0 top-12 z-50 w-[min(20rem,calc(100vw-2.5rem))] rounded-2xl border border-ink/10 bg-paper p-3 shadow-xl"
+              aria-label="Pages"
+            >
+              <ul className="grid gap-1">
+                {nav.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} prefetch={false} className="block rounded-xl px-3 py-3 text-lg hover:bg-paper-deep">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <TrackedLink href="/contact" event="header_contact" className="btn btn-ghost mt-2 w-full">
+                    Talk to a person
+                  </TrackedLink>
+                </li>
+                <li>
+                  <Link href="/login" prefetch={false} className="btn btn-ghost mt-2 w-full">
+                    Log in
+                  </Link>
+                </li>
+                <li>
+                  <TrackedLink href="/signup" event="header_signup" className="btn btn-ghost mt-2 w-full">
+                    Create an account
+                  </TrackedLink>
+                </li>
+              </ul>
+            </nav>
+          </details>
         </div>
       </div>
-      {open ? (
-        <nav id="mobile-nav" className="border-t border-ink/10 px-5 py-4 lg:hidden" aria-label="Mobile">
-          <ul className="grid gap-1">
-            {nav.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="block rounded-xl px-3 py-3 text-lg hover:bg-paper-deep"
-                  onClick={() => setOpen(false)}
-                  aria-current={isActive(pathname, item.href) ? "page" : undefined}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link href="/signup" className="btn btn-ghost mt-2 w-full" onClick={() => setOpen(false)}>
-                Create account
-              </Link>
-            </li>
-            <li>
-              <Link href="/login" className="btn btn-ghost mt-2 w-full" onClick={() => setOpen(false)}>
-                Client login
-              </Link>
-            </li>
-            <li>
-              <Link href="/start" className="btn btn-signal mt-2 w-full" onClick={() => setOpen(false)}>
-                Start the first campaign
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      ) : null}
     </header>
   )
 }
