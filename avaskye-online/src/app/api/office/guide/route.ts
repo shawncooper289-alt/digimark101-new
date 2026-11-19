@@ -56,9 +56,9 @@ function priorTurns(input: unknown): Turn[] {
     .filter((item): item is { role: string; content: string } => {
       if (!item || typeof item !== "object") return false
       const turn = item as { role?: unknown; content?: unknown }
-      return (turn.role === "user" || turn.role === "assistant") && typeof turn.content === "string" && turn.content.trim().length > 0 && turn.content.length < 800
+      return (turn.role === "user" || turn.role === "assistant") && typeof turn.content === "string" && turn.content.trim().length > 0 && turn.content.length < 4000
     })
-    .slice(-12)
+    .slice(-24)
 }
 
 function naturalize(reply: string) {

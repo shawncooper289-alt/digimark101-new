@@ -94,7 +94,7 @@ export function AvaFloat() {
         .then((data: { reply?: string; error?: string }) => {
           const next = omitBannedLine(data.reply || data.error || "What should I call you?")
           setReply(next)
-          setHistory((prev) => [...prev, starterTurn, { role: "assistant" as const, content: next }].slice(-8))
+          setHistory((prev) => [...prev, starterTurn, { role: "assistant" as const, content: next }].slice(-24))
           void speakReply(next, true, setDeviceNote)
         })
         .catch(() => setReply("I missed that. Try again?"))
@@ -181,7 +181,7 @@ export function AvaFloat() {
       const data = (await response.json()) as { reply?: string; error?: string }
       const next = omitBannedLine(response.ok ? data.reply || "Okay." : data.error || "I didn't catch that.")
       setReply(next)
-      setHistory((prev) => [...prev, { role: "user" as const, content: message }, { role: "assistant" as const, content: next }].slice(-8))
+      setHistory((prev) => [...prev, { role: "user" as const, content: message }, { role: "assistant" as const, content: next }].slice(-24))
       if (response.ok) setText("")
       await speakReply(next, aloud || (voiceOn && !textOnly), setDeviceNote)
     } catch {

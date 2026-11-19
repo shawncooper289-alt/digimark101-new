@@ -83,7 +83,14 @@ function correctionValue(text: string) {
 
 function answersFrom(history: SetupTurn[]) {
   const answers = new Map<string, string>()
-  const order: string[] = []
+  for (const turn of history) {
+    if (turn.role !== "assistant" || !turn.content) continue
+    const carried = parseCarry(turn.content)
+    if (!carried.size) continue
+    answers.clear()
+    for (const [id, value] of carried) answers.set(id, value)
+  }
+  const order: string[] = [...answers.keys()]
   for (let index = 0; index < history.length; index += 1) {
     const turn = history[index]
     if (turn?.role !== "assistant" || !turn.content) continue
@@ -115,6 +122,33 @@ function openStep(answers: Map<string, string>) {
   return STEPS.find((step) => !answers.has(step.id)) ?? null
 }
 
+function carryLine(answers: Map<string, string>) {
+  const bits = STEPS.filter((step) => answers.has(step.id)).map((step) => `${step.label}: ${answers.get(step.id) || "left blank"}`)
+  return bits.length ? `I still have: ${bits.join(" | ")}.` : ""
+}
+
+function withCarry(text: string, answers: Map<string, string>) {
+  const line = carryLine(answers)
+  return line ? `${text}\n\n${line}` : text
+}
+
+function parseCarry(text: string) {
+  const answers = new Map<string, string>()
+  const line = text.split("\n").map((item) => item.trim()).find((item) => item.startsWith("I still have: ") && item.endsWith("."))
+  if (!line) return answers
+  const body = line.slice("I still have: ".length, -1)
+  for (const part of body.split(" | ")) {
+    const split = part.indexOf(": ")
+    if (split < 0) continue
+    const label = part.slice(0, split)
+    const value = part.slice(split + 2)
+    const step = STEPS.find((item) => item.label === label)
+    if (!step) continue
+    answers.set(step.id, value === "left blank" ? "" : value)
+  }
+  return answers
+}
+
 function help(step: Step) {
   return `Good question. Answer in your own words, or say skip. I will not save this on the desk.\n\n${asks(step)}`
 }
@@ -125,28 +159,28 @@ export function officeSetupReply(message: string, history: SetupTurn[]) {
   const prior = [...history].reverse().find((turn) => turn.role === "assistant")?.content || ""
   const priorStep = STEPS.find((item) => prior.includes(asks(item)))
   const onConfirm = prior.includes(CONFIRM_MARK)
-  const said = history.filter((turn) => turn.role === "assistant").map((turn) => turn.content || "").join("\n")
   const starting = START.test(latest) && !priorStep && !onConfirm
-  const underway = Boolean(priorStep || onConfirm || STEPS.some((step) => said.includes(asks(step))))
+  const underway = Boolean(priorStep || onConfirm)
   if (!starting && !underway) return null
   if ((priorStep || onConfirm) && LEAVE.test(latest) && !START.test(latest)) return null
 
   const answers = answersFrom([...history, { role: "user", content: latest }])
+  const keep = (text: string) => withCarry(text, answers)
 
   if (/\b(where|how|link|url|page)\b/i.test(latest) && /\b(sign\s*up|signup|create (?:my |an )?account|register)\b/i.test(latest)) {
     const current = priorStep ?? openStep(answers)
-    return `${handoff(answers.get("email"))}${current ? `\n\n${asks(current)}` : ""}`
+    return keep(`${handoff(answers.get("email"))}${current ? `\n\n${asks(current)}` : ""}`)
   }
 
   if (starting) {
     const next = openStep(answers)
     const intro = "Hey, I'm Ava. I'll ask a few easy questions, one at a time. If you don't know, say so. I won't create the login from this desk."
-    return next ? `${intro}\n\n${asks(next)}` : recap(answers)
+    return next ? keep(`${intro}\n\n${asks(next)}`) : keep(recap(answers))
   }
 
   if ((priorStep || onConfirm) && isQuestion(latest)) {
     const current = priorStep ?? openStep(answers)
-    return current ? help(current) : `${handoff(answers.get("email"))}\n\n${CONFIRM_MARK}`
+    return current ? keep(help(current)) : keep(`${handoff(answers.get("email"))}\n\n${CONFIRM_MARK}`)
   }
 
   if (CORRECTION.test(latest) || CHANGE.test(latest)) {
@@ -156,23 +190,23 @@ export function officeSetupReply(message: string, history: SetupTurn[]) {
     if (target && value) {
       const label = STEPS.find((step) => step.id === target)?.label ?? target
       const follow = current ? asks(current) : recap(answers)
-      return `Updated ${label.toLowerCase()} to: ${value}\n\n${follow}`
+      return keep(`Updated ${label.toLowerCase()} to: ${value}\n\n${follow}`)
     }
-    return `Got it. Tell me the new value, like "change the business to Flow Haus".\n\n${current ? asks(current) : CONFIRM_MARK}`
+    return keep(`Got it. Tell me the new value, like "change the business to Flow Haus".\n\n${current ? asks(current) : CONFIRM_MARK}`)
   }
 
   if (priorStep?.id === "email" && !EMAIL.test(latest) && !SKIP.test(latest)) {
-    return `That does not look like an email address. Type it like name@example.com, or say skip.\n\n${asks(priorStep)}`
+    return keep(`That does not look like an email address. Type it like name@example.com, or say skip.\n\n${asks(priorStep)}`)
   }
 
   if (onConfirm && YES.test(latest)) {
     return `The signup page is where the account is created.\n\n${handoff(answers.get("email"))}`
   }
 
-  if (onConfirm) return recap(answers)
+  if (onConfirm) return keep(recap(answers))
 
   const next = openStep(answers)
   const note = priorStep && answers.has(priorStep.id) ? "Got it.\n\n" : ""
-  if (!next) return `${note}${recap(answers)}`
-  return `${note}${asks(next)}`
+  if (!next) return keep(`${note}${recap(answers)}`)
+  return keep(`${note}${asks(next)}`)
 }

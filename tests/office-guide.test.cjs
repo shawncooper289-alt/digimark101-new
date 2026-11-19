@@ -70,6 +70,36 @@ test("a finished office setup recaps and does not pretend the desk created the l
   assert.doesNotMatch(saved, /Saved\. Your setup/)
 })
 
+test("eight remembered turns still reach the signup recap", () => {
+  const answers = ["Sam", "Flow Haus", "bread", "neighbors", "I don't have one", "sam@example.com"]
+  let history = []
+  let reply = ""
+  function send(message) {
+    reply = setup.officeSetupReply(message, history)
+    history = [...history, { role: "user", content: message }, { role: "assistant", content: reply }].slice(-8)
+    return reply
+  }
+  send("set up my free account")
+  for (const answer of answers) send(answer)
+  assert.match(reply, /Here's what I heard/)
+  assert.match(reply, /Sam/)
+  assert.match(reply, /Flow Haus/)
+  assert.match(reply, /signup\?email=sam%40example\.com/)
+  assert.equal(reply.includes("What should I call you?"), false)
+})
+
+test("leaving setup does not pull the next office question back into the interview", () => {
+  const first = setup.officeSetupReply("set up my free account", [])
+  const history = [
+    { role: "user", content: "set up my free account" },
+    { role: "assistant", content: first },
+    { role: "user", content: "open the pipeline" },
+    { role: "assistant", content: "Opening Pipeline." },
+  ]
+  assert.equal(setup.officeSetupReply("open the pipeline", history.slice(0, 2)), null)
+  assert.equal(setup.officeSetupReply("how many leads are on the desk?", history), null)
+})
+
 test("the public Ava chat cannot see the office and still points to signup", () => {
   assert.match(pub.scriptedPublicReply("show office records"), /signed-in desk/)
   assert.match(pub.scriptedPublicReply("where do I sign up?"), /https:\/\/www\.digimark101\.com\/signup/)
