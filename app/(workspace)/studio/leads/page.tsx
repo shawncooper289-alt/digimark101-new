@@ -1,4 +1,6 @@
 import { ConfirmOrder } from "@/components/leads/confirm-order"
+import { LeadPrices } from "@/components/studio/lead-prices"
+import { LEAD_NICHE_KEYS, LEAD_NICHE_LABELS } from "@/lib/store/catalog"
 import { ownerLeadCounts } from "@/lib/leads/engine"
 import { ensureOwnerGranted } from "@/lib/owner/access"
 import { currentUser } from "@/lib/supabase/server"
@@ -82,6 +84,14 @@ export default async function StudioLeadsPage() {
             Capture is automatic: the contact form, an explicit Ava consent, CSV or API import, and HTTPS connectors configured with env vars. The scheduled job pulls connectors, scores staging, and moves only premium leads here. There is no manual add form.
           </p>
           <ConfirmOrder />
+          <LeadPrices
+            rows={LEAD_NICHE_KEYS.map((key) => ({
+              key,
+              label: LABELS[key] ?? LEAD_NICHE_LABELS[key],
+              price: "",
+              pack: "25",
+            }))}
+          />
         </>
       ) : null}
     </section>

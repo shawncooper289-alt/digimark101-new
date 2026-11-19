@@ -51,6 +51,18 @@ export default async function ConfirmationPage({
     <main id="main" className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-5 py-16">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">Order</p>
       <h1 className="display mt-3 text-5xl">{order ? "You are paid." : "This receipt is not open."}</h1>
+      {order && !product ? (
+        <>
+          <p className="mt-4 text-ink-soft">
+            {order.title} · {formatStorePrice(order.amount_cents)}. PayPal captured the payment.
+          </p>
+          <p className="mt-4 text-ink-soft">
+            {order.delivery === "crm"
+              ? "Leads that were still consented are in your Studio contacts. Nothing personal was shown before payment."
+              : "This payment is recorded. Credits and prompt packs land in the workspace when you are signed in with the PayPal email."}
+          </p>
+        </>
+      ) : null}
       {order && product ? (
         <>
           <p className="mt-4 text-ink-soft">

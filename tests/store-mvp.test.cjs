@@ -28,6 +28,7 @@ const hosts = load("lib/store/hosts.ts")
 const token = load("lib/store/token.ts")
 const leads = load("lib/store/leads.ts")
 const parse = load("lib/store/paypal-parse.ts")
+const anonymize = load("lib/surfaces/anonymize.ts")
 
 test("the catalog is three fixed one-time products", () => {
   assert.equal(catalog.catalogProblems().length, 0)
@@ -52,6 +53,11 @@ test("the store host rewrites to /store and the agency host does not", () => {
   assert.equal(hosts.safeNextPath("/store/confirmation?order=1"), "/store/confirmation?order=1")
   assert.equal(hosts.safeNextPath("https://evil.example/store"), "/studio")
   assert.equal(hosts.safeNextPath("//evil.example"), "/studio")
+  assert.equal(hosts.surfaceRewritePath("appdm101.online", "/seo"), "/leads/seo")
+  assert.equal(hosts.surfaceRewritePath("appdm101.ink", "/"), "/offers")
+  assert.equal(hosts.surfaceRewritePath("www.digimark101.com", "/leads"), null)
+  assert.equal(hosts.safeNextPath("/leads/seo"), "/leads/seo")
+  assert.equal(hosts.safeNextPath("/offers/welcome"), "/offers/welcome")
 })
 
 test("a delivery signature expires and rejects a tampered order", () => {
@@ -87,6 +93,11 @@ test("lead delivery keeps consent and drops a refused share", () => {
   assert.match(csv, /^name,email,phone,company,region,company_size,score\n/)
   assert.match(csv, /"A, B"/)
   assert.equal(csv.includes("secret-note"), false)
+  const sample = anonymize.anonymizedLead({ region: "TX", company_size: "1-10", score: 80, email: "a@example.com", phone: "555", full_name: "A" })
+  assert.equal(sample.region, "TX")
+  assert.equal(Object.hasOwn(sample, "email"), false)
+  assert.equal(Object.hasOwn(sample, "phone"), false)
+  assert.equal(Object.hasOwn(sample, "full_name"), false)
 })
 
 test("PayPal capture parsing reads the amount and ignores a bad value", () => {

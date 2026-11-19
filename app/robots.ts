@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next"
 import { headers } from "next/headers"
 import { site } from "@/lib/site"
-import { bareHost, isStoreHost, STORE_ORIGIN } from "@/lib/store/hosts"
+import { bareHost, surfaceForHost } from "@/lib/store/hosts"
 
 export const dynamic = "force-dynamic"
 
@@ -35,11 +35,12 @@ const namedBots = [
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const host = bareHost((await headers()).get("x-forwarded-host") || (await headers()).get("host"))
-  if (isStoreHost(host)) {
+  const surface = surfaceForHost(host)
+  if (surface) {
     return {
       rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/store/confirmation", "/auth/"] }],
-      sitemap: `${STORE_ORIGIN}/sitemap.xml`,
-      host: STORE_ORIGIN,
+      sitemap: `${surface.origin}/sitemap.xml`,
+      host: surface.origin,
     }
   }
   return {

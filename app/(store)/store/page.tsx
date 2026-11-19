@@ -4,7 +4,8 @@ import { headers } from "next/headers"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
 import { JsonLd } from "@/components/site/json-ld"
 import { StoreBuyPanel } from "@/components/store/buy-buttons"
-import { STORE_PRODUCTS, toPublicProduct } from "@/lib/store/catalog"
+import { publishedProducts } from "@/lib/offers/public"
+import { STORE_PRODUCTS, formatStorePrice, toPublicProduct } from "@/lib/store/catalog"
 import { isStoreHost, STORE_ORIGIN, bareHost } from "@/lib/store/hosts"
 import { applyStoreCredits, countDeliverableLeads } from "@/lib/store/fulfill"
 import { storePaypalMode, storePaypalSdkSrc } from "@/lib/store/paypal"
@@ -57,6 +58,7 @@ export default async function StorePage() {
     }
   }
 
+  const catalog = await publishedProducts().catch(() => [])
   const sdkSrc = storePaypalSdkSrc()
   const sandbox = storePaypalMode() === "sandbox"
   const offers = products.map((product) => ({
@@ -77,6 +79,9 @@ export default async function StorePage() {
           <nav className="flex items-center gap-4 text-sm" aria-label="Store">
             <Link className="text-ink-soft hover:text-ink" href={onStore ? "https://www.digimark101.com" : "/"}>
               Agency
+            </Link>
+            <Link className="text-ink-soft hover:text-ink" href={onStore ? "/cart" : "/store/cart"}>
+              Cart
             </Link>
             <Link className="btn btn-ghost" href={onStore ? "https://www.digimark101.com/login?next=/store" : "/login?next=/store"}>
               Sign in
@@ -146,6 +151,21 @@ export default async function StorePage() {
               <p className="mt-2 text-sm text-ink-soft">Sign in on digimark101.com with the same email and the credits land in that workspace.</p>
             </li>
           </ol>
+          {catalog.length ? (
+            <div className="mt-12">
+              <h2 className="font-serif text-4xl text-ink">Also published</h2>
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                {catalog.map((product) => (
+                  <article key={product.id} className="rounded-3xl border border-ink/10 p-5">
+                    <h3 className="font-serif text-2xl">
+                      <Link href={`/store/${product.slug}`}>{product.name}</Link>
+                    </h3>
+                    <p className="mt-2">{formatStorePrice(product.amountCents)}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="mt-10 max-w-3xl space-y-4 text-ink-soft">
             <h2 className="font-serif text-3xl text-ink">The lead list</h2>
             <p>
