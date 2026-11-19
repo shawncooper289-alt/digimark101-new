@@ -69,23 +69,21 @@ alter table public.video_jobs enable row level security;
 alter table public.video_shots enable row level security;
 alter table public.video_assets enable row level security;
 
+-- Signed-in people may read their own rows. They may not write them.
+-- The site writes with the service role. A member update could otherwise
+-- point a status check at another server, or ask the site to sign someone else's file.
+
 drop policy if exists video_jobs_owner on public.video_jobs;
-create policy video_jobs_owner on public.video_jobs
-  for all to authenticated
-  using (owner_id = (select auth.uid()) or public.is_owner())
-  with check (owner_id = (select auth.uid()) or public.is_owner());
+drop policy if exists video_jobs_read on public.video_jobs;
+create policy video_jobs_read on public.video_jobs
+  for select to authenticated
+  using (owner_id = (select auth.uid()) or public.is_owner());
 
 drop policy if exists video_shots_owner on public.video_shots;
-create policy video_shots_owner on public.video_shots
-  for all to authenticated
+drop policy if exists video_shots_read on public.video_shots;
+create policy video_shots_read on public.video_shots
+  for select to authenticated
   using (
-    exists (
-      select 1 from public.video_jobs
-      where video_jobs.id = video_shots.job_id
-        and (video_jobs.owner_id = (select auth.uid()) or public.is_owner())
-    )
-  )
-  with check (
     exists (
       select 1 from public.video_jobs
       where video_jobs.id = video_shots.job_id
@@ -94,16 +92,10 @@ create policy video_shots_owner on public.video_shots
   );
 
 drop policy if exists video_assets_owner on public.video_assets;
-create policy video_assets_owner on public.video_assets
-  for all to authenticated
+drop policy if exists video_assets_read on public.video_assets;
+create policy video_assets_read on public.video_assets
+  for select to authenticated
   using (
-    exists (
-      select 1 from public.video_jobs
-      where video_jobs.id = video_assets.job_id
-        and (video_jobs.owner_id = (select auth.uid()) or public.is_owner())
-    )
-  )
-  with check (
     exists (
       select 1 from public.video_jobs
       where video_jobs.id = video_assets.job_id

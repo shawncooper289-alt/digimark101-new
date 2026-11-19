@@ -181,7 +181,8 @@ export async function submitFalClip(input: {
   const root = record(result.json)
   const id = pickString(root, ["request_id", "id"])
   if (!id) return { state: "failed", message: "The B-roll service did not return a request id." }
-  const pollUrl = pickString(root, ["response_url"]) || falRequestUrl(model, id)
+  const returned = pickString(root, ["response_url"])
+  const pollUrl = returned && allowedPollUrl(returned) ? returned : falRequestUrl(model, id)
   const url = mediaUrl(result.json)
   if (url) return { state: "ready", id, url, pollUrl }
   return { state: "pending", id, pollUrl }
@@ -215,7 +216,20 @@ export async function submitLipsync(env: Env, fetchImpl: FetchLike, shot: Planne
   return { state: "pending", id, pollUrl }
 }
 
+const POLL_HOSTS = new Set(["api.heygen.com", "api.x.ai", "queue.fal.run", "api.sync.so"])
+
+/** Status checks may only go to the video companies. A saved address cannot point the keys elsewhere. */
+export function allowedPollUrl(url: string) {
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === "https:" && POLL_HOSTS.has(parsed.hostname)
+  } catch {
+    return false
+  }
+}
+
 export async function pollVendor(fetchImpl: FetchLike, pollUrl: string, headers: Record<string, string>): Promise<VendorState> {
+  if (!allowedPollUrl(pollUrl)) return { state: "failed", message: "That status address is not one of the video services." }
   const response = await fetchImpl(pollUrl, { headers, signal: AbortSignal.timeout(20000) }).catch(() => null)
   if (!response) return { state: "pending", id: "", pollUrl }
   const json = await readBody(response)

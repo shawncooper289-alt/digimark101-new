@@ -407,7 +407,12 @@ test("the editor mixes the voice and the music from local files only", () => {
   assert.match(plan.filter, /adelay=6000\|6000/)
   assert.match(plan.filter, /volume=0\.18/)
   assert.match(plan.filter, /amix=/)
-  assert.match(plan.filter, /xfade=/)
+  assert.equal(/xfade=/.test(plan.filter), false)
+  assert.equal(/apad/.test(plan.filter), false)
+  assert.match(plan.filter, /fade=t=in/)
+  assert.match(plan.filter, /concat=n=2/)
+  assert.match(plan.filter, /atrim=duration=10/)
+  assert.equal(plan.durationSec, 10)
 })
 
 test("a second worker cannot claim a film that is already being cut", async () => {
@@ -425,6 +430,14 @@ test("a second worker cannot claim a film that is already being cut", async () =
   await store.release(job.id, "worker-1")
   const third = await store.claim(job.id, "worker-2", 60_000)
   assert.equal(third.lockedBy, "worker-2")
+})
+
+test("status checks stay on the video companies", () => {
+  const vendors = load("lib/video/vendors.ts")
+  assert.equal(vendors.allowedPollUrl("https://api.heygen.com/v3/videos/vid_1"), true)
+  assert.equal(vendors.allowedPollUrl("https://queue.fal.run/fal-ai/ace-step/prompt-to-audio/requests/music_1"), true)
+  assert.equal(vendors.allowedPollUrl("https://evil.example/steal"), false)
+  assert.equal(vendors.allowedPollUrl("http://api.heygen.com/v3/videos/vid_1"), false)
 })
 
 test("fresh storage links replace the saved ones", () => {

@@ -86,7 +86,7 @@ export async function renderWithFfmpeg(timeline: FilmTimeline, command = process
     for (const file of plan.inputs) args.push("-i", file)
     args.push("-filter_complex", plan.filter, "-map", `[${plan.videoLabel}]`)
     if (plan.audioLabel) args.push("-map", `[${plan.audioLabel}]`)
-    args.push("-r", String(timeline.fps), "-pix_fmt", "yuv420p", "-movflags", "+faststart", out)
+    args.push("-t", plan.durationSec.toFixed(3), "-r", String(timeline.fps), "-pix_fmt", "yuv420p", "-movflags", "+faststart", out)
     await run(command, args)
     const bytes = new Uint8Array(await readFile(out))
     return {

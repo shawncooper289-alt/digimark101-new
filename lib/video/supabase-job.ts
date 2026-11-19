@@ -86,6 +86,11 @@ export function supabaseVideoStore(env: Env, fetchImpl: typeof fetch = globalThi
   if (!url || !key) return null
   const headers = keyHeaders(key, { "Content-Type": "application/json" })
 
+  function ownedPath(jobId: string, path: string) {
+    if (!jobId || path.includes("..") || path.includes("\\") || path.startsWith("/")) return ""
+    return path.startsWith(`jobs/${jobId}/`) ? path : ""
+  }
+
   async function signPath(path: string) {
     const signed = await fetchImpl(`${url}/storage/v1/object/sign/videos/${path}`, {
       method: "POST",
@@ -101,8 +106,9 @@ export function supabaseVideoStore(env: Env, fetchImpl: typeof fetch = globalThi
   async function withFreshUrls(job: VideoJob) {
     const fresh: { path: string; url: string }[] = []
     for (const asset of job.assets) {
-      if (!asset.path) continue
-      const signed = await signPath(asset.path)
+      const path = ownedPath(job.id, asset.path || "")
+      if (!path) continue
+      const signed = await signPath(path)
       if (signed) fresh.push({ path: asset.path, url: signed })
     }
     return fresh.length ? applyFreshUrls(job, fresh) : job
@@ -184,7 +190,9 @@ export function supabaseVideoStore(env: Env, fetchImpl: typeof fetch = globalThi
       return Array.isArray(rows) ? rows.map((row) => jobFrom(row as Record<string, unknown>)) : []
     },
     async putAsset(input) {
-      const path = `jobs/${input.jobId}/${input.name}`
+      const name = input.name.replace(/[^A-Za-z0-9._-]/g, "") || "file"
+      const path = ownedPath(input.jobId, `jobs/${input.jobId}/${name}`)
+      if (!path) throw new Error("That file could not be stored.")
       const upload = await fetchImpl(`${url}/storage/v1/object/videos/${path}`, {
         method: "POST",
         headers: { ...keyHeaders(key), "Content-Type": input.contentType, "x-upsert": "true" },
