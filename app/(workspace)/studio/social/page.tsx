@@ -1,3 +1,4 @@
+import { ModuleDesk } from "@/components/studio/module-desk"
 import { SocialConnections } from "@/components/studio/social-connections"
 import { SOCIAL_PROVIDERS, missingSocialEnv } from "@/lib/social/tokens"
 import { createSupabaseServer, currentUser } from "@/lib/supabase/server"
@@ -37,6 +38,9 @@ export default async function StudioSocialPage({ searchParams }: { searchParams:
       </p>
       {!user ? <p className="mt-8 text-ink-soft">Sign in to connect accounts for this workspace.</p> : null}
       {user ? <SocialConnections providers={providers} notice={notice} /> : null}
+      <div className="mt-10">
+        <ModuleDesk module="social" embedded />
+      </div>
     </section>
   )
 }

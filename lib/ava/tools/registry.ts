@@ -1,0 +1,100 @@
+export type Role = "guest" | "member" | "admin" | "owner"
+export type Effect = "read" | "write" | "destructive" | "outbound"
+export type ToolScope = "workspace" | "platform_owner"
+
+export type ToolSpec = {
+  name: string
+  apiName: string
+  module: string
+  description: string
+  effect: Effect
+  minRole: Exclude<Role, "guest">
+  scope: ToolScope
+  page: string
+  properties: Record<string, { type: "string" | "number"; description: string; enum?: readonly string[] }>
+  required?: string[]
+}
+
+const channels = ["note", "sms", "email", "facebook", "instagram", "whatsapp", "webchat", "phone"] as const
+const stages = ["new", "qualified", "proposal", "won", "lost"] as const
+const platforms = ["facebook", "instagram", "linkedin", "x", "tiktok", "youtube", "google"] as const
+
+function tool(spec: ToolSpec): ToolSpec {
+  return spec
+}
+
+export const AVA_TOOLS: ToolSpec[] = [
+  tool({ name: "contacts.list", apiName: "contacts_list", module: "contacts", page: "/studio/contacts", effect: "read", minRole: "member", scope: "workspace", description: "List contacts in this workspace only.", properties: {} }),
+  tool({ name: "contacts.create", apiName: "contacts_create", module: "contacts", page: "/studio/contacts", effect: "write", minRole: "member", scope: "workspace", description: "Add a contact in this workspace. This does not email or text them.", properties: { name: { type: "string", description: "Person name" }, email: { type: "string", description: "Email" }, phone: { type: "string", description: "Phone" }, company: { type: "string", description: "Company" }, notes: { type: "string", description: "Note" } }, required: ["name"] }),
+  tool({ name: "contacts.update", apiName: "contacts_update", module: "contacts", page: "/studio/contacts", effect: "write", minRole: "member", scope: "workspace", description: "Update a contact by id.", properties: { id: { type: "string", description: "Contact id" }, name: { type: "string", description: "Name" }, email: { type: "string", description: "Email" }, phone: { type: "string", description: "Phone" }, company: { type: "string", description: "Company" }, notes: { type: "string", description: "Notes" } }, required: ["id"] }),
+  tool({ name: "contacts.delete", apiName: "contacts_delete", module: "contacts", page: "/studio/contacts", effect: "destructive", minRole: "admin", scope: "workspace", description: "Delete a contact. Requires confirmation.", properties: { id: { type: "string", description: "Contact id" } }, required: ["id"] }),
+  tool({ name: "deals.list", apiName: "deals_list", module: "deals", page: "/studio/pipeline", effect: "read", minRole: "member", scope: "workspace", description: "List pipeline deals in this workspace.", properties: {} }),
+  tool({ name: "deals.create", apiName: "deals_create", module: "deals", page: "/studio/pipeline", effect: "write", minRole: "member", scope: "workspace", description: "Add a deal to the sales pipeline.", properties: { title: { type: "string", description: "Deal title" }, contactName: { type: "string", description: "Contact name" }, stage: { type: "string", description: "Stage", enum: stages }, notes: { type: "string", description: "Notes" } }, required: ["title"] }),
+  tool({ name: "deals.move", apiName: "deals_move", module: "deals", page: "/studio/pipeline", effect: "write", minRole: "member", scope: "workspace", description: "Move a deal to another stage.", properties: { id: { type: "string", description: "Deal id" }, title: { type: "string", description: "Deal title" }, stage: { type: "string", description: "Stage", enum: stages } }, required: ["stage"] }),
+  tool({ name: "deals.delete", apiName: "deals_delete", module: "deals", page: "/studio/pipeline", effect: "destructive", minRole: "admin", scope: "workspace", description: "Delete a deal. Requires confirmation.", properties: { id: { type: "string", description: "Deal id" } }, required: ["id"] }),
+  tool({ name: "pipelines.list", apiName: "pipelines_list", module: "pipelines", page: "/studio/pipeline", effect: "read", minRole: "member", scope: "workspace", description: "List pipelines and stages.", properties: {} }),
+  tool({ name: "pipelines.ensure", apiName: "pipelines_ensure", module: "pipelines", page: "/studio/pipeline", effect: "write", minRole: "member", scope: "workspace", description: "Create the Sales pipeline and the five stages if they are missing.", properties: { name: { type: "string", description: "Pipeline name" } } }),
+  tool({ name: "calendars.list", apiName: "calendars_list", module: "calendars", page: "/studio/calendar", effect: "read", minRole: "member", scope: "workspace", description: "List booking calendars.", properties: {} }),
+  tool({ name: "calendars.create", apiName: "calendars_create", module: "calendars", page: "/studio/calendar", effect: "write", minRole: "member", scope: "workspace", description: "Create a booking calendar. This does not sync to Google.", properties: { name: { type: "string", description: "Calendar name" } }, required: ["name"] }),
+  tool({ name: "bookings.list", apiName: "bookings_list", module: "calendars", page: "/studio/calendar", effect: "read", minRole: "member", scope: "workspace", description: "List bookings in this workspace.", properties: {} }),
+  tool({ name: "bookings.create", apiName: "bookings_create", module: "calendars", page: "/studio/calendar", effect: "write", minRole: "member", scope: "workspace", description: "Book a time. startsAt is an ISO datetime. This does not text the person.", properties: { title: { type: "string", description: "Title" }, contactName: { type: "string", description: "Person" }, startsAt: { type: "string", description: "ISO start time" }, notes: { type: "string", description: "Notes" }, calendarName: { type: "string", description: "Calendar name" } }, required: ["startsAt"] }),
+  tool({ name: "bookings.cancel", apiName: "bookings_cancel", module: "calendars", page: "/studio/calendar", effect: "destructive", minRole: "admin", scope: "workspace", description: "Cancel a booking. Requires confirmation.", properties: { id: { type: "string", description: "Booking or appointment id" } }, required: ["id"] }),
+  tool({ name: "funnels.list", apiName: "funnels_list", module: "funnels", page: "/studio/sites", effect: "read", minRole: "member", scope: "workspace", description: "List funnels and their pages.", properties: {} }),
+  tool({ name: "funnels.create", apiName: "funnels_create", module: "funnels", page: "/studio/sites", effect: "write", minRole: "member", scope: "workspace", description: "Create a draft funnel and its first page. This does not publish a site.", properties: { name: { type: "string", description: "Funnel name" }, headline: { type: "string", description: "First page headline" }, path: { type: "string", description: "Page path" } }, required: ["name"] }),
+  tool({ name: "forms.list", apiName: "forms_list", module: "forms", page: "/studio/forms", effect: "read", minRole: "member", scope: "workspace", description: "List forms, surveys, and quizzes.", properties: {} }),
+  tool({ name: "forms.create", apiName: "forms_create", module: "forms", page: "/studio/forms", effect: "write", minRole: "member", scope: "workspace", description: "Create a form, survey, or quiz draft.", properties: { name: { type: "string", description: "Name" }, kind: { type: "string", description: "form, survey, or quiz", enum: ["form", "survey", "quiz"] } }, required: ["name"] }),
+  tool({ name: "forms.submit", apiName: "forms_submit", module: "forms", page: "/studio/forms", effect: "write", minRole: "member", scope: "workspace", description: "Store a form submission in this workspace.", properties: { formId: { type: "string", description: "Form id" }, contactName: { type: "string", description: "Person" }, message: { type: "string", description: "Answer" } }, required: ["formId"] }),
+  tool({ name: "campaigns.list", apiName: "campaigns_list", module: "campaigns", page: "/studio/campaigns", effect: "read", minRole: "member", scope: "workspace", description: "List email and SMS campaign drafts.", properties: {} }),
+  tool({ name: "campaigns.draft", apiName: "campaigns_draft", module: "campaigns", page: "/studio/campaigns", effect: "write", minRole: "member", scope: "workspace", description: "Save a campaign draft. This does not send it.", properties: { name: { type: "string", description: "Name" }, channel: { type: "string", description: "email or sms", enum: ["email", "sms"] }, brief: { type: "string", description: "What it should say" } }, required: ["name"] }),
+  tool({ name: "campaigns.send", apiName: "campaigns_send", module: "campaigns", page: "/studio/campaigns", effect: "outbound", minRole: "admin", scope: "workspace", description: "Queue a campaign after confirmation. Nothing is delivered to an outside inbox or phone.", properties: { id: { type: "string", description: "Campaign id" }, name: { type: "string", description: "Campaign name if there is no id" } } }),
+  tool({ name: "inbox.list", apiName: "inbox_list", module: "inbox", page: "/studio/inbox", effect: "read", minRole: "member", scope: "workspace", description: "List unified inbox threads: SMS, email, Facebook, Instagram, WhatsApp, web chat, phone, and notes.", properties: { channel: { type: "string", description: "Optional channel filter", enum: channels } } }),
+  tool({ name: "inbox.log", apiName: "inbox_log", module: "inbox", page: "/studio/inbox", effect: "write", minRole: "member", scope: "workspace", description: "Log an inbound or internal message. This does not send anything.", properties: { channel: { type: "string", description: "Channel", enum: channels }, contactName: { type: "string", description: "Person" }, subject: { type: "string", description: "Subject" }, body: { type: "string", description: "Message" } }, required: ["body"] }),
+  tool({ name: "inbox.send", apiName: "inbox_send", module: "inbox", page: "/studio/inbox", effect: "outbound", minRole: "admin", scope: "workspace", description: "Queue an outbound SMS, email, or chat reply after confirmation. It stays in this workspace.", properties: { channel: { type: "string", description: "Channel", enum: channels }, contactName: { type: "string", description: "Person" }, subject: { type: "string", description: "Subject" }, body: { type: "string", description: "Message" } }, required: ["body"] }),
+  tool({ name: "social.list", apiName: "social_list", module: "social", page: "/studio/social", effect: "read", minRole: "member", scope: "workspace", description: "List social drafts. These are not live posts.", properties: {} }),
+  tool({ name: "social.draft", apiName: "social_draft", module: "social", page: "/studio/social", effect: "write", minRole: "member", scope: "workspace", description: "Save a social draft. This does not publish it.", properties: { platform: { type: "string", description: "Network", enum: platforms }, body: { type: "string", description: "Post" }, scheduledFor: { type: "string", description: "Optional ISO time" } }, required: ["platform", "body"] }),
+  tool({ name: "social.publish", apiName: "social_publish", module: "social", page: "/studio/social", effect: "outbound", minRole: "admin", scope: "workspace", description: "Mark a draft scheduled after confirmation. It is not published to the network.", properties: { id: { type: "string", description: "Draft id" }, platform: { type: "string", description: "Network", enum: platforms }, body: { type: "string", description: "Post" }, scheduledFor: { type: "string", description: "ISO time" } } }),
+  tool({ name: "workflows.list", apiName: "workflows_list", module: "workflows", page: "/studio/automations", effect: "read", minRole: "member", scope: "workspace", description: "List workflow rules and recent runs.", properties: {} }),
+  tool({ name: "workflows.create", apiName: "workflows_create", module: "workflows", page: "/studio/automations", effect: "write", minRole: "member", scope: "workspace", description: "Create a workflow rule. It does not email or text anyone by itself.", properties: { name: { type: "string", description: "Name" }, trigger: { type: "string", description: "Trigger", enum: ["contact.created", "appointment.booked", "deal.moved", "form.submitted", "review.received", "invoice.paid"] }, action: { type: "string", description: "Action", enum: ["log_inbox", "remember", "draft_email", "draft_sms", "request_review", "create_task"] } }, required: ["trigger", "action"] }),
+  tool({ name: "workflows.run", apiName: "workflows_run", module: "workflows", page: "/studio/automations", effect: "write", minRole: "member", scope: "workspace", description: "Run one workflow inside this workspace. Outbound steps are saved as drafts, not sent.", properties: { id: { type: "string", description: "Rule id" } }, required: ["id"] }),
+  tool({ name: "reviews.list", apiName: "reviews_list", module: "reputation", page: "/studio/reputation", effect: "read", minRole: "member", scope: "workspace", description: "List reviews and review requests.", properties: {} }),
+  tool({ name: "reviews.log", apiName: "reviews_log", module: "reputation", page: "/studio/reputation", effect: "write", minRole: "member", scope: "workspace", description: "Log a review that a person pasted in. This does not pull Google or Facebook.", properties: { source: { type: "string", description: "google, facebook, or manual", enum: ["google", "facebook", "manual"] }, author: { type: "string", description: "Author" }, rating: { type: "number", description: "1 to 5" }, body: { type: "string", description: "Review text" } }, required: ["body"] }),
+  tool({ name: "reviews.reply", apiName: "reviews_reply", module: "reputation", page: "/studio/reputation", effect: "write", minRole: "member", scope: "workspace", description: "Save a reply on a logged review. It is not posted to Google or Facebook.", properties: { id: { type: "string", description: "Review id" }, reply: { type: "string", description: "Reply" } }, required: ["id", "reply"] }),
+  tool({ name: "reviews.request", apiName: "reviews_request", module: "reputation", page: "/studio/reputation", effect: "outbound", minRole: "admin", scope: "workspace", description: "Queue a review request after confirmation. It is not texted or emailed.", properties: { contactName: { type: "string", description: "Person" }, channel: { type: "string", description: "email or sms", enum: ["email", "sms"] }, message: { type: "string", description: "Request" } }, required: ["contactName"] }),
+  tool({ name: "invoices.list", apiName: "invoices_list", module: "invoices", page: "/studio/invoices", effect: "read", minRole: "member", scope: "workspace", description: "List invoices. Amounts are records, not charges.", properties: {} }),
+  tool({ name: "invoices.create", apiName: "invoices_create", module: "invoices", page: "/studio/invoices", effect: "write", minRole: "member", scope: "workspace", description: "Create a draft invoice. amount is dollars. This does not charge anyone and does not change PayPal.", properties: { contactName: { type: "string", description: "Who it is for" }, description: { type: "string", description: "Line description" }, amount: { type: "string", description: "Dollars, such as 49.00" }, quantity: { type: "string", description: "Quantity" }, notes: { type: "string", description: "Notes" } }, required: ["description", "amount"] }),
+  tool({ name: "invoices.mark_paid", apiName: "invoices_mark_paid", module: "invoices", page: "/studio/invoices", effect: "write", minRole: "admin", scope: "workspace", description: "Mark an invoice paid because money already arrived. This does not charge a card.", properties: { id: { type: "string", description: "Invoice id" } }, required: ["id"] }),
+  tool({ name: "invoices.void", apiName: "invoices_void", module: "invoices", page: "/studio/invoices", effect: "destructive", minRole: "admin", scope: "workspace", description: "Void an invoice. Requires confirmation. This does not refund PayPal.", properties: { id: { type: "string", description: "Invoice id" } }, required: ["id"] }),
+  tool({ name: "invoices.request_payment", apiName: "invoices_request_payment", module: "invoices", page: "/studio/invoices", effect: "outbound", minRole: "owner", scope: "workspace", description: "Record a payment request after confirmation. No charge is sent. PayPal settings are not changed.", properties: { id: { type: "string", description: "Invoice id" } }, required: ["id"] }),
+  tool({ name: "sites.list", apiName: "sites_list", module: "sites", page: "/studio/sites", effect: "read", minRole: "member", scope: "workspace", description: "List site records.", properties: {} }),
+  tool({ name: "sites.create", apiName: "sites_create", module: "sites", page: "/studio/sites", effect: "write", minRole: "member", scope: "workspace", description: "Create a draft site record. This does not publish it.", properties: { name: { type: "string", description: "Name" }, headline: { type: "string", description: "Headline" }, path: { type: "string", description: "Path" } }, required: ["name"] }),
+  tool({ name: "reports.summary", apiName: "reports_summary", module: "reports", page: "/studio/reports", effect: "read", minRole: "member", scope: "workspace", description: "Counts for this workspace only. These are not ad results or attribution.", properties: {} }),
+  tool({ name: "office.list", apiName: "office_list", module: "office", page: "/studio/backend", effect: "read", minRole: "owner", scope: "platform_owner", description: "List owner-office records. Platform owner only.", properties: {} }),
+  tool({ name: "office.create", apiName: "office_create", module: "office", page: "/studio/backend", effect: "write", minRole: "owner", scope: "platform_owner", description: "Add an owner-office record. Platform owner only. This does not charge anyone.", properties: { kind: { type: "string", description: "invoice, expense, record, or legal", enum: ["invoice", "expense", "record", "legal"] }, title: { type: "string", description: "Title" }, party: { type: "string", description: "Party" }, amount: { type: "string", description: "Dollars" }, notes: { type: "string", description: "Notes" } }, required: ["title"] }),
+  tool({ name: "video.list", apiName: "video_list", module: "video", page: "/studio/video", effect: "read", minRole: "member", scope: "workspace", description: "List video files already stored for this workspace. This does not start a render.", properties: {} }),
+]
+
+const byName = new Map(AVA_TOOLS.map((item) => [item.name, item]))
+const byApi = new Map(AVA_TOOLS.map((item) => [item.apiName, item]))
+
+export function toolByName(name: string) {
+  return byName.get(name) ?? null
+}
+
+export function toolByApiName(name: string) {
+  return byApi.get(name) ?? byName.get(name) ?? null
+}
+
+export function registryToolDefs() {
+  return AVA_TOOLS.map((item) => ({
+    type: "function" as const,
+    function: {
+      name: item.apiName,
+      description: `${item.description} Page: ${item.page}.`,
+      parameters: {
+        type: "object",
+        properties: item.properties,
+        required: item.required ?? [],
+      },
+    },
+  }))
+}

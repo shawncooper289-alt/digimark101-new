@@ -3,7 +3,7 @@
 import { AvaWidget } from "@/components/ava/ava-widget"
 import { PlatformProvider } from "@/components/studio/platform-provider"
 
-/** Loads Ava only on the pages that import this. The homepage does not. */
+/** Ava on marketing pages. Studio keeps its own copy inside the workspace provider. */
 export function AvaOnPage() {
   return (
     <PlatformProvider>
