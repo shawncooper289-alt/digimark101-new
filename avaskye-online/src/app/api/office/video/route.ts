@@ -70,6 +70,7 @@ export async function POST(request: Request) {
   if (!owner) return NextResponse.json({ error: "The owner office is closed." }, { status: 403 })
   const payload = await request.json().catch(() => null) as { action?: unknown } | null
   const action = typeof payload?.action === "string" ? payload.action : ""
+  if (action === "sweep") return NextResponse.json({ error: "That action is not available here." }, { status: 403 })
   const editing = await film()
   const result = await handleVideoRequest({
     action,

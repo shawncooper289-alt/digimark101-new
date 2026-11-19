@@ -454,17 +454,24 @@ export async function advanceVideoJob(job: VideoJob, deps: PipelineDeps): Promis
 }
 
 export async function runVideoJob(job: VideoJob, deps: PipelineDeps, budgetMs = 90000): Promise<VideoJob> {
+  const holder = `lock_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+  const claimed = await deps.store.claim(job.id, holder, budgetMs + 30_000)
+  if (!claimed) return job
   const started = Date.now()
-  let current = job
-  for (let guard = 0; guard < 48 && Date.now() - started < budgetMs; guard += 1) {
-    const before = `${current.stage}|${current.shots.map((shot) => `${shot.id}:${shot.status}:${shot.providerId}`).join(",")}|${current.masterUrl}`
-    current = await advanceVideoJob(current, deps)
-    await deps.store.save(current)
-    const after = `${current.stage}|${current.shots.map((shot) => `${shot.id}:${shot.status}:${shot.providerId}`).join(",")}|${current.masterUrl}`
-    if (current.stage === "review" || current.stage === "published" || current.stage === "blocked") break
-    if (before === after) break
+  let current = claimed
+  try {
+    for (let guard = 0; guard < 48 && Date.now() - started < budgetMs; guard += 1) {
+      const before = `${current.stage}|${current.shots.map((shot) => `${shot.id}:${shot.status}:${shot.providerId}`).join(",")}|${current.masterUrl}`
+      current = await advanceVideoJob(current, deps)
+      await deps.store.save(current)
+      const after = `${current.stage}|${current.shots.map((shot) => `${shot.id}:${shot.status}:${shot.providerId}`).join(",")}|${current.masterUrl}`
+      if (current.stage === "review" || current.stage === "published" || current.stage === "blocked") break
+      if (before === after) break
+    }
+    return current
+  } finally {
+    await deps.store.release(job.id, holder)
   }
-  return current
 }
 
 export async function startVideoJob(input: {

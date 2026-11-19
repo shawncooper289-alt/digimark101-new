@@ -24,6 +24,8 @@ create table if not exists public.video_jobs (
   reasons jsonb not null default '[]'::jsonb,
   attempt integer not null default 1,
   assets jsonb not null default '[]'::jsonb,
+  locked_by text not null default '',
+  locked_until timestamptz,
   approved_at timestamptz,
   published_at timestamptz,
   created_at timestamptz not null default now(),

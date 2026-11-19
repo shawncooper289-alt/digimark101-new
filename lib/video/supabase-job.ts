@@ -1,4 +1,4 @@
-import type { VideoJob, VideoStore } from "./job"
+import { applyFreshUrls, type VideoJob, type VideoStore } from "./job"
 import type { Env } from "./providers"
 
 function keyHeaders(key: string, extra: Record<string, string> = {}) {
@@ -39,6 +39,8 @@ function rowFrom(job: VideoJob) {
     approved_at: job.approvedAt || null,
     published_at: job.publishedAt || null,
     assets: job.assets,
+    locked_by: job.lockedBy || "",
+    locked_until: job.lockedUntil || null,
     updated_at: job.updatedAt,
   }
 }
@@ -69,6 +71,8 @@ function jobFrom(row: Record<string, unknown>): VideoJob {
     createdAt: typeof row.created_at === "string" ? row.created_at : "",
     updatedAt: typeof row.updated_at === "string" ? row.updated_at : "",
     assets: Array.isArray(row.assets) ? row.assets as VideoJob["assets"] : [],
+    lockedBy: typeof row.locked_by === "string" ? row.locked_by : "",
+    lockedUntil: typeof row.locked_until === "string" ? row.locked_until : "",
   }
 }
 
@@ -81,6 +85,28 @@ export function supabaseVideoStore(env: Env, fetchImpl: typeof fetch = globalThi
   const key = env.SUPABASE_SERVICE_ROLE_KEY?.trim() || ""
   if (!url || !key) return null
   const headers = keyHeaders(key, { "Content-Type": "application/json" })
+
+  async function signPath(path: string) {
+    const signed = await fetchImpl(`${url}/storage/v1/object/sign/videos/${path}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ expiresIn: 60 * 60 * 6 }),
+    })
+    const payload = await readJson(signed) as { signedURL?: string; signedUrl?: string } | null
+    const relative = payload?.signedURL || payload?.signedUrl || ""
+    if (!relative) return ""
+    return relative.startsWith("http") ? relative : `${url}/storage/v1${relative}`
+  }
+
+  async function withFreshUrls(job: VideoJob) {
+    const fresh: { path: string; url: string }[] = []
+    for (const asset of job.assets) {
+      if (!asset.path) continue
+      const signed = await signPath(asset.path)
+      if (signed) fresh.push({ path: asset.path, url: signed })
+    }
+    return fresh.length ? applyFreshUrls(job, fresh) : job
+  }
 
   async function writeChildren(job: VideoJob) {
     await fetchImpl(`${url}/rest/v1/video_shots?job_id=eq.${encodeURIComponent(job.id)}`, {
@@ -140,13 +166,16 @@ export function supabaseVideoStore(env: Env, fetchImpl: typeof fetch = globalThi
       if (!response.ok) return null
       const rows = await readJson(response)
       const row = Array.isArray(rows) ? rows[0] as Record<string, unknown> | undefined : null
-      return row ? jobFrom(row) : null
+      return row ? withFreshUrls(jobFrom(row)) : null
     },
     async list(limit = 20) {
       const response = await fetchImpl(`${url}/rest/v1/video_jobs?select=*&order=updated_at.desc&limit=${limit}`, { headers })
       if (!response.ok) return []
       const rows = await readJson(response)
-      return Array.isArray(rows) ? rows.map((row) => jobFrom(row as Record<string, unknown>)) : []
+      if (!Array.isArray(rows)) return []
+      const jobs: VideoJob[] = []
+      for (const row of rows) jobs.push(await withFreshUrls(jobFrom(row as Record<string, unknown>)))
+      return jobs
     },
     async waiting() {
       const response = await fetchImpl(`${url}/rest/v1/video_jobs?stage=in.(script,voice,avatar,broll,lipsync,music,assemble,quality)&select=*&order=updated_at.asc&limit=8`, { headers })
@@ -171,16 +200,29 @@ export function supabaseVideoStore(env: Env, fetchImpl: typeof fetch = globalThi
         }
         throw new Error("The voice file could not be stored.")
       }
-      const signed = await fetchImpl(`${url}/storage/v1/object/sign/videos/${path}`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ expiresIn: 60 * 60 * 24 * 7 }),
-      })
-      const payload = await readJson(signed) as { signedURL?: string; signedUrl?: string } | null
-      const relative = payload?.signedURL || payload?.signedUrl || ""
-      if (!relative) throw new Error("The stored file could not be signed for the video service.")
-      const full = relative.startsWith("http") ? relative : `${url}/storage/v1${relative}`
+      const full = await signPath(path)
+      if (!full) throw new Error("The stored file could not be signed for the video service.")
       return { path, url: full }
+    },
+    async claim(id, holder, ttlMs) {
+      const until = new Date(Date.now() + ttlMs).toISOString()
+      const now = new Date().toISOString()
+      const response = await fetchImpl(`${url}/rest/v1/video_jobs?id=eq.${encodeURIComponent(id)}&or=(locked_until.is.null,locked_until.lt.${encodeURIComponent(now)})`, {
+        method: "PATCH",
+        headers: { ...headers, Prefer: "return=representation" },
+        body: JSON.stringify({ locked_by: holder, locked_until: until }),
+      })
+      if (!response.ok) return null
+      const rows = await readJson(response)
+      const row = Array.isArray(rows) ? rows[0] as Record<string, unknown> | undefined : null
+      return row ? jobFrom(row) : null
+    },
+    async release(id, holder) {
+      await fetchImpl(`${url}/rest/v1/video_jobs?id=eq.${encodeURIComponent(id)}&locked_by=eq.${encodeURIComponent(holder)}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ locked_by: "", locked_until: null }),
+      }).catch(() => null)
     },
   }
 }

@@ -63,12 +63,20 @@ export function VideoDesk() {
   const [busy, setBusy] = useState(false)
   const [polls, setPolls] = useState(0)
   const [when, setWhen] = useState("")
+  const [library, setLibrary] = useState<{ id: string; title: string; stageLabel: string }[]>([])
   const brief = useMemo(() => ({
     idea, audience, cta, seconds, aspect, style, presenter: "ava", attire, scriptOverride, title, scenePlan,
   }), [idea, audience, cta, seconds, aspect, style, attire, scriptOverride, title, scenePlan])
 
   useEffect(() => {
     void fetch("/api/office/video").then((response) => response.json()).then((data: Caps) => setCaps(data)).catch(() => setCaps(null))
+    void fetch("/api/office/video", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "library" }),
+    }).then((response) => response.json()).then((data: { jobs?: { id: string; title: string; stageLabel: string }[] }) => {
+      if (Array.isArray(data.jobs)) setLibrary(data.jobs)
+    }).catch(() => setLibrary([]))
   }, [])
 
   async function send(action: string, extra: Record<string, unknown> = {}) {
@@ -253,6 +261,19 @@ export function VideoDesk() {
           </form>
         </div>
       ) : null}
+      <div>
+        <h2 className="text-2xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>Saved films</h2>
+        {library.length === 0 ? <p className="mt-2 text-sm text-muted">Films saved in the library show up here.</p> : null}
+        <ul className="mt-3 grid gap-2 text-sm">
+          {library.map((item) => (
+            <li key={item.id}>
+              <button type="button" className="underline" disabled={busy} onClick={() => { setPolls(0); void send("job", { jobId: item.id }) }}>
+                {item.title} · {item.stageLabel}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   )
 }

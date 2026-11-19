@@ -97,7 +97,7 @@ export async function handleVideoRequest(input: {
   if (input.action === "library") {
     const library = durableStore()
     if (!library) return { status: 200, body: { jobs: [], note: "The video library is not connected. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY." } }
-    const jobs = await library.list(12)
+    const jobs = (await library.list(12)).filter((job) => !input.ownerId || (job.ownerId === input.ownerId && job.app === app))
     return {
       status: 200,
       body: {
@@ -119,6 +119,14 @@ export async function handleVideoRequest(input: {
     const jobId = typeof record.jobId === "string" ? record.jobId : ""
     const job = jobId ? await library.load(jobId) : null
     if (!job) return { status: 404, body: { error: "That film could not be found." } }
+    const privileged = input.action === "vendor-event"
+    if (!privileged && input.ownerId && (job.ownerId !== input.ownerId || job.app !== app)) {
+      return { status: 404, body: { error: "That film could not be found." } }
+    }
+    if (input.action === "job" && (job.stage === "review" || job.stage === "published" || job.stage === "blocked")) {
+      const project = job.project ? publicProject(job.project) : null
+      return { status: 200, body: { ...jobSummary(job), project } }
+    }
     if (input.action === "vendor-event") {
       const token = typeof record.token === "string" ? record.token : ""
       if (!webhookOk(env, token)) return { status: 401, body: { error: "That callback was refused." } }

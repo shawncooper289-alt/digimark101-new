@@ -377,6 +377,117 @@ test("a long brief stays one face and one voice across scenes", () => {
   assert.equal(project.voiceId, "clone-voice")
 })
 
+test("the editor mixes the voice and the music from local files only", () => {
+  const edit = load("lib/video/edit-plan.ts")
+  const refused = edit.planEdit({
+    width: 1080,
+    height: 1920,
+    fps: 30,
+    clips: [{ file: "https://cdn.example.com/ava.mp4", durationSec: 4, fadeSec: 0, sound: "separate", startMs: 0 }],
+    voices: [],
+    music: null,
+  })
+  assert.equal(refused.filter, undefined)
+  assert.match(refused.error, /local files/)
+  const plan = edit.planEdit({
+    width: 1080,
+    height: 1920,
+    fps: 30,
+    clips: [
+      { file: "/tmp/talk.mp4", durationSec: 6, fadeSec: 0, sound: "separate", startMs: 0 },
+      { file: "/tmp/plate.mp4", durationSec: 4, fadeSec: 0.4, sound: "separate", startMs: 6000 },
+    ],
+    voices: [
+      { file: "/tmp/voice-a.mp3", startMs: 0, gain: 1 },
+      { file: "/tmp/voice-b.mp3", startMs: 6000, gain: 1 },
+    ],
+    music: { file: "/tmp/bed.mp3", gain: 0.18 },
+  })
+  assert.equal(plan.inputs.some((file) => file.startsWith("http")), false)
+  assert.match(plan.filter, /adelay=6000\|6000/)
+  assert.match(plan.filter, /volume=0\.18/)
+  assert.match(plan.filter, /amix=/)
+  assert.match(plan.filter, /xfade=/)
+})
+
+test("a second worker cannot claim a film that is already being cut", async () => {
+  const store = video.memoryVideoStore()
+  const job = load("lib/video/job.ts").createVideoJob({
+    app: "studio",
+    ownerId: "owner-a",
+    brief: brief(),
+  })
+  await store.save(job)
+  const first = await store.claim(job.id, "worker-1", 60_000)
+  const second = await store.claim(job.id, "worker-2", 60_000)
+  assert.equal(first.lockedBy, "worker-1")
+  assert.equal(second, null)
+  await store.release(job.id, "worker-1")
+  const third = await store.claim(job.id, "worker-2", 60_000)
+  assert.equal(third.lockedBy, "worker-2")
+})
+
+test("fresh storage links replace the saved ones", () => {
+  const jobs = load("lib/video/job.ts")
+  const job = jobs.createVideoJob({ app: "studio", ownerId: "owner-a", brief: brief() })
+  job.masterUrl = "https://old.example/master"
+  job.assets = [{ kind: "master", path: "jobs/1/master.mp4", url: "https://old.example/master" }]
+  const fresh = jobs.applyFreshUrls(job, [{ path: "jobs/1/master.mp4", url: "https://new.example/master?token=today" }])
+  assert.equal(fresh.masterUrl, "https://new.example/master?token=today")
+  assert.equal(fresh.assets[0].url, "https://new.example/master?token=today")
+})
+
+test("another person cannot open or approve a saved film", async () => {
+  const store = video.memoryVideoStore()
+  const env = { ...readyEnv, XAI_API_KEY: "xai-key", FAL_KEY: "fal-key" }
+  const made = await video.handleVideoRequest({
+    action: "render",
+    payload: { brief: brief({ style: "presenter" }) },
+    env,
+    tools,
+    store,
+    app: "studio",
+    ownerId: "11111111-1111-4111-8111-111111111111",
+    editorReady: async () => ({ ok: true }),
+    fetchImpl: providerFetch([]),
+    render: async (cut) => ({ url: "https://cdn.example.com/film.mp4", width: 1080, height: 1920, fps: 30, videoDurationMs: cut.durationMs, audioDurationMs: cut.durationMs }),
+  })
+  assert.equal(made.body.delivery, "review")
+  const stolen = await video.handleVideoRequest({
+    action: "job",
+    payload: { jobId: made.body.jobId },
+    env,
+    tools,
+    store,
+    app: "studio",
+    ownerId: "22222222-2222-4222-8222-222222222222",
+  })
+  assert.equal(stolen.status, 404)
+  assert.equal(stolen.body.videoUrl, undefined)
+  const approve = await video.handleVideoRequest({
+    action: "approve",
+    payload: { jobId: made.body.jobId },
+    env,
+    tools,
+    store,
+    app: "studio",
+    ownerId: "22222222-2222-4222-8222-222222222222",
+  })
+  assert.equal(approve.status, 404)
+  const owner = await video.handleVideoRequest({
+    action: "job",
+    payload: { jobId: made.body.jobId },
+    env,
+    tools,
+    store,
+    app: "studio",
+    ownerId: "11111111-1111-4111-8111-111111111111",
+  })
+  assert.equal(owner.status, 200)
+  assert.equal(owner.body.videoUrl, "https://cdn.example.com/film.mp4")
+  assert.equal(owner.body.delivery, "review")
+})
+
 test("schedule copy tells the truth about a preview", async () => {
   const result = await video.handleVideoRequest({
     action: "handoff",

@@ -46,6 +46,8 @@ export type VideoJob = {
   createdAt: string
   updatedAt: string
   assets: StoredAsset[]
+  lockedBy: string
+  lockedUntil: string
 }
 
 export type VideoStore = {
@@ -54,6 +56,9 @@ export type VideoStore = {
   list(limit?: number): Promise<VideoJob[]>
   waiting(): Promise<VideoJob[]>
   putAsset(input: { jobId: string; name: string; bytes: Uint8Array; contentType: string }): Promise<{ path: string; url: string }>
+  /** Take the job only if nobody else is already cutting it. */
+  claim(id: string, holder: string, ttlMs: number): Promise<VideoJob | null>
+  release(id: string, holder: string): Promise<void>
 }
 
 const WAITING: JobStage[] = ["script", "voice", "avatar", "broll", "lipsync", "music", "assemble", "quality"]
@@ -85,6 +90,27 @@ export function createVideoJob(input: { app: "studio" | "office"; ownerId?: stri
     createdAt: now,
     updatedAt: now,
     assets: [],
+    lockedBy: "",
+    lockedUntil: "",
+  }
+}
+
+/** Swap stored file addresses for freshly signed ones. Provider links that we do not own stay as they are. */
+export function applyFreshUrls(job: VideoJob, fresh: { path: string; url: string }[]): VideoJob {
+  const byPath = new Map(fresh.map((item) => [item.path, item.url]))
+  const byOld = new Map(job.assets.map((asset) => [asset.url, byPath.get(asset.path) || asset.url]))
+  const swap = (url: string) => (url && byOld.get(url)) || url
+  return {
+    ...job,
+    masterUrl: swap(job.masterUrl),
+    musicUrl: swap(job.musicUrl),
+    voiceUrl: swap(job.voiceUrl),
+    assets: job.assets.map((asset) => ({ ...asset, url: byPath.get(asset.path) || asset.url })),
+    shots: job.shots.map((shot) => ({
+      ...shot,
+      audioUrl: swap(shot.audioUrl),
+      outputUrl: swap(shot.outputUrl),
+    })),
   }
 }
 
@@ -111,6 +137,21 @@ export function memoryVideoStore(): VideoStore {
     async putAsset(input) {
       const path = `jobs/${input.jobId}/${input.name}`
       return { path, url: `https://videos.example/${path}` }
+    },
+    async claim(id, holder, ttlMs) {
+      const found = jobs.get(id)
+      if (!found) return null
+      const until = Date.parse(found.lockedUntil || "")
+      if (found.lockedBy && found.lockedBy !== holder && Number.isFinite(until) && until > Date.now()) return null
+      const next = { ...found, lockedBy: holder, lockedUntil: new Date(Date.now() + ttlMs).toISOString() }
+      jobs.set(id, JSON.parse(JSON.stringify(next)) as VideoJob)
+      return JSON.parse(JSON.stringify(next)) as VideoJob
+    },
+    async release(id, holder) {
+      const found = jobs.get(id)
+      if (!found || found.lockedBy !== holder) return
+      const next = { ...found, lockedBy: "", lockedUntil: "" }
+      jobs.set(id, JSON.parse(JSON.stringify(next)) as VideoJob)
     },
   }
 }

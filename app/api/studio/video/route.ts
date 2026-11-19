@@ -40,7 +40,12 @@ export async function POST(request: Request) {
   }
   const payload = await request.json().catch(() => null) as { action?: unknown } | null
   const action = typeof payload?.action === "string" ? payload.action : ""
+  if (action === "sweep") return NextResponse.json({ error: "That action is not available here." }, { status: 403 })
   const { user } = await currentUser().catch(() => ({ user: null }))
+  const savedFilm = action === "library" || action === "job" || action === "approve" || action === "render" || action === "produce"
+  if (savedFilm && !user) {
+    return NextResponse.json({ error: "Sign in to open a saved film. Nothing was changed." }, { status: 401 })
+  }
   const result = await handleVideoRequest({
     action,
     payload,

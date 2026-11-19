@@ -310,6 +310,7 @@ export function VideoMaker() {
           <h2 className="font-serif text-2xl">Ready for your approval</h2>
           <p className="text-sm text-ink-soft">Watch it before it is published. {result.note}</p>
           <video className="w-full rounded-2xl" controls src={result.videoUrl} />
+          <a className="btn btn-ghost w-fit" href={result.videoUrl}>Download this cut</a>
           <button type="button" className="btn btn-signal w-fit" disabled={busy} onClick={() => void send("approve", { jobId: result.jobId })}>Approve and publish</button>
         </section>
       ) : null}
@@ -376,7 +377,11 @@ export function VideoMaker() {
         {library.length === 0 ? <p className="mt-2 text-sm text-ink-soft">Films saved in the library show up here. If the library is not connected yet, that is named above.</p> : null}
         <ul className="mt-3 grid gap-2 text-sm">
           {library.map((item) => (
-            <li key={item.id}>{item.title} · {item.stageLabel}</li>
+            <li key={item.id}>
+              <button type="button" className="underline" disabled={busy} onClick={() => { setPolls(0); void send("job", { jobId: item.id }) }}>
+                {item.title} · {item.stageLabel}
+              </button>
+            </li>
           ))}
         </ul>
       </section>
