@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { betaInviteAccepted } from "@/lib/beta/invite"
 import { clientIp, sameOrigin, tooManyRequests } from "@/lib/http"
+import { TURNSTILE_REJECTED, turnstileOk } from "@/lib/security/turnstile"
 import { deliverSeat, sendStudioInvite } from "@/lib/seats/deliver"
 import { createSupabaseAdmin } from "@/lib/supabase/admin"
 
@@ -8,7 +9,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
-  if (tooManyRequests(`beta:${clientIp(request)}`, 8)) {
+  if (await tooManyRequests(`beta:${clientIp(request)}`, 8)) {
     return NextResponse.json({ error: "Too many tries. Wait a minute and try again." }, { status: 429 })
   }
 
@@ -26,6 +27,9 @@ export async function POST(request: Request) {
   }
   if (!betaInviteAccepted(record.inviteCode)) {
     return NextResponse.json({ error: "That invite code is not valid." }, { status: 403 })
+  }
+  if (!(await turnstileOk(record.turnstileToken, clientIp(request)))) {
+    return NextResponse.json({ error: TURNSTILE_REJECTED }, { status: 400 })
   }
 
   const admin = createSupabaseAdmin()

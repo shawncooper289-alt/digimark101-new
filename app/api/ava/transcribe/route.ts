@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   if (!sameOrigin(request)) {
     return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
   }
-  if (tooManyRequests(`transcribe:${clientIp(request)}`, 16)) {
+  if (await tooManyRequests(`transcribe:${clientIp(request)}`, 16)) {
     return NextResponse.json({ error: "Too many voice messages. Wait a minute, or type instead." }, { status: 429 })
   }
   let form: FormData

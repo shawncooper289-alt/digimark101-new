@@ -12,7 +12,7 @@ function clientIp(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!officeSignInAllowed(clientIp(request))) {
+  if (!(await officeSignInAllowed(clientIp(request)))) {
     return NextResponse.json({ error: "Too many sign-in attempts. Try again in a few minutes." }, { status: 429 })
   }
   const { url, anon, emails } = officeConfig()

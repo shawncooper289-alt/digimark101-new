@@ -1,7 +1,11 @@
 import { BANNED_LINE_RULE, omitBannedLine } from "@/lib/ava/banned-line"
 import { AVA_IDENTITY } from "@/lib/ava/identity"
+import { speakOverRealtime } from "../../../lib/ava/realtime-speech"
 
-const DEFAULT_TTS_MODEL = "gpt-4o-mini-tts"
+/** gpt-4o-mini-tts shuts down Jan 6, 2027. This model speaks through the Realtime API. */
+const DEFAULT_TTS_MODEL = "gpt-realtime-2.1-mini"
+/** Live chat wants the low-latency ElevenLabs model. Finished video still uses eleven_v4. */
+const DEFAULT_ELEVENLABS_MODEL = "eleven_v4_turbo"
 const DEFAULT_TTS_VOICE = "coral"
 const DEFAULT_TTS_STYLE =
   "Speak as a warm, confident young-adult woman with a General American accent. Use a medium pitch and a moderate, conversational pace. Sound like a real person talking, not an announcer or a recording."
@@ -39,7 +43,11 @@ export function spokenForTts(text: string) {
 }
 
 function supportsInstructions(model: string) {
-  return /gpt-4o|mini-tts/i.test(model) && !/^tts-1($|-hd)/i.test(model)
+  return /gpt-4o|mini-tts|gpt-realtime/i.test(model) && !/^tts-1($|-hd)/i.test(model)
+}
+
+function speechApiModel(model: string) {
+  return /^(tts-1|tts-1-hd|gpt-4o-mini-tts)/i.test(model)
 }
 
 export function ttsPlan(text: string, env: Env = process.env): {
@@ -60,7 +68,7 @@ export function ttsPlan(text: string, env: Env = process.env): {
       headers: { "xi-api-key": elevenKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
       body: JSON.stringify({
         text: spoken,
-        model_id: env.ELEVENLABS_MODEL?.trim() || "eleven_multilingual_v2",
+        model_id: env.ELEVENLABS_MODEL?.trim() || DEFAULT_ELEVENLABS_MODEL,
         voice_settings: { stability: 0.45, similarity_boost: 0.75, style: 0.3, use_speaker_boost: true },
       }),
     }
@@ -70,12 +78,23 @@ export function ttsPlan(text: string, env: Env = process.env): {
   const model = env.AVA_TTS_MODEL?.trim() || DEFAULT_TTS_MODEL
   // OpenAI platform voice is always coral, for speech and for realtime.
   const voice = DEFAULT_TTS_VOICE
-  const payload: Record<string, string> = { model, voice, input: spoken, response_format: "mp3" }
-  if (supportsInstructions(model)) payload.instructions = ttsInstructions(env)
-  const base = (env.AVA_TTS_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "")
+  const instructions = ttsInstructions(env)
+  const payload: Record<string, string> = { model, voice, input: spoken }
+  if (supportsInstructions(model)) payload.instructions = instructions
+  if (speechApiModel(model)) {
+    payload.response_format = "mp3"
+    const base = (env.AVA_TTS_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "")
+    return {
+      provider: "openai" as const,
+      url: `${base}/audio/speech`,
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  }
+  const base = (env.AVA_TTS_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "").replace(/^https:/, "wss:")
   return {
     provider: "openai" as const,
-    url: `${base}/audio/speech`,
+    url: `${base}/realtime?model=${encodeURIComponent(model)}`,
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   }
@@ -85,6 +104,18 @@ export async function synthesizeSpeech(text: string) {
   const plan = ttsPlan(text)
   if (!plan) return null
   try {
+    if (plan.url.startsWith("wss:")) {
+      const parsed = JSON.parse(plan.body) as { voice?: string; input?: string; instructions?: string }
+      const audio = await speakOverRealtime({
+        url: plan.url,
+        apiKey: plan.headers.Authorization?.replace(/^Bearer\s+/i, "") || "",
+        voice: parsed.voice || DEFAULT_TTS_VOICE,
+        text: parsed.input || "",
+        instructions: parsed.instructions || "",
+      })
+      if (!audio || audio.byteLength < 64) return null
+      return { audio, provider: plan.provider, contentType: "audio/wav" }
+    }
     const response = await fetch(plan.url, {
       method: "POST",
       headers: plan.headers,

@@ -195,7 +195,7 @@ export const AVA_SKILL_GROUPS = [
     title: "Sales conversations",
     items: [
       "Ask what is stuck, who it is for, and what a good quarter would change. Then recommend one next step.",
-      "Phone calling is not connected. She will not place a call or claim she did.",
+      "Phone calls are placed only by the owner, only to a number on the approved list, and only after that person agreed. If the phone line is not connected, she will not place a call or claim she did. She does not text.",
     ],
   },
   {

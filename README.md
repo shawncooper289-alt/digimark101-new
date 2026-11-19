@@ -38,7 +38,7 @@ npm run typecheck
 - **Site:** Next.js App Router at the repository root, Tailwind, deployed on Vercel. Production branch is `main`.
 - **Data:** Supabase Auth, Postgres, and row-level security. The anon key is public. The service role is server-only and is how Ava’s server jobs and the owner read lead personal details.
 - **Payments:** PayPal subscriptions for the public membership. Field, Studio, and Partner stay quoted in a proposal.
-- **Model:** `OPENAI_API_KEY` on both Vercel projects. Optional `OPENAI_MODEL` (default `gpt-4o-mini`). If the key is missing, Ava says so and does not guess.
+- **Model:** `OPENAI_API_KEY` on both Vercel projects. Optional `OPENAI_MODEL` (default `gpt-6-luna`). If the key is missing, Ava says so and does not guess.
 
 ## Backend
 
@@ -145,7 +145,7 @@ Copy `.env.example`. Server-only values must never use the `NEXT_PUBLIC_` prefix
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL |
 | `OPENAI_API_KEY` | Required on digimark101.com and on avaskye-online. Ava's brain. Server-only |
-| `OPENAI_MODEL` | Optional. Defaults to `gpt-4o-mini` |
+| `OPENAI_MODEL` | Optional. Defaults to `gpt-6-luna` |
 | `AVA_TTS_API_KEY`, `AVA_TTS_BASE_URL`, `AVA_TTS_MODEL` | Optional OpenAI speech. If the speech key is unset, speech uses `OPENAI_API_KEY`. The voice is coral |
 | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` | Primary voice when both are set. The voice id stays in the env var |
 | `AVA_TTS_SSML` | `true` only when that provider honors IPA phonemes |
@@ -208,4 +208,4 @@ Still ahead, and labeled as such on the screens:
 
 ## Older versions
 
-`main` already held the dark site, the studio tools from `vercel-agent/grok-complete-build`, and the owner office. The closed purple branch `cursor/digimark101-site-e3b5` had the same studio actions with a lighter public design; that design stays retired. The file `improved-digiMark101` in history is an early export (voice widget notes, phone-call UI, a first schema). Phone calling is still not connected. What that history and the October knowledge base still had, and `main` did not, is now the skill book, the Ava skills page, and the Email and Funnels labels on the drafts that were already there.
+`main` already held the dark site, the studio tools from `vercel-agent/grok-complete-build`, and the owner office. The closed purple branch `cursor/digimark101-site-e3b5` had the same studio actions with a lighter public design; that design stays retired. The file `improved-digiMark101` in history is an early export (voice widget notes, phone-call UI, a first schema). Phone calling from that export was not connected. It works now when the owner finishes the steps in `docs/PHONE.md`. What that history and the October knowledge base still had, and `main` did not, is now the skill book, the Ava skills page, and the Email and Funnels labels on the drafts that were already there.

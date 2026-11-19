@@ -81,9 +81,9 @@ Set these on **both** Vercel projects: `digimark101.com` (root directory `.`) an
 | Variable | Where to get it | Notes |
 | --- | --- | --- |
 | `OPENAI_API_KEY` | [OpenAI API keys](https://platform.openai.com/api-keys) | Required for Ava to answer. Server-only. Never use a `NEXT_PUBLIC_` name. |
-| `OPENAI_MODEL` | same | Optional. Defaults to `gpt-4o-mini`. |
+| `OPENAI_MODEL` | same | Optional. Defaults to `gpt-6-luna`. |
 
-Voice input uses the browser. Spoken replies, including the homepage introduction and the office, go through `POST /api/ava/speak`. ElevenLabs is the main voice when `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set (or `AVA_VOICE_CLONE_ID` instead of the premade voice). The OpenAI voice is the fallback, and it is always `coral` for speech and for realtime. `AVA_TTS_VOICE` does not change it. If `AVA_TTS_API_KEY` is unset, that fallback uses `OPENAI_API_KEY`. Defaults are `AVA_TTS_BASE_URL=https://api.openai.com/v1` and `AVA_TTS_MODEL=gpt-4o-mini-tts`. The button never autoplays. If no speech key works, the browser speaks the same script. Phone calling is not connected. Ava never speaks "In the theater of life, we are all actors sharing the same scene." That sentence is removed before audio is made, on both sites. The ElevenLabs voice id stays in `ELEVENLABS_VOICE_ID`.
+Voice input uses the browser. Spoken replies, including the homepage introduction and the office, go through `POST /api/ava/speak`. ElevenLabs is the main voice when `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set (or `AVA_VOICE_CLONE_ID` instead of the premade voice). Live chat defaults to `eleven_v4_turbo` (`ELEVENLABS_MODEL` overrides it). Recorded transcription defaults to `scribe_v3` (`ELEVENLABS_STT_MODEL` overrides it). The OpenAI voice is the fallback, and it is always `coral`. The default speech model is `gpt-realtime-2.1-mini`. `AVA_TTS_VOICE` does not change the voice. If `AVA_TTS_API_KEY` is unset, that fallback uses `OPENAI_API_KEY`. The OpenAI transcription fallback defaults to `gpt-transcribe` (`OPENAI_TRANSCRIBE_MODEL` overrides it). The button never autoplays. If no speech key works, the browser speaks the same script. Phone calls are off until the steps in [PHONE.md](./PHONE.md) are done. Ava never speaks "In the theater of life, we are all actors sharing the same scene." That sentence is removed before audio is made, on both sites. The ElevenLabs voice id stays in `ELEVENLABS_VOICE_ID`.
 
 | Variable | Project | Notes |
 | --- | --- | --- |
@@ -199,6 +199,10 @@ Used for canonical URLs, the sitemap, and structured data. If unset, the code al
 5. Submit the contact form on the production URL. A consented note lands in `lead_staging`. After the scheduled job, a note that clears the score threshold appears in `lead_records`. Personal details stay in `lead_private_contacts`.
 
 Auth redirect URLs are not required for this marketing site. Add `https://www.digimark101.com` later if you turn on Supabase Auth.
+
+## Phone calls and spam protection
+
+Phone setup, the exact variable names, and the dashboard clicks are in [PHONE.md](./PHONE.md). Shared rate limits and the optional human check are in [ABUSE.md](./ABUSE.md). Both apply to the customer site and the office project. Leave the variables unset and the site keeps working: calls say they are not connected, and the limiter stays in each server's memory.
 
 ## After launch
 

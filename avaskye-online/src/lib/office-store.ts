@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { tooManyRequests } from "../../../lib/http"
 
 const COOKIE = "ava_office"
 
@@ -229,16 +230,7 @@ export async function readOfficeOwner() {
   return user
 }
 
-const attempts = new Map<string, { count: number; reset: number }>()
-
-export function officeSignInAllowed(ip: string) {
-  const now = Date.now()
-  const current = attempts.get(ip)
-  if (!current || current.reset < now) {
-    attempts.set(ip, { count: 1, reset: now + 10 * 60 * 1000 })
-    return true
-  }
-  if (current.count >= 8) return false
-  current.count += 1
-  return true
+export async function officeSignInAllowed(ip: string) {
+  const limited = await tooManyRequests(`office-signin:${ip}`, 8, 10 * 60 * 1000)
+  return !limited
 }

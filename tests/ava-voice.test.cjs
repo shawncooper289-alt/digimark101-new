@@ -20,19 +20,29 @@ const identity = load("lib/ava/identity.ts")
 const officeIdentity = load("avaskye-online/src/lib/ava/identity.ts")
 const banned = load("lib/ava/banned-line.ts")
 const officeBanned = load("avaskye-online/src/lib/ava/banned-line.ts")
-const mainImports = { "@/lib/ava/speech": speech, "@/lib/ava/identity": identity, "@/lib/ava/banned-line": banned }
-const officeImports = { "@/lib/ava/identity": officeIdentity, "@/lib/ava/banned-line": officeBanned }
+const realtime = { speakOverRealtime: async () => null }
+const mainImports = {
+  "@/lib/ava/speech": speech,
+  "@/lib/ava/identity": identity,
+  "@/lib/ava/banned-line": banned,
+  "@/lib/ava/realtime-speech": realtime,
+}
+const officeImports = {
+  "@/lib/ava/identity": officeIdentity,
+  "@/lib/ava/banned-line": officeBanned,
+  "../../../lib/ava/realtime-speech": realtime,
+}
 const BANNED = "In the theater of life, we are all actors sharing the same scene."
 
-test("server voice defaults to coral on gpt-4o-mini-tts and keeps the long-A name", () => {
+test("server voice defaults to coral on the current realtime model and keeps the long-A name", () => {
   const { ttsPlan, DEFAULT_TTS_VOICE, DEFAULT_TTS_MODEL, DEFAULT_TTS_INSTRUCTIONS } = load("lib/ava/tts.ts", mainImports)
-  assert.equal(DEFAULT_TTS_MODEL, "gpt-4o-mini-tts")
+  assert.equal(DEFAULT_TTS_MODEL, "gpt-realtime-2.1-mini")
   assert.equal(DEFAULT_TTS_VOICE, "coral")
   const plan = ttsPlan("Hello Ava", { AVA_TTS_API_KEY: "server-key" })
   const body = JSON.parse(plan.body)
   assert.equal(plan.provider, "openai")
-  assert.equal(plan.url, "https://api.openai.com/v1/audio/speech")
-  assert.equal(body.model, "gpt-4o-mini-tts")
+  assert.equal(plan.url, "wss://api.openai.com/v1/realtime?model=gpt-realtime-2.1-mini")
+  assert.equal(body.model, "gpt-realtime-2.1-mini")
   assert.equal(body.voice, "coral")
   assert.equal(body.input, "Hello Ay-vuh")
   assert.equal(body.instructions, DEFAULT_TTS_INSTRUCTIONS)
@@ -74,7 +84,7 @@ test("elevenlabs is preferred when its key and voice are set", () => {
   assert.equal(plan.headers["xi-api-key"], "eleven-key")
   assert.equal(body.text, "Hello Ay-vuh")
   assert.equal(body.instructions, undefined)
-  assert.equal(body.model_id, "eleven_multilingual_v2")
+  assert.equal(body.model_id, "eleven_v4_turbo")
 })
 
 test("the voice clone id replaces the premade voice on both sites", () => {
@@ -122,7 +132,7 @@ test("office voice uses the same defaults and pronounces Ay-vuh", () => {
   const plan = ttsPlan("Ava here", { AVA_TTS_API_KEY: "server-key" })
   const body = JSON.parse(plan.body)
   assert.equal(body.voice, "coral")
-  assert.equal(body.model, "gpt-4o-mini-tts")
+  assert.equal(body.model, "gpt-realtime-2.1-mini")
   assert.equal(body.input, "Ay-vuh here")
   assert.equal(body.instructions, DEFAULT_TTS_INSTRUCTIONS)
   assert.match(body.instructions, /moderate, conversational pace/)
@@ -219,6 +229,8 @@ test("speech to text prefers ElevenLabs Scribe, then OpenAI, and drops the banne
   const eleven = transcribePlan({ ELEVENLABS_API_KEY: "eleven-key", OPENAI_API_KEY: "brain-key" })
   assert.equal(eleven.provider, "elevenlabs")
   assert.equal(eleven.url, "https://api.elevenlabs.io/v1/speech-to-text")
+  assert.equal(SCRIBE_MODEL, "scribe_v3")
+  assert.equal(OPENAI_TRANSCRIBE_MODEL, "gpt-transcribe")
   assert.equal(eleven.model, SCRIBE_MODEL)
   assert.equal(eleven.headers["xi-api-key"], "eleven-key")
   const openai = transcribePlan({ OPENAI_API_KEY: "brain-key" })

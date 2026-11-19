@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import { TurnstileField } from "@/components/security/turnstile-field"
 
 export function RequestAccess({ planKey, planName }: { planKey: string; planName: string }) {
   const [name, setName] = useState("")
@@ -11,6 +12,7 @@ export function RequestAccess({ planKey, planName }: { planKey: string; planName
   const [pending, setPending] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState("")
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -29,6 +31,7 @@ export function RequestAccess({ planKey, planName }: { planKey: string; planName
           plan: planKey,
           consent_contact: consent,
           company_website_confirm: "",
+          turnstileToken,
         }),
       })
       const data = (await response.json()) as { error?: string }
@@ -70,6 +73,7 @@ export function RequestAccess({ planKey, planName }: { planKey: string; planName
         <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1" />
         You may email me about this membership. This is not a charge.
       </label>
+      <TurnstileField onToken={setTurnstileToken} />
       <button type="submit" className="btn btn-signal w-fit" disabled={pending || !consent}>
         {pending ? "Sending…" : "Request access"}
       </button>

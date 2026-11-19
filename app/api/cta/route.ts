@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server"
+import { clientIp, tooManyRequests } from "@/lib/http"
 
 export const dynamic = "force-dynamic"
 
 /** Accepts a click beacon and does not store it. No cookies, no email, no user id. */
 export async function POST(request: Request) {
+  if (await tooManyRequests(`cta:${clientIp(request)}`, 60)) {
+    return new NextResponse(null, { status: 429, headers: { "Cache-Control": "no-store" } })
+  }
   try {
     const body = (await request.json()) as { event?: unknown; path?: unknown; href?: unknown }
     const event = typeof body.event === "string" ? body.event.slice(0, 64) : ""

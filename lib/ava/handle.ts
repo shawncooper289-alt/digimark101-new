@@ -11,7 +11,7 @@ export async function handleAvaPost(request: Request) {
   if (!sameOrigin(request)) {
     return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
   }
-  if (tooManyRequests(clientIp(request))) {
+  if (await tooManyRequests(clientIp(request))) {
     return NextResponse.json({ error: "Too many messages. Try again in a minute." }, { status: 429 })
   }
 

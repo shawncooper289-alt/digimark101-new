@@ -126,7 +126,7 @@ export function stopAvaSpeech() {
   emit(false)
 }
 
-async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void) {
+async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void, mime = "audio/mpeg") {
   const Ctor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
   if (Ctor) {
     try {
@@ -155,7 +155,7 @@ async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void) {
     }
   }
   if (token !== turn) return true
-  const url = URL.createObjectURL(new Blob([bytes], { type: "audio/mpeg" }))
+  const url = URL.createObjectURL(new Blob([bytes], { type: mime }))
   objectUrl = url
   const audio = htmlAudio ?? new Audio()
   htmlAudio = audio
@@ -192,7 +192,8 @@ async function speakFromServer(text: string, token: number, onDone?: () => void)
       const bytes = await response.arrayBuffer()
       if (token !== turn) return { status: "stopped", voice: "none" }
       const voice = header === "elevenlabs" ? "elevenlabs" : "openai"
-      if (bytes.byteLength > 64 && (await playMp3(bytes, token, onDone))) return { status: "played", voice }
+      const mime = type.split(";")[0] || "audio/mpeg"
+      if (bytes.byteLength > 64 && (await playMp3(bytes, token, onDone, mime))) return { status: "played", voice }
     }
   } catch {
     // The device voice speaks this turn instead.

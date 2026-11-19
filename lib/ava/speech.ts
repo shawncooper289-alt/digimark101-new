@@ -89,7 +89,7 @@ export function speakInBrowser(text: string, onDone?: () => void) {
   return true
 }
 
-async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void) {
+async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void, mime = "audio/mpeg") {
   const ctx = audioContext()
   if (ctx) {
     try {
@@ -115,7 +115,7 @@ async function playMp3(bytes: ArrayBuffer, token: number, onDone?: () => void) {
     }
   }
   if (token !== generation) return true
-  const url = URL.createObjectURL(new Blob([bytes], { type: "audio/mpeg" }))
+  const url = URL.createObjectURL(new Blob([bytes], { type: mime }))
   objectUrl = url
   const audio = element()
   audio.src = url
@@ -156,7 +156,8 @@ export async function speakAva(text: string, onDone?: () => void): Promise<AvaSp
       const bytes = await response.arrayBuffer()
       if (token !== generation) return { status: "stopped", voice: "none" }
       const voice: AvaSpeechVoice = header === "elevenlabs" ? "elevenlabs" : "openai"
-      if (bytes.byteLength > 64 && (await playMp3(bytes, token, onDone))) return { status: "played", voice }
+      const mime = type.split(";")[0] || "audio/mpeg"
+      if (bytes.byteLength > 64 && (await playMp3(bytes, token, onDone, mime))) return { status: "played", voice }
     }
   } catch {
     // The device voice is the fallback when the studio voice is unavailable.

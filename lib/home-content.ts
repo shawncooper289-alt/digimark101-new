@@ -52,7 +52,7 @@ export const audiencePaths = [
     name: "Local businesses",
     href: "/agency/small-business",
     cta: "Digital marketing for small businesses",
-    body: "You have one offer and you want people to find it and take the next step. Search, ads, the site, and email are the map. Calling and texting from inside the app are not connected yet.",
+    body: "You have one offer and you want people to find it and take the next step. Search, ads, the site, and email are the map. Texting from inside the app is not connected. A phone call is placed only by the owner, after the person agreed, and only to a number on an approved list.",
   },
   {
     name: "Beginners",
@@ -384,7 +384,7 @@ export const homeFaqs = [
   {
     question: "What is still being connected?",
     answer:
-      "Email sending waits on an email provider. Phone and text are not connected. The visual page builder is a later phase, so a funnel record is not a published site. The inbox is notes, not your outside mailbox. Lead-list checkout is not connected, so a request stays pending. Calendar booking is inside Studio, not a public link for your customers yet. Posting to social networks and the white-label backend are coming soon.",
+      "Email sending waits on an email provider. Texting is not connected. A phone call is placed only by the owner, after the person agreed, and only to a number on an approved list. The visual page builder is a later phase, so a funnel record is not a published site. The inbox is notes, not your outside mailbox. Lead-list checkout is not connected, so a request stays pending. Calendar booking is inside Studio, not a public link for your customers yet. Posting to social networks and the white-label backend are coming soon.",
   },
   {
     question: "Why is this a better choice than separate tools, or a platform like GoHighLevel?",

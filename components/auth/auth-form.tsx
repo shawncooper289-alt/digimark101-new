@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { useAvaForm } from "@/components/ava/use-ava-form"
 import { DigiMarkLogo } from "@/components/branding/digimark-logo"
+import { TurnstileField } from "@/components/security/turnstile-field"
 import { authCallbackUrl } from "@/lib/auth/site-url"
 import { EMAIL_PATTERN, emailFieldError, PASSWORD_RULE, signupPasswordError } from "@/lib/auth/password"
 import { createSupabaseBrowser } from "@/lib/supabase/browser"
@@ -24,6 +25,7 @@ export function AuthForm({
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState("")
   const supabase = createSupabaseBrowser()
   useAvaForm((fills) => {
     if (fills.email) setEmail(fills.email)
@@ -45,6 +47,16 @@ export function AuthForm({
     }
     setPending(true)
     try {
+      const guard = await fetch("/api/auth/guard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: mode, turnstileToken }),
+      })
+      if (!guard.ok) {
+        const payload = (await guard.json().catch(() => null)) as { error?: string } | null
+        setError(payload?.error || "Too many tries. Wait a minute and try again.")
+        return
+      }
       const result = mode === "login"
         ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
         : await supabase.auth.signUp({
@@ -135,6 +147,7 @@ export function AuthForm({
             </Link>
           </p>
         ) : null}
+        <TurnstileField onToken={setTurnstileToken} />
         {error ? <p className="text-sm text-signal" role="alert">{error}</p> : null}
         {message ? <p className="text-sm">{message}</p> : null}
         <button type="submit" disabled={pending} className="btn btn-signal">

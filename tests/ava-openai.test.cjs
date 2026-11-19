@@ -69,7 +69,7 @@ test("a missing key does not call OpenAI and does not reveal a secret", async ()
   assert.equal(status.voice, "coral")
   assert.equal(JSON.stringify(status).includes(secret), false)
   assert.equal(openai.openAiStatus({}).connected, false)
-  assert.equal(openai.DEFAULT_OPENAI_MODEL, "gpt-4o-mini")
+  assert.equal(openai.DEFAULT_OPENAI_MODEL, "gpt-6-luna")
   assert.equal(openai.OPENAI_PLATFORM_VOICE, "coral")
 })
 
@@ -83,7 +83,11 @@ test("a live reply does not echo the key", async () => {
       assert.equal(url, "https://api.openai.com/v1/chat/completions")
       assert.equal(init.headers.Authorization, `Bearer ${secret}`)
       const body = JSON.parse(init.body)
-      assert.equal(body.model, "gpt-4o-mini")
+      assert.equal(body.model, "gpt-6-luna")
+      assert.equal(body.reasoning_effort, "none")
+      assert.equal(body.max_completion_tokens, 900)
+      assert.equal(body.max_tokens, undefined)
+      assert.equal(body.temperature, 0.4)
       assert.equal(body.tool_choice, "auto")
       return {
         ok: true,

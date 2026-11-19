@@ -1,8 +1,12 @@
 import { BANNED_LINE_RULE, omitBannedLine } from "@/lib/ava/banned-line"
 import { AVA_IDENTITY } from "@/lib/ava/identity"
 import { spokenText } from "@/lib/ava/speech"
+import { speakOverRealtime } from "@/lib/ava/realtime-speech"
 
-export const DEFAULT_TTS_MODEL = "gpt-4o-mini-tts"
+/** gpt-4o-mini-tts shuts down Jan 6, 2027. This model speaks through the Realtime API. */
+export const DEFAULT_TTS_MODEL = "gpt-realtime-2.1-mini"
+/** Live chat wants the low-latency ElevenLabs model. Finished video still uses eleven_v4. */
+export const DEFAULT_ELEVENLABS_MODEL = "eleven_v4_turbo"
 export const DEFAULT_TTS_VOICE = "coral"
 const DEFAULT_TTS_STYLE =
   "Speak as a warm, confident young-adult woman with a General American accent. Use a medium pitch and a moderate, conversational pace. Sound like a real person talking, not an announcer or a recording."
@@ -33,7 +37,11 @@ export type TtsPlan = {
 }
 
 export function supportsTtsInstructions(model: string) {
-  return /gpt-4o|mini-tts/i.test(model) && !/^tts-1($|-hd)/i.test(model)
+  return /gpt-4o|mini-tts|gpt-realtime/i.test(model) && !/^tts-1($|-hd)/i.test(model)
+}
+
+function speechApiModel(model: string) {
+  return /^(tts-1|tts-1-hd|gpt-4o-mini-tts)/i.test(model)
 }
 
 export function spokenForTts(text: string) {
@@ -56,7 +64,7 @@ export function ttsPlan(text: string, env: Env = process.env): TtsPlan | null {
   // AVA_VOICE_CLONE_ID is the permanent Instant Voice Clone. It wins over the temporary premade voice.
   const elevenVoice = env.AVA_VOICE_CLONE_ID?.trim() || env.ELEVENLABS_VOICE_ID?.trim()
   if (elevenKey && elevenVoice) {
-    const model = env.ELEVENLABS_MODEL?.trim() || "eleven_multilingual_v2"
+    const model = env.ELEVENLABS_MODEL?.trim() || DEFAULT_ELEVENLABS_MODEL
     return {
       provider: "elevenlabs",
       url: `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(elevenVoice)}?output_format=mp3_44100_128`,
@@ -78,12 +86,22 @@ export function ttsPlan(text: string, env: Env = process.env): TtsPlan | null {
   // OpenAI platform voice is always coral, for speech and for realtime.
   const voice = DEFAULT_TTS_VOICE
   const instructions = ttsInstructions(env)
-  const payload: Record<string, string> = { model, voice, input: spoken, response_format: "mp3" }
+  const payload: Record<string, string> = { model, voice, input: spoken }
   if (supportsTtsInstructions(model)) payload.instructions = instructions
-  const base = (env.AVA_TTS_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "")
+  if (speechApiModel(model)) {
+    payload.response_format = "mp3"
+    const base = (env.AVA_TTS_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "")
+    return {
+      provider: "openai",
+      url: `${base}/audio/speech`,
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  }
+  const base = (env.AVA_TTS_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "").replace(/^https:/, "wss:")
   return {
     provider: "openai",
-    url: `${base}/audio/speech`,
+    url: `${base}/realtime?model=${encodeURIComponent(model)}`,
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   }
@@ -93,6 +111,18 @@ export async function synthesizeSpeech(text: string) {
   const plan = ttsPlan(text)
   if (!plan) return null
   try {
+    if (plan.url.startsWith("wss:")) {
+      const parsed = JSON.parse(plan.body) as { voice?: string; input?: string; instructions?: string }
+      const audio = await speakOverRealtime({
+        url: plan.url,
+        apiKey: plan.headers.Authorization?.replace(/^Bearer\s+/i, "") || "",
+        voice: parsed.voice || DEFAULT_TTS_VOICE,
+        text: parsed.input || "",
+        instructions: parsed.instructions || "",
+      })
+      if (!audio || audio.byteLength < 64) return null
+      return { audio, provider: plan.provider, contentType: "audio/wav" }
+    }
     const response = await fetch(plan.url, {
       method: "POST",
       headers: plan.headers,

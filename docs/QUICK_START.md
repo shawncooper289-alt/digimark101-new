@@ -42,7 +42,7 @@ Set this in `.env.local` and restart:
 
 ```bash
 OPENAI_API_KEY=sk-your_key
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_MODEL=gpt-6-luna
 ```
 
 `OPENAI_MODEL` is optional. The widget badge says Connected when a reply came from OpenAI, and Not connected when the key is missing.

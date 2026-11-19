@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { commitAction, loadWorkspace } from "@/lib/platform/db"
 import { emptyWorkspace, socialPlatforms, type Action, type Stage, type Trigger, type AutomationAction } from "@/lib/platform/types"
 import { automationActions, stages, triggers } from "@/lib/platform/types"
-import { sameOrigin } from "@/lib/http"
+import { clientIp, sameOrigin, tooManyRequests } from "@/lib/http"
 import { ensureOwnerGranted, isOwnerIdentity, isWorkspaceId, listWorkspaces } from "@/lib/owner/access"
 import { supabasePublicConfig } from "@/lib/supabase/config"
 import { createSupabaseAdmin } from "@/lib/supabase/admin"
@@ -46,6 +46,9 @@ function parseAction(value: unknown): Action | null {
 }
 
 export async function GET(request: Request) {
+  if (await tooManyRequests(`studio-read:${clientIp(request)}`, 60)) {
+    return NextResponse.json({ error: "Too many requests. Wait a minute and try again." }, { status: 429 })
+  }
   const configured = Boolean(supabasePublicConfig())
   const { supabase, user } = await currentUser()
   if (!supabase || !user) {
@@ -89,6 +92,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return NextResponse.json({ error: "Cross-origin request blocked." }, { status: 403 })
+  if (await tooManyRequests(`studio:${clientIp(request)}`, 30)) {
+    return NextResponse.json({ error: "Too many requests. Wait a minute and try again." }, { status: 429 })
+  }
   const { supabase, user } = await currentUser()
   if (!supabase || !user) return NextResponse.json({ error: "Sign in to save to your workspace." }, { status: 401 })
   let body: unknown
