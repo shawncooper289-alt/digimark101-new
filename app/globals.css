@@ -154,6 +154,34 @@ p {
   }
 }
 
+.home-hero {
+  background: radial-gradient(ellipse at 85% 15%, rgba(203, 176, 130, 0.09), transparent 55%);
+}
+
+.home-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  color: var(--signal);
+  text-decoration: underline;
+  text-decoration-color: rgba(203, 176, 130, 0.35);
+  text-underline-offset: 0.3em;
+}
+
+.home-text-link:hover {
+  color: var(--signal-deep);
+  text-decoration-color: currentColor;
+}
+
+.home-faq > summary {
+  list-style: none;
+}
+
+.home-faq > summary::-webkit-details-marker {
+  display: none;
+}
+
 .field-grid {
   background-image:
     linear-gradient(to right, rgba(20, 23, 28, 0.055) 1px, transparent 1px),

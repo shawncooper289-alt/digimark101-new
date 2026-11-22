@@ -5,13 +5,13 @@
  */
 
 export const hero = {
-  eyebrow: "Online digital marketing agency · United States",
-  lead: "An online digital marketing agency for small businesses.",
-  accent: "Ava asks one question at a time, fills the forms, and saves only after you say yes.",
+  eyebrow: "A marketing studio. A workspace of your own.",
+  lead: "Build your own dynasty.",
+  accent: "Own the system. Grow it with Ava.",
   lede:
-    "You keep the people, the page, and the follow-up in one login. Search, ads, social, websites, email, and analytics live there. Clients are remote, across the United States.",
+    "Bring your contacts, campaign drafts, and next steps together. Get guidance from Ava Skye, or work with our digital marketing studio to put your business in motion.",
   offer:
-    "Open while the product is in testing. No countdown. The form sends an email link and does not start a payment.",
+    "Free while in beta. Email sign-in. No payment on the beta form.",
 } as const
 
 export const trustFacts = [
