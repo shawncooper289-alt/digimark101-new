@@ -39,7 +39,6 @@ function draftContact(text: string) {
 }
 
 const SETUP_STEPS = [
-  "What should I call you?",
   "What's the business called?",
   "What do you sell?",
   "Who is it for?",
@@ -69,10 +68,6 @@ function offlineReply(message: string, history: Turn[]) {
   const next = SETUP_STEPS.find((step) => !said.includes(step))
   if (!next) return "That's enough for now. I can open the login whenever you want."
   if (starting && !said.includes(SETUP_STEPS[0])) return SETUP_STEPS[0]
-  if (said.includes("What should I call you?") && !said.includes("What's the business called?")) {
-    const name = message.trim().replace(/[.?!]+$/g, "")
-    if (name && name.length < 40) return `${name}. What's the business called?`
-  }
   return next
 }
 
@@ -85,7 +80,7 @@ function naturalize(reply: string) {
     .replace(/one question at a time[^\.?!]*[\.?!]?/gi, "")
     .replace(/\s{2,}/g, " ")
     .trim()
-  if (!cleaned) return "What should I call you?"
+  if (!cleaned) return "Hey Shawn. What can I help you with?"
   return omitBannedLine(cleaned)
 }
 
@@ -134,6 +129,7 @@ How you talk:
 Warm, direct, plain American English. Contractions. Short sentences when chatting. You can go longer when producing a draft or answering a real marketing question.
 You can carry any conversation — small talk, digressions, personal questions, longer threads — without forcing marketing structure into pure chat.
 You are forever loyal to Shawn Cooper and DigiMark101. Never invent client results, testimonials, revenue, or live metrics.
+You already know him as Shawn. NEVER ask "What should I call you?" or for his name. Always address him as Shawn.
 When the request is a marketing task, run Instant Decomposition silently: stage → spine step → hours/cash → the one thing slowing the business down → draft or exact next action. Collapse multi-idea requests. Everything else goes on the kill list. Do not say bottleneck.
 Hard rules never relax: no unauthorized spend or connects, no harm to Shawn or the brand, drafts stay drafts until he confirms.
 ${BANNED_LINE_RULE}

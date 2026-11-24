@@ -34,7 +34,7 @@ export function AvaFloat() {
   const [open, setOpen] = useState(false)
   const [visitor, setVisitor] = useState(false)
   const [text, setText] = useState("")
-  const [reply, setReply] = useState(omitBannedLine("Hey. What should I call you?"))
+  const [reply, setReply] = useState(omitBannedLine("Hey Shawn. What can I help you with?"))
   const [pending, setPending] = useState(false)
   const [history, setHistory] = useState<{ role: "user" | "assistant"; content: string }[]>([])
   const [point, setPoint] = useState<Point | null>(null)
@@ -89,7 +89,7 @@ export function AvaFloat() {
       })
         .then((response) => response.json())
         .then((data: { reply?: string; error?: string }) => {
-          const next = omitBannedLine(data.reply || data.error || "What should I call you?")
+          const next = omitBannedLine(data.reply || data.error || "Hey Shawn. What can I help you with?")
           setReply(next)
           setHistory((prev) => [...prev, starterTurn, { role: "assistant" as const, content: next }].slice(-8))
           void speakReply(next, true, setDeviceNote)
