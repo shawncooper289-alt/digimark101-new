@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react"
 import { AvaSpeak } from "@/components/ava-speak"
 import { omitBannedLine } from "@/lib/ava/banned-line"
@@ -31,6 +32,7 @@ function clamp(point: Point, width: number, height: number): Point {
 }
 
 export function AvaFloat() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [visitor, setVisitor] = useState(false)
   const [text, setText] = useState("")
@@ -42,6 +44,7 @@ export function AvaFloat() {
   const [textOnly, setTextOnly] = useState(false)
   const [deviceNote, setDeviceNote] = useState<string | null>(null)
   const dragRef = useRef<{ pointerId: number; originX: number; originY: number; startX: number; startY: number; moved: boolean } | null>(null)
+  const dragged = useRef(false)
   const historyRef = useRef(history)
   const look = officeLook(visitor)
 
@@ -85,13 +88,13 @@ export function AvaFloat() {
       fetch("/api/office/guide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: starter, history: historyRef.current }),
+        body: JSON.stringify({ message: starter, history: historyRef.current, page: { path: window.location.pathname, title: document.title } }),
       })
         .then((response) => response.json())
         .then((data: { reply?: string; error?: string }) => {
           const next = omitBannedLine(data.reply || data.error || "What should I call you?")
           setReply(next)
-          setHistory((prev) => [...prev, starterTurn, { role: "assistant" as const, content: next }].slice(-8))
+          setHistory((prev) => [...prev, starterTurn, { role: "assistant" as const, content: next }].slice(-24))
           void speakReply(next, true, setDeviceNote)
         })
         .catch(() => setReply("I missed that. Try again?"))
@@ -148,6 +151,15 @@ export function AvaFloat() {
     if (drag.moved) {
       const rect = event.currentTarget.getBoundingClientRect()
       remember({ x: rect.left, y: rect.top }, rect.width, rect.height)
+      dragged.current = true
+      return
+    }
+  }
+
+  function onLauncherClick(event: React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation()
+    if (dragged.current) {
+      dragged.current = false
       return
     }
     prepareAvaSpeech()
@@ -164,12 +176,12 @@ export function AvaFloat() {
       const response = await fetch("/api/office/guide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, history }),
+        body: JSON.stringify({ message, history, page: { path: pathname, title: document.title } }),
       })
       const data = (await response.json()) as { reply?: string; error?: string }
       const next = omitBannedLine(response.ok ? data.reply || "Okay." : data.error || "I didn't catch that.")
       setReply(next)
-      setHistory((prev) => [...prev, { role: "user" as const, content: message }, { role: "assistant" as const, content: next }].slice(-8))
+      setHistory((prev) => [...prev, { role: "user" as const, content: message }, { role: "assistant" as const, content: next }].slice(-24))
       if (response.ok) setText("")
       await speakReply(next, aloud || (voiceOn && !textOnly), setDeviceNote)
     } catch {
@@ -200,6 +212,8 @@ export function AvaFloat() {
         className={`fixed z-50 flex w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-3xl border border-border bg-surface p-4 shadow-2xl safe-bottom ${point ? "" : "bottom-[max(0.75rem,env(safe-area-inset-bottom))] right-3"}`}
         style={point ? { left: Math.max(8, Math.min(point.x, window.innerWidth - 340)), top: Math.max(8, point.y - 220) } : undefined}
         aria-label="Ask Ava"
+        onClick={(event) => event.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm">Ava Skye <span className="text-muted">· {look.label}</span></p>
@@ -226,9 +240,15 @@ export function AvaFloat() {
       type="button"
       className={`fixed z-50 w-[4.1rem] cursor-grab touch-none border-0 bg-transparent p-0 active:cursor-grabbing sm:w-[4.9rem] md:w-[5.75rem] ${point ? "" : "bottom-[max(0.5rem,env(safe-area-inset-bottom))] right-2"}`}
       style={placed}
-      onPointerDown={onPointerDown}
+      onPointerDown={(event) => {
+        event.stopPropagation()
+        onPointerDown(event)
+      }}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onClick={onLauncherClick}
+      aria-haspopup="dialog"
+      aria-expanded={false}
       aria-label={`Ask Ava for help. Drag to move her. She is in ${look.label}.`}
     >
       <img src={look.src} alt="" draggable={false} className="pointer-events-none block h-auto w-full object-contain object-bottom drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)]" />

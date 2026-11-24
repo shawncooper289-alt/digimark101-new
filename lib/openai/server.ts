@@ -12,7 +12,7 @@ export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 export const OPENAI_PLATFORM_VOICE = "coral"
 
 export const OPENAI_MISSING_OWNER =
-  "OpenAI is not connected. Add OPENAI_API_KEY on this Vercel project, then ask again. I did not make up an answer."
+  "Ava's model is not connected. Add OPENAI_API_KEY on this server, then ask again. I did not make up an answer. Page guiding still works without it."
 
 export const OPENAI_MISSING_CLIENT =
   "I can't finish that yet. The studio connection is off, so I won't guess. Please try again later, or use the contact page."

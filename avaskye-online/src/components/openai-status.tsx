@@ -10,7 +10,7 @@ export function OpenAiStatus() {
       <p className="mt-2 text-sm text-muted">
         {status.connected
           ? `Ava answers with the model ${status.model}. The key stays on this server and is not shown here.`
-          : "Add OPENAI_API_KEY in the Vercel project avaskye-online. The customer site is a separate project, digimark101.com, and needs the same variable there. OPENAI_MODEL is optional. Nothing is invented while this is off."}
+          : "Add OPENAI_API_KEY in the Vercel project avaskye-online. The customer site is a separate project, digimark101.com, and needs the same variable there. An older XAI_API_KEY is ignored and does not turn Ava on or off. OPENAI_MODEL is optional. Nothing is invented while this is off. Guided mode still walks each office page."}
       </p>
       <p className="mt-2 text-sm text-muted">OpenAI speech, and realtime if it is turned on later, uses the voice coral. ElevenLabs stays the main voice when that key is set.</p>
     </div>

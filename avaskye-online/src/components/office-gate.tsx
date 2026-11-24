@@ -1,4 +1,7 @@
 import { OwnerSignIn } from "@/components/owner-sign-in"
+import { PlatformVideo } from "@/components/platform-video"
+import { PublicAva } from "@/components/public-ava"
+import { platformWalkthroughUrl } from "@/lib/platform-video"
 import { missingOfficeAuthEnv } from "@/lib/office-redirect"
 import { missingOfficeEnv, officeConfig } from "@/lib/office-store"
 
@@ -16,8 +19,14 @@ export function OfficeGate({ next }: { next?: string }) {
         <p className="mt-8 text-sm text-muted">
           <a className="underline" href="https://www.digimark101.com">Back to the customer site</a>
         </p>
+        <div className="mt-8">
+          <h2 className="text-3xl" style={{ fontFamily: "var(--font-display-loaded), serif" }}>See the public platform</h2>
+          <p className="mt-2 text-sm text-muted">About twelve seconds, with no narration. The homepage, the platform section, pricing, and the contact form. It does not autoplay.</p>
+          <PlatformVideo src={platformWalkthroughUrl()} poster="/media/platform-walkthrough-poster.jpg" />
+        </div>
         {missing.length ? <p className="mt-4 text-sm text-muted">Still unset on this server: {missing.join(", ")}.</p> : null}
       </div>
+      <PublicAva />
     </main>
   )
 }

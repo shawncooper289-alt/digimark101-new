@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { AVA_INTRO_BRIEF } from "../../../../lib/video/ava-intro"
+import { AVA_INTRO_BRIEF } from "../../../lib/video/ava-intro"
 
 type Scene = { caption: string; visual: string; camera: string; transition: string; startMs: number; endMs: number; talking: boolean }
 type Project = {
