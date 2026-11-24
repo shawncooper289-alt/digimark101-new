@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { omitBannedLine } from "@/lib/ava/banned-line"
 import { AVA_IDENTITY } from "@/lib/ava/identity"
 import { officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-store"
-import { handleVideoRequest } from "../../../../../../lib/video/handle"
+import { handleVideoRequest } from "@/lib/video/handle"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
