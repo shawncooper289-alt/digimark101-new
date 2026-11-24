@@ -1,6 +1,6 @@
 # Ava Skye identity
 
-Version `2026.11.12`. The source of truth for code is `lib/ava/identity.ts`. Spoken audio goes through `lib/ava/speech.ts` and the server route `POST /api/ava/speak`. The office uses the same route inside `avaskye-online`.
+Version `2026.11.24`. The source of truth for code is `lib/ava/identity.ts`. Spoken audio goes through `lib/ava/speech.ts` and the server route `POST /api/ava/speak`. The office uses the same route inside `avaskye-online`.
 
 ## Name and pronunciation
 
@@ -32,7 +32,7 @@ Dress codes:
 
 Spoken lines go to `POST /api/ava/speak` on each site. The key stays on the server. The browser's built-in voice is used only when that request fails.
 
-ElevenLabs is the main voice when `ELEVENLABS_API_KEY` and a voice id are set. The OpenAI fallback, including realtime, is model `gpt-4o-mini-tts` and voice `coral`. Coral is the built-in match for a warm, confident young-adult woman with a General American accent, medium pitch, and a moderate conversational pace. The voice stays coral even if `AVA_TTS_VOICE` is set to something else. `AVA_TTS_INSTRUCTIONS` can replace the speaking style. The AY-vuh pronunciation rule is still appended, so an override cannot drop it.
+ElevenLabs is the main voice when `ELEVENLABS_API_KEY` and a voice id are set. The OpenAI fallback, including realtime, is model `gpt-4o-mini-tts` and voice `ara`. Ara is the locked default voice: professional American English, no regional accent, warm and confident. The voice stays ara even if `AVA_TTS_VOICE` is set to something else. `AVA_TTS_INSTRUCTIONS` can replace the speaking style. The AY-vuh pronunciation rule is still appended, so an override cannot drop it.
 
 If `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID` are both set, ElevenLabs is used instead. The voice id comes from that environment variable. It is not written into the code. `ELEVENLABS_VOICE_ID` is a temporary premade voice. When `AVA_VOICE_CLONE_ID` is set, that Instant Voice Clone is used instead. No code change is required. If `AVA_TTS_API_KEY` is unset, OpenAI speech uses `OPENAI_API_KEY`.
 
