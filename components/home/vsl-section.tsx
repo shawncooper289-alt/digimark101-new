@@ -32,10 +32,10 @@ export async function VslSection() {
         <div className="lg:col-span-5">
           <p className="home-kicker">Film</p>
           <h2 id="film-heading" className="home-title">
-            A short film for the visitor who will not read.
+            Watch Ava explain it in under a minute.
           </h2>
           <p className="home-lede">
-            The four parts are the problem, what DigiMark101 does differently, proof you can check, and what happens when you claim a seat. Nothing plays until a real file is connected.
+            See the problem of scattered tools, how Ava guides you one step at a time, the one workspace you keep, and how to start with a free beta seat. Press play.
           </p>
           <ol className="mt-8 grid gap-3">
             {[

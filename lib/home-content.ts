@@ -5,31 +5,31 @@
  */
 
 export const hero = {
-  eyebrow: "Online digital marketing agency · United States",
-  lead: "An online digital marketing agency for small businesses.",
-  accent: "Ava asks one question at a time, fills the forms, and saves only after you say yes.",
+  eyebrow: "Your marketing system, guided by Ava",
+  lead: "Own the workspace. Grow the business.",
+  accent: "Ava walks with you from first question to finished draft. Everything you create stays in your account.",
   lede:
-    "You keep the people, the page, and the follow-up in one login. Search, ads, social, websites, email, and analytics live there. Clients are remote, across the United States.",
+    "Contacts, pipeline, drafts, files, and follow-ups live in one place. No more jumping between tools. You keep everything you build.",
   offer:
-    "Open while the product is in testing. No countdown. The form sends an email link and does not start a payment.",
+    "Free beta for testers. Sign in with the email you check. Your work is saved to your login and stays yours.",
 } as const
 
 export const trustFacts = [
   {
-    title: "Saves only after yes",
-    body: "Ava fills the setup forms. A change is stored only after you confirm it.",
+    title: "You keep what you build",
+    body: "Every contact, draft, file, and note is saved under your login. Beta testers keep everything they create.",
   },
   {
-    title: "Free beta seat",
-    body: "Testers use an email sign-in link. That form does not start a PayPal payment.",
+    title: "Guided, not overwhelming",
+    body: "Ava asks one clear question at a time and fills the form. You review and confirm before anything is stored.",
   },
   {
-    title: "One workspace",
-    body: "Contacts, pipeline, calendar, email drafts, page plans, social drafts, files, and automations share one login.",
+    title: "One clean workspace",
+    body: "People, sales stages, drafts, files, and reminders share a single login. No more scattered tools.",
   },
   {
-    title: "No invented results",
-    body: "Work pages are labeled samples. This site does not publish client quotes, logos, or revenue.",
+    title: "Honest and clear",
+    body: "We label samples. We do not invent client results or numbers. What you see is what the product does today.",
   },
 ] as const
 
@@ -104,23 +104,23 @@ export const moneySteps = [
 export const howSteps = [
   {
     index: "01",
-    title: "Open an account",
-    body: "Create an account when you want the work saved. You can also open Studio in preview first. A beta seat is free for testers and uses an email sign-in link.",
+    title: "Claim your free beta seat",
+    body: "Use the email you check. We send a sign-in link. No payment starts. Your account is ready for the full journey.",
   },
   {
     index: "02",
-    title: "Let Ava set it up",
-    body: "She asks one question at a time and fills the forms on the screen. You check the draft and say yes. That confirm step is the time saver: you review the setup instead of retyping the same facts on every screen.",
+    title: "Walk through setup with Ava",
+    body: "She asks one question at a time, fills the forms, and waits for your yes. Every answer is saved to your account so you never start over.",
   },
   {
     index: "03",
-    title: "Use one piece of Studio",
-    body: "Add a contact, move a deal, draft a page or an email, save a file, or turn on an automation. One finished piece beats a tour of every menu.",
+    title: "Build something real",
+    body: "Add contacts, move a deal, draft a page or email, save a file, or set a reminder. Everything you create is stored under your login.",
   },
   {
     index: "04",
-    title: "Keep the system",
-    body: "The workspace is yours. Memory stays with that login. A white-label backend, a separate database under a name you choose, is coming soon.",
+    title: "Keep everything you made",
+    body: "The workspace, memory, drafts, and files stay with your account. Beta testers keep all the work they produce. Upgrade only if you want more later.",
   },
 ] as const
 

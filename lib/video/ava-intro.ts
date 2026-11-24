@@ -401,7 +401,7 @@ No client logos, no testimonials, no awards, and no income promise. Phone, text,
 }
 
 /** Public config. Used only when the env var is empty. Leave blank until a real file exists. */
-export const AVA_INTRO_VIDEO_CONFIG_URL = ""
+export const AVA_INTRO_VIDEO_CONFIG_URL = "/media/ava-intro-film.mp4"
 
 export function avaIntroVideoUrl(value = process.env.NEXT_PUBLIC_AVA_INTRO_VIDEO_URL || AVA_INTRO_VIDEO_CONFIG_URL) {
   const raw = value.trim()
