@@ -6,6 +6,8 @@ interface AvaAvatarProps {
   className?: string
   showOnlineIndicator?: boolean
   isAnimated?: boolean
+  /** When true (default on client platform / owner accounts), use the business-suit waist-up photo. */
+  suit?: boolean
 }
 
 const SIZE_MAP = {
@@ -20,7 +22,12 @@ export function AvaAvatar({
   className,
   showOnlineIndicator = false,
   isAnimated = false,
+  suit = true,
 }: AvaAvatarProps) {
+  // Business-suit waist-up for client platform and owner-account views.
+  // Office nightie visuals stay inside AvaSkye.online private surface only.
+  const src = suit ? "/media/ava-float.png" : "/media/ava-city.jpg"
+
   return (
     <span className={cn("relative inline-flex shrink-0", className)}>
       <span
@@ -31,7 +38,7 @@ export function AvaAvatar({
         )}
       >
         <Image
-          src="/media/ava-city.jpg"
+          src={src}
           alt=""
           fill
           sizes="96px"

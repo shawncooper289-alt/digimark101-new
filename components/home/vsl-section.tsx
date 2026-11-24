@@ -1,30 +1,12 @@
-import Image from "next/image"
-import { avaIntroVideoUrl } from "@/lib/video/ava-intro"
 import { StartActions } from "@/components/home/start-actions"
+import { MeetAvaPlayer } from "@/components/home/meet-ava-player"
 
 /**
- * VSL slot. No file is published yet, so this does not embed a video.
- *
- * Script outline, 2–4 minutes, captions on. Hook variants to film later:
- * 1. "You have one offer. The marketing is in six logins."
- * 2. "Ava asks one question at a time and saves only after you say yes."
- * 3. "A beta seat is free while DigiMark101 is in testing. No payment on that form."
- *
- * 1. Problem. A small business is stitching contacts, the page, email, and posts
- *    across tools. Most visitors will not read a long page.
- * 2. Difference. DigiMark101 is the workspace and the studio. Ava fills the
- *    setup and waits for yes. Eight disciplines are planned, then used one at a time.
- * 3. Proof. Only facts already on the site: confirm-before-save, one login,
- *    labeled samples, no invented results. No client logos until someone approves them.
- * 4. Next. Claim a free beta seat at /beta, or write the studio at /contact.
- *
- * Captions spell her name Ava. The voice says AY-vuh. Most people watch muted,
- * so captions are required when a file exists. Shot notes live in lib/video/ava-intro.ts.
- * Set NEXT_PUBLIC_AVA_INTRO_VIDEO_URL to an https file before this player appears.
+ * VSL slot. Video is now connected at /media/ava-intro-film.mp4.
+ * Captions and chapters load from /captions/.
  */
-export async function VslSection() {
-  const src = avaIntroVideoUrl()
-  const Player = src ? (await import("@/components/home/meet-ava-player")).MeetAvaPlayer : null
+export function VslSection() {
+  const src = "/media/ava-intro-film.mp4"
 
   return (
     <section id="film" className="scroll-mt-24 border-b border-ink/10 bg-paper-deep" aria-labelledby="film-heading">
@@ -54,27 +36,7 @@ export async function VslSection() {
         </div>
         <div className="lg:col-span-7">
           <div className="overflow-hidden rounded-[1.4rem] border border-signal/35">
-            {Player ? (
-              <Player src={src} />
-            ) : (
-              <div className="relative aspect-video bg-paper">
-                <Image
-                  src="/media/ava-city.jpg"
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) 720px, 100vw"
-                  className="object-cover object-[center_18%]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-paper via-paper/30 to-paper/10" />
-                <p className="absolute left-5 top-5 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-signal">Not published yet</p>
-                <div className="absolute inset-x-0 bottom-0 p-5">
-                  <p className="font-serif text-3xl text-ink">Ava Skye</p>
-                  <p className="mt-1 max-w-md text-sm text-ink-soft">
-                    Captions will be on when the film is connected. This frame is a still, not a video.
-                  </p>
-                </div>
-              </div>
-            )}
+            <MeetAvaPlayer src={src} />
           </div>
           <div className="mt-6">
             <StartActions eventPrefix="film" compact />
