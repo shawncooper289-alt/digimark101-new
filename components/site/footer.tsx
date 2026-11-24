@@ -89,15 +89,9 @@ export function Footer({ partners = [] }: { partners?: PartnerLink[] }) {
             <Link prefetch={false} href="/terms" className="inline-flex min-h-11 items-center hover:text-signal">
               Terms
             </Link>
-            <a href="https://www.avaskye.online" className="inline-flex min-h-11 items-center hover:text-signal" rel="nofollow">
-              Owner office
-            </a>
             <Link prefetch={false} href="/sitemap.xml" className="inline-flex min-h-11 items-center hover:text-signal">
               Sitemap
             </Link>
-            <a href="/llms.txt" className="inline-flex min-h-11 items-center hover:text-signal">
-              llms.txt
-            </a>
           </div>
         </div>
       </div>
