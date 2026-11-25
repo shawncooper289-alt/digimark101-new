@@ -50,7 +50,7 @@ export function MeetAvaPlayer({ src }: { src: string }) {
         >
           <span className="absolute inset-0 bg-gradient-to-t from-paper via-paper/25 to-paper/10" aria-hidden="true" />
           <span className="absolute left-5 top-5 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-signal">
-            {ready ? "About 3 minutes" : "Coming soon"}
+            {ready ? "Meet Ava" : "Coming soon"}
           </span>
           <span className="meet-play" aria-hidden="true">
             <span />

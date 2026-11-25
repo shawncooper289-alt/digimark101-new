@@ -50,10 +50,10 @@ const tools = {
   containsBanned,
 }
 
-test("the Meet Ava script is a three-minute film with no invented proof", () => {
+test("the Meet Ava script is a three-to-four-minute film with no invented proof", () => {
   const script = intro.INTRO_SCRIPT
   const words = text.wordCount(script)
-  assert.ok(words >= 420 && words <= 490, `expected about 3 minutes of words, got ${words}`)
+  assert.ok(words >= 450 && words <= 550, `expected 3 to 4 minutes of words, got ${words}`)
   assert.ok(script.length < 8000)
   assert.equal(script.includes(BANNED), false)
   assert.equal(containsBanned(script), false)
@@ -80,7 +80,12 @@ test("the storyboard keeps one face, dissolves, and passes the local quality gat
   assert.equal(project.title, "Meet Ava")
   assert.equal(project.brief.aspect, "16:9")
   assert.equal(project.brief.style, "cinematic")
-  assert.ok(project.spokenSeconds >= 170 && project.spokenSeconds <= 210)
+  assert.equal(project.brief.seconds, 210)
+  assert.equal(project.brief.attire, "black-suit")
+  assert.equal(project.scenes.length, intro.INTRO_SHOTS.length)
+  assert.ok(project.scenes.length <= 50)
+  assert.ok(intro.INTRO_SHOTS.every((shot) => /All-black outfit/.test(shot.outfit)))
+  assert.ok(project.spokenSeconds >= 180 && project.spokenSeconds <= 240)
   assert.match(project.spokenScript, /Ay-vuh/)
   assert.doesNotMatch(project.captionsVtt, /Ay-vuh/)
   const avatars = new Set(project.scenes.filter((scene) => scene.talking).map((scene) => scene.avatarId))
@@ -121,9 +126,17 @@ test("the saved script and captions match the film", () => {
   assert.equal(doc, intro.introScriptMarkdown())
   assert.equal(captions, intro.introCaptionsVtt())
   assert.equal(chapters, intro.introChaptersVtt())
-  assert.equal(fs.readFileSync("public/captions/ava-intro.vtt", "utf8"), captions)
-  assert.equal(fs.readFileSync("public/captions/ava-intro-chapters.vtt", "utf8"), chapters)
+  // Public tracks belong to the current film; draft timing must not replace them before the new edit is approved.
   assert.match(captions, /^WEBVTT/)
   assert.match(chapters, /What DigiMark101 is/)
   assert.equal(doc.includes(BANNED), false)
+})
+
+
+test("the maker rejects oversized scripts instead of silently dropping scenes or words", () => {
+  const brief = intro.introBrief()
+  const tooMany = prepare.prepareProject({ ...brief, scriptOverride: Array.from({ length: 51 }, (_, index) => `Scene number ${index}.`).join(" ") }, {}, tools)
+  assert.match(tooMany.error, /exceeds 50 scenes/)
+  const tooLong = prepare.prepareProject({ ...brief, scriptOverride: "word ".repeat(1700) }, {}, tools)
+  assert.match(tooLong.error, /exceeds 8000 characters/)
 })
