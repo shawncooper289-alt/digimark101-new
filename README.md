@@ -6,7 +6,7 @@ This is the owner manual for DigiMark101 and the founder office. The public site
 
 DigiMark101 is the marketing platform a serious agency would rather own than rent. The bar is a system that goes past a rented CRM: one dark site, one studio, and Ava Skye guiding the work. Navigation stays plain. A person can move from the offer, to the studio, to a confirmed save, without a tour.
 
-The public promise on the homepage is **Build your own dynasty. Own the system. Grow it with Ava.** That line stays. So do the transparent gold logo, Ava’s portrait on the first screen, Hear Ava, and the small semi-transparent photo that opens her chat.
+The public promise on the homepage is **Build your own dynasty. Own the system. Grow it with Ava.** That line stays. So do the transparent gold logo, Ava’s portrait on the first screen, Hear Ava, and the assistant inside the app. The public marketing pages do not load the floating widget.
 
 ## Run locally
 
@@ -53,7 +53,8 @@ The homepage hero is the current redesign:
 - Headline: Build your own dynasty. Own the system. Grow it with Ava.
 - Transparent gold DigiMark101 lockup. No cream plate. No circle smiley.
 - Ava’s photograph in the first screen, with Hear Ava under the headline. Hear Ava never autoplays.
-- A small semi-transparent photo of Ava that can be dragged. The position is remembered in the browser, and under the signed-in email when there is one. Voice on speaks her replies and then listens. Typing always works.
+- The floating Ava assistant stays inside the app, not on public marketing pages. Her shared profile and public portrait use the all-black outfit from the supplied video reference. Voice and typing controls remain in Studio.
+- `docs/ava-long-film-production.md` is the detailed replacement-film script and production handoff, not a completed render. The existing short clip is unchanged until a reviewed replacement and final-timed caption tracks are available.
 
 Work pages are labeled samples. No client names and no performance numbers are invented.
 

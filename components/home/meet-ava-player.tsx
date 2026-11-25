@@ -23,7 +23,7 @@ export function MeetAvaPlayer({ src }: { src: string }) {
           controls={started}
           playsInline
           preload="none"
-          poster="/media/ava-city.jpg"
+          poster="/media/ava-black-outfit.jpg"
           src={src}
           aria-label="Meet Ava, a short film about DigiMark101"
         >
@@ -32,7 +32,7 @@ export function MeetAvaPlayer({ src }: { src: string }) {
         </video>
       ) : (
         <Image
-          src="/media/ava-city.jpg"
+          src="/media/ava-black-outfit.jpg"
           alt=""
           fill
           sizes="(min-width: 1024px) 720px, 100vw"
