@@ -1,9 +1,9 @@
 import { captionsSrt, captionsVtt } from "./captions"
 import { nextCuts, requestedSeconds, writeScript } from "./script"
 import { buildScenes, lengthNote } from "./storyboard"
-import { stripQualityOverrides } from "./quality"
+import { stripQualityOverrides, VIDEO_QUALITY_POLICY } from "./quality"
 import { ASPECTS, ATTIRE, STYLES, type SceneDirection, type VideoBrief, type VideoProject } from "./types"
-import { safeHttpsUrl, type TextTools } from "./text"
+import { safeHttpsUrl, sentences, type TextTools } from "./text"
 import {
   avaAvatarId,
   defaultBrand,
@@ -42,6 +42,9 @@ function numberOf(value: unknown) {
 export function readBrief(input: unknown): { brief: VideoBrief; ignored: string[] } | { error: string } {
   if (!input || typeof input !== "object") return { error: "The brief was empty." }
   const { brief: raw, ignored } = stripQualityOverrides(input as Record<string, unknown>)
+  if (typeof raw.scriptOverride === "string" && raw.scriptOverride.trim().length > 8000) {
+    return { error: "The script exceeds 8000 characters; shorten it before rendering so no words are dropped." }
+  }
   const aspect = textOf(raw.aspect, 8)
   const style = textOf(raw.style, 20)
   const presenter = textOf(raw.presenter, 12)
@@ -80,6 +83,9 @@ export function prepareProject(input: unknown, env: Env, tools: TextTools): { pr
   if ("error" in read) return read
   const script = writeScript(read.brief, tools)
   if (!script.full) return { error: "Add the idea in a sentence or two." }
+  if (sentences(script.full).length > VIDEO_QUALITY_POLICY.maxScenes) {
+    return { error: "The script exceeds 50 scenes; split or shorten it before rendering so no scenes are dropped." }
+  }
   const spokenScript = tools.spokenText(tools.omitBannedLine(script.full))
   const avatarId = read.brief.presenter === "ava"
     ? avaAvatarId(env, read.brief.attire)

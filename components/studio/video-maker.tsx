@@ -205,6 +205,8 @@ export function VideoMaker() {
               <option value={30}>30 seconds</option>
               <option value={60}>1 minute</option>
               <option value={180}>3 minutes</option>
+              <option value={210}>3½ minutes</option>
+              <option value={240}>4 minutes</option>
               <option value={300}>5 minutes</option>
             </select>
           </label>

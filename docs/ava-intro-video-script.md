@@ -1,8 +1,8 @@
 # Meet Ava
 
-About three minutes. Spoken by Ava Skye. On screen, and in the captions, her name is spelled Ava. Out loud it is AY-vuh, with a long A as in able. The video maker swaps in that pronunciation before any voice is made. You do not type the phonetic spelling into the script.
+Three to four minutes, targeting about three and a half. Spoken by Ava Skye. On screen, and in the captions, her name is spelled Ava. Out loud it is AY-vuh, with a long A as in able. The video maker swaps in that pronunciation before any voice is made. You do not type the phonetic spelling into the script.
 
-This is the homepage film. It says what DigiMark101 is, why it is a better fit than a pile of separate tools, what is actually in the product, how a first day works, and what to do next. It does not invent clients, reviews, rankings, or income.
+This is the draft for the replacement homepage film, not a completed render. It says what DigiMark101 is, why it is a better fit than a pile of separate tools, what is actually in the product, how a first day works, and what to do next. It does not invent clients, reviews, rankings, or income.
 
 ## Render it in the video maker
 
@@ -12,31 +12,31 @@ Office: open `/video`. Studio: open `/studio/video`. Both use the same maker.
 2. Click **Write the script**. The script is already written, so this step builds the scenes. You can still edit a line.
 3. **Make a preview draft** any time. The draft is labeled. It is not lip-synced, and it is not a finished ad.
 4. **Render a finished video** after `HEYGEN_API_KEY` (or the generic lip-sync pair), `AVA_AVATAR_ID`, and a voice id (`AVA_VOICE_CLONE_ID`, or `ELEVENLABS_VOICE_ID` until the clone exists) are set. No code change. The maker asks for premium quality: Avatar V, ElevenLabs `eleven_v4`, 4K when the account accepts it, otherwise 1080p.
-5. When you have a finished file at a stable https address, set `NEXT_PUBLIC_AVA_INTRO_VIDEO_URL` to that address and redeploy. Until then the homepage player shows the Coming soon poster. It never autoplays with sound.
+5. When you have a finished file at a stable https address, set `NEXT_PUBLIC_AVA_INTRO_VIDEO_URL` to that address and redeploy. The existing short film remains unchanged until the replacement is approved; the Coming soon poster is used only when no URL is configured. It never autoplays with sound.
 
-Every talking scene keeps one avatar id, so the quality check sees the same face. Wardrobe changes are motion direction for that same person: navy blazer, black suit, then a tailored jacket, then the navy blazer again. `AVA_AVATAR_LOOKS` can name extra looks of her. It must not point at a different face. The loaded brief starts in the navy blazer.
+Every talking scene keeps one avatar id, so the quality check sees the same face. The all-black outfit must match the supplied video reference throughout; no wardrobe changes or substitute face. `AVA_AVATAR_LOOKS` can name extra looks of her. It must not point at a different face. The loaded brief selects the black-suit look; approve that look against the uploaded reference before rendering.
 
 ## The words
 
 ### What DigiMark101 is
 
-I'm Ava Skye, and if you want to make money online, this is the place to start. DigiMark101 is a marketing workspace and a studio, and that workspace is called Studio. Your people, your drafts, your files, and the path of a sale all live in one login. I am the assistant in the middle of it, and you can talk to me by voice or you can type. I ask one plain question at a time, I fill in the forms, and I save a change only after you say yes. You do not have to learn every menu before you can start, and that is the done-for-you setup.
+I'm Ava Skye, your AI assistant inside DigiMark101, helping turn marketing ideas into organized work and useful drafts. Work with me inside Studio, our marketing workspace, or ask about agency services for a project with an agreed scope. You bring the offer and the decisions, and I help with supported tasks without expecting you to learn every menu first. Inside the app you can talk to me by voice or you can type, using ordinary words to explain your goal.
 
 ### Why this is the better choice
 
-Most tools hand you a menu and leave you there, and some pile on calling, texting, and payments before you know your offer. DigiMark101 is one system you can grow with me beside you, and I will say what is still being connected. I will not invent a client, a review, or a number, and if a piece is not ready, I say so.
+Keep contacts, sales opportunities, campaign planning, and files together in Studio, instead of switching between disconnected notes and drafts. This is practical, done-for-you assistance with supported work, not a promise that every outside service is connected or results are guaranteed. I distinguish saved records, drafts, and published results, so you can check what actually happened before moving on.
 
 ### What you get
 
-When a draft is long, six helpers work with me: pages and offers, social posts, ad notes, search outlines, follow-up, and research. A seventh job waits, I still speak in one voice, and nothing is sent, posted, or spent until you confirm. Inside Studio you can keep contacts, move a deal, book a time, draft an email, plan a page, and save a file. The apps catalog shows what is ready to connect and what is still coming. The video maker writes a script and, once the avatar and video keys are set, can render a finished video of me. Until those keys are set, you still get a labeled preview draft, not a finished ad.
+Ask me to add a contact, then check the saved record, knowing that adding someone does not message them. Ask me to create a sales opportunity or move a deal, then use the pipeline to see which conversation needs attention. For content, tell me your audience, offer, and tone, and ask for an email or social draft you can review and refine before using it. Six helpers support pages and offers, social posts, ad notes, search outlines, follow-up, and research, while I remain the assistant you speak with. The workspace also supports calendar records, page and form drafts, and files, while the apps catalog shows connection status and the video maker prepares scripts and storyboards. For agency help, explore website design, search engine optimization, ads management, social media, content, email, and analytics, with fees and deliverables agreed in a proposal. Agency services are separate, not automatically included in a workspace account or carried out by a chat reply.
 
 ### How a first day works
 
-Here is a first day, step by step. Create an account, or join the free beta with an email sign-in link and no PayPal step. Open Studio, or just talk to me, and tell me the one thing you want to sell and who it is for. I draft the setup on the screen, you read it, and you say yes before it is saved. Then finish one real piece: add a person, move a deal, or use the first-campaign path for one page, one form, and three follow-up emails. Approving saves the draft, and it does not publish a website or send the email until those connections are turned on. We do not pay you, income is not guaranteed, and it depends on your offer, your effort, and the people you reach.
+Start with one offer and one audience, open Studio, then type a request such as drafting a welcome email for a new customer. For voice, allow microphone access when your browser asks, speak clearly, and check the transcript, using typing instead if your device does not support voice. You can stop the microphone or my spoken reply, inspect the result on screen, and provide missing details rather than let an ambiguous request become a guess. For your first campaign, plan one page, one form, and a short follow-up sequence, then review each piece instead of trying to launch everything at once. Saving a draft does not send an email or publish a website, and sending, publishing, spending, or deleting needs the appropriate access, connections, and confirmations. Some outside delivery connections are still being built, an invoice record does not charge a card, and a queued message is not proof of delivery. We do not pay you, income is not guaranteed, and results depend on your offer, your effort, your audience, and how you carry out the work.
 
 ### Start
 
-Bring one offer, create your account or talk to me, and leave with a workspace you can keep. I am Ava Skye, and we can build your dynasty one yes at a time.
+Create your account or explore the available Studio preview, bring me one useful task, and type it or speak it inside the app. If you want agency help, use the contact path and explain what you want to build, so we can agree on the right next step. I am Ava Skye, and we can build your dynasty one practical step at a time, with you in control of the decisions.
 
 ## Music
 
@@ -48,343 +48,343 @@ Same face in every shot. Business attire only. Camera moves stay slow. Cuts are 
 
 ### Scene 1 — What DigiMark101 is
 
-**Spoken:** I'm Ava Skye, and if you want to make money online, this is the place to start.
+**Spoken:** I'm Ava Skye, your AI assistant inside DigiMark101, helping turn marketing ideas into organized work and useful drafts.
 
-**Outfit:** Navy blazer over an ivory blouse. Same face, hair down, tasteful business attire.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Dark studio at night. Warm key light. Soft city lights through the glass. Gold and cream, never a new color palette.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Slow push-in from a waist-up frame to her face. The city stays soft. The move never stops.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** None. Ava fills the frame.
+**B-roll:** Ava in the reference outfit; real homepage and Studio entry, without a public floating widget.
 
 **Transition:** Fade in from black over a short beat. Then stay in the same light.
 
 ### Scene 2 — What DigiMark101 is
 
-**Spoken:** DigiMark101 is a marketing workspace and a studio, and that workspace is called Studio.
+**Spoken:** Work with me inside Studio, our marketing workspace, or ask about agency services for a project with an agreed scope.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same studio and the same light.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Gentle drift to a three-quarter angle, then ease back to her eyes.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** The word Studio fades onto a glass panel in gold, then leaves. No chart and no logo lockup of another company.
+**B-roll:** Real Studio entry and Services page, clearly separating workspace access from agency engagements.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 3 — What DigiMark101 is
 
-**Spoken:** Your people, your drafts, your files, and the path of a sale all live in one login.
+**Spoken:** You bring the offer and the decisions, and I help with supported tasks without expecting you to learn every menu first.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same studio.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** A slight rise as the camera gives the glass panel a little room, then returns to Ava.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** Four quiet words on the glass: people, drafts, files, sales. They dissolve off.
+**B-roll:** Inside-app Ava panel next to a demonstration task; no invented completed result.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 4 — What DigiMark101 is
 
-**Spoken:** I am the assistant in the middle of it, and you can talk to me by voice or you can type.
+**Spoken:** Inside the app you can talk to me by voice or you can type, using ordinary words to explain your goal.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same studio. A small microphone glow, not a gadget ad.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Slow arc from her shoulder back to a steady medium close-up.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** A voice wave and a typed line share one card, then dissolve. No autoplay sound in the plate.
-
-**Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
-
-### Scene 5 — What DigiMark101 is
-
-**Spoken:** I ask one plain question at a time, I fill in the forms, and I save a change only after you say yes.
-
-**Outfit:** Navy blazer, same look.
-
-**Setting:** Same light. She is seated now, still in the blazer.
-
-**Camera:** Slow push-in that lands as she says yes. Keep a little drift so the picture stays alive.
-
-**B-roll:** A form fills itself, then waits on a Yes button. The button is not pressed until the line says so.
+**B-roll:** Real Ava typing input and microphone controls inside Studio; readable transcript.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
-### Scene 6 — What DigiMark101 is
+### Scene 5 — Why this is the better choice
 
-**Spoken:** You do not have to learn every menu before you can start, and that is the done-for-you setup.
+**Spoken:** Keep contacts, sales opportunities, campaign planning, and files together in Studio, instead of switching between disconnected notes and drafts.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same studio, a little wider.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Drift wider to show the room, then settle on her with the move still breathing.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** None.
+**B-roll:** Real Contacts, Pipeline, Campaigns, and Files screens with labeled demonstration data.
+
+**Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
+
+### Scene 6 — Why this is the better choice
+
+**Spoken:** This is practical, done-for-you assistance with supported work, not a promise that every outside service is connected or results are guaranteed.
+
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
+
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
+
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
+
+**B-roll:** Ava on camera; keep unsupported delivery connections clearly labeled as unavailable.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 7 — Why this is the better choice
 
-**Spoken:** Most tools hand you a menu and leave you there, and some pile on calling, texting, and payments before you know your offer.
+**Spoken:** I distinguish saved records, drafts, and published results, so you can check what actually happened before moving on.
 
-**Outfit:** Change, on the dissolve, into a black suit with a simple blouse. Same person, same hair, same light.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same studio. A dim row of blank screens sits behind her, out of focus.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Slow lateral move past the blank screens, then back to Ava. No other company's logo.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** Empty screens only. No fake dashboards.
-
-**Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
-
-### Scene 8 — Why this is the better choice
-
-**Spoken:** DigiMark101 is one system you can grow with me beside you, and I will say what is still being connected.
-
-**Outfit:** Black suit, same look.
-
-**Setting:** Same light, closer.
-
-**Camera:** Steady push-in. A thin gold rule draws on, then dissolves away.
-
-**B-roll:** Two short labels, Works today and Still connecting, in the brand colors. No numbers.
+**B-roll:** Readable saved-record and draft status labels; no fake published badge.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
-### Scene 9 — Why this is the better choice
+### Scene 8 — What you get
 
-**Spoken:** I will not invent a client, a review, or a number, and if a piece is not ready, I say so.
+**Spoken:** Ask me to add a contact, then check the saved record, knowing that adding someone does not message them.
 
-**Outfit:** Black suit, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same light, quiet.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** A calm close-up with a very slow drift. The picture keeps moving.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** None.
+**B-roll:** Record a real demonstration contact creation and verify the resulting record; do not message anyone.
+
+**Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
+
+### Scene 9 — What you get
+
+**Spoken:** Ask me to create a sales opportunity or move a deal, then use the pipeline to see which conversation needs attention.
+
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
+
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
+
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
+
+**B-roll:** Record a demonstration deal and its actual stage change, then show the pipeline.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 10 — What you get
 
-**Spoken:** When a draft is long, six helpers work with me: pages and offers, social posts, ad notes, search outlines, follow-up, and research.
+**Spoken:** For content, tell me your audience, offer, and tone, and ask for an email or social draft you can review and refine before using it.
 
-**Outfit:** Change, on the dissolve, into a tailored jacket. Same person. Seated at a dark walnut desk.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** The desk, a laptop with the Studio screen, warm practical lamp, same exposure as the studio.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Slow push across the desk as six plain cards appear one by one, then dissolve back toward Ava.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** Six cards only, with those six jobs. No seventh card. Brand colors. No stock photos of a crowd.
+**B-roll:** Real campaign or social draft input and saved draft; keep draft status visible.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 11 — What you get
 
-**Spoken:** A seventh job waits, I still speak in one voice, and nothing is sent, posted, or spent until you confirm.
+**Spoken:** Six helpers support pages and offers, social posts, ad notes, search outlines, follow-up, and research, while I remain the assistant you speak with.
 
-**Outfit:** Tailored jacket, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same desk.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Dissolve from the cards back to her face. A small nod in the motion. Same light.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** The six cards fade. One card marked Next waits at the side, dimmer.
+**B-roll:** Six labeled helper roles, matching the narration; no invented results or client logos.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 12 — What you get
 
-**Spoken:** Inside Studio you can keep contacts, move a deal, book a time, draft an email, plan a page, and save a file.
+**Spoken:** The workspace also supports calendar records, page and form drafts, and files, while the apps catalog shows connection status and the video maker prepares scripts and storyboards.
 
-**Outfit:** Tailored jacket, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same desk. The laptop becomes the subject for a moment.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Lateral drift from Ava to the screen, then drift back to her. One continuous move.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** Real Studio surfaces only: contacts, pipeline stages from new to won, calendar, an email draft, a page plan, files. No invented metrics.
+**B-roll:** Real Calendar, Forms, Sites, Apps status, and video storyboard screens.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 13 — What you get
 
-**Spoken:** The apps catalog shows what is ready to connect and what is still coming.
+**Spoken:** For agency help, explore website design, search engine optimization, ads management, social media, content, email, and analytics, with fees and deliverables agreed in a proposal.
 
-**Outfit:** Tailored jacket, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same desk.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** The catalog list slides under a soft gold highlight, then the camera returns to Ava.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** Apps catalog rows with plain status words such as works and coming soon. No partner logos treated as clients.
+**B-roll:** Real Services page showing website design, SEO, ads, social, content, email, and analytics.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 14 — What you get
 
-**Spoken:** The video maker writes a script and, once the avatar and video keys are set, can render a finished video of me.
+**Spoken:** Agency services are separate, not automatically included in a workspace account or carried out by a chat reply.
 
-**Outfit:** Tailored jacket, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same desk, then a storyboard wall of this same film.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Slow push along the storyboard frames, dissolving into Ava.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** This shot list as simple frames. A small note that finished video needs the avatar and video keys. No fake play count.
+**B-roll:** Real agency contact/proposal path; make clear it is separate from workspace access.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
-### Scene 15 — What you get
+### Scene 15 — How a first day works
 
-**Spoken:** Until those keys are set, you still get a labeled preview draft, not a finished ad.
+**Spoken:** Start with one offer and one audience, open Studio, then type a request such as drafting a welcome email for a new customer.
 
-**Outfit:** Tailored jacket, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same desk.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** A preview card enters and leaves on a dissolve. Ava stays in the light.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** A card that reads PREVIEW DRAFT. It is not lip-synced and it is not a finished ad.
+**B-roll:** Real typed welcome-email request on a demonstration workspace; show the saved draft.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 16 — How a first day works
 
-**Spoken:** Here is a first day, step by step.
+**Spoken:** For voice, allow microphone access when your browser asks, speak clearly, and check the transcript, using typing instead if your device does not support voice.
 
-**Outfit:** Change back to the navy blazer on the dissolve. Same person. She is standing by the window.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** The studio window, city behind her, then she turns toward the desk.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** She turns from the window toward the desk. The camera follows with a slow drift.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** None.
+**B-roll:** Real browser microphone permission and resulting voice transcript; no simulated recognition.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 17 — How a first day works
 
-**Spoken:** Create an account, or join the free beta with an email sign-in link and no PayPal step.
+**Spoken:** You can stop the microphone or my spoken reply, inspect the result on screen, and provide missing details rather than let an ambiguous request become a guess.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Seated again. Screen beside her.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Drift from Ava to the signup screen, then back.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** The create-account screen and the beta form. No personal data typed on screen. No PayPal button on the beta form.
+**B-roll:** Real Stop control and transcript review; show missing information being clarified.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 18 — How a first day works
 
-**Spoken:** Open Studio, or just talk to me, and tell me the one thing you want to sell and who it is for.
+**Spoken:** For your first campaign, plan one page, one form, and a short follow-up sequence, then review each piece instead of trying to launch everything at once.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Ava and a chat panel in the same frame.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Slow push toward her, with the chat panel sharing the frame.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** A short typed question and her reply. Plain words. No customer names.
+**B-roll:** Real first-campaign draft: page plan, form, follow-up sequence; all labeled Draft.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 19 — How a first day works
 
-**Spoken:** I draft the setup on the screen, you read it, and you say yes before it is saved.
+**Spoken:** Saving a draft does not send an email or publish a website, and sending, publishing, spending, or deleting needs the appropriate access, connections, and confirmations.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** The confirm step, large and calm.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Move from the draft to her eyes as the yes lands. Keep the drift.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** A draft card and a confirm control. The save happens only after the spoken yes.
+**B-roll:** Real draft and confirmation states; do not suggest that an unconnected send or publish occurred.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 20 — How a first day works
 
-**Spoken:** Then finish one real piece: add a person, move a deal, or use the first-campaign path for one page, one form, and three follow-up emails.
+**Spoken:** Some outside delivery connections are still being built, an invoice record does not charge a card, and a queued message is not proof of delivery.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Studio UI as plates beside her.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** One continuous drift across three UI plates, then back to Ava. Not a hard slideshow cut.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** A new contact, a deal moving stage, and a first-campaign draft of one page, one form, and three emails.
+**B-roll:** Real invoice record and queued message status with no charge or delivery claim.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 21 — How a first day works
 
-**Spoken:** Approving saves the draft, and it does not publish a website or send the email until those connections are turned on.
+**Spoken:** We do not pay you, income is not guaranteed, and results depend on your offer, your effort, your audience, and how you carry out the work.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Same frame. The draft stays marked as a draft.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Ease back from the screen to Ava. The picture keeps a slight move.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** The word Draft stays on the card. No send animation.
+**B-roll:** Ava on camera; subtle income-not-guaranteed text, no money graphics.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
-### Scene 22 — How a first day works
+### Scene 22 — Start
 
-**Spoken:** We do not pay you, income is not guaranteed, and it depends on your offer, your effort, and the people you reach.
+**Spoken:** Create your account or explore the available Studio preview, bring me one useful task, and type it or speak it inside the app.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Quiet medium shot. No money graphics.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Calm medium shot with a slow drift. No coins, no rising chart, no crowd.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** None.
+**B-roll:** Current account and Studio preview links from the real site.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 23 — Start
 
-**Spoken:** Bring one offer, create your account or talk to me, and leave with a workspace you can keep.
+**Spoken:** If you want agency help, use the contact path and explain what you want to build, so we can agree on the right next step.
 
-**Outfit:** Navy blazer, same look. She steps a little closer.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Wider studio, city behind her, gold rim light.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Wider shot, then a slow push-in as she steps closer.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** Three quiet words at the lower third: Account, Beta, Talk. They dissolve off before the last line.
+**B-roll:** Real agency contact path; no customer details entered.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ### Scene 24 — Start
 
-**Spoken:** I am Ava Skye, and we can build your dynasty one yes at a time.
+**Spoken:** I am Ava Skye, and we can build your dynasty one practical step at a time, with you in control of the decisions.
 
-**Outfit:** Navy blazer, same look.
+**Outfit:** All-black outfit matching the supplied video reference. Same approved Ava face, hair, and look in every scene.
 
-**Setting:** Close, warm key, gold rim. Same face as the open.
+**Setting:** Dark studio, warm soft key light, consistent exposure; actual Studio recordings as cutaways.
 
-**Camera:** Final close-up with a slow drift. After the line, dissolve toward black while the picture is still moving.
+**Camera:** Restrained slow push or lateral drift; use readable screen close-ups during demonstrations.
 
-**B-roll:** None. End on Ava.
+**B-roll:** Return to Ava in the same all-black outfit and lighting; finish with a restrained brand end card.
 
 **Transition:** Dissolve from the previous shot over a short beat. No flash cut and no exposure jump.
 
 ## Captions
 
-The captions draft is `docs/ava-intro-video-captions.vtt`. Chapter markers are `docs/ava-intro-video-chapters.vtt`. The homepage player loads the same tracks. Timings follow the words at a calm pace. A finished render may land a little earlier or later. Update the tracks from the maker's caption download if you change a line.
+The captions draft is `docs/ava-intro-video-captions.vtt`. Chapter markers are `docs/ava-intro-video-chapters.vtt`. Public player tracks are kept separate until the new film is approved. These draft timings follow the words at a calm pace. A finished render may land a little earlier or later. Update the tracks from the maker's caption download if you change a line.
 
 ## What this film does not say
 

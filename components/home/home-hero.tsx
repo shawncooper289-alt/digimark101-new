@@ -11,7 +11,7 @@ export function HomeHero() {
         <div className="order-2 lg:order-1 lg:col-span-7">
           <div className="relative mb-4 h-14 w-14 overflow-hidden rounded-full border border-signal/40 lg:hidden">
             <Image
-              src="/media/ava-city.jpg"
+              src="/media/ava-black-outfit.jpg"
               alt="Ava Skye"
               fill
               sizes="56px"
@@ -55,8 +55,8 @@ export function HomeHero() {
         <div className="order-1 lg:order-2 lg:col-span-5">
           <div className="relative hidden aspect-[4/5] w-full overflow-hidden rounded-[1.4rem] border border-signal/40 lg:block">
             <Image
-              src="/media/ava-city.jpg"
-              alt="Ava Skye, the DigiMark101 setup guide, in a dark studio"
+              src="/media/ava-black-outfit.jpg"
+              alt="Ava Skye, the DigiMark101 setup guide, wearing her all-black outfit"
               fill
               sizes="420px"
               quality={70}
