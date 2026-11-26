@@ -79,7 +79,7 @@ export function probeChecks(project: VideoProject, probe: MediaProbe): QualityCh
       "lip-sync",
       "Lip sync",
       "not_measured",
-      "Lip-sync timing was not confirmed, so this was not marked as a finished video.",
+      "The mouth timing was not measured. A person reviews it before this is published.",
     ))
   } else if (Math.abs(probe.lipSyncOffsetMs) <= frameBudgetMs(fps || VIDEO_QUALITY_POLICY.heygenAvatarFps) + 0.01) {
     checks.push(check("lip-sync", "Lip sync", "pass", "The mouth lands inside one frame of the voice."))
@@ -88,7 +88,7 @@ export function probeChecks(project: VideoProject, probe: MediaProbe): QualityCh
   }
 
   if (typeof probe.videoDurationMs !== "number" || typeof probe.audioDurationMs !== "number") {
-    checks.push(check("duration", "Sound and picture length", "not_measured", "The video service did not report both lengths."))
+    checks.push(check("duration", "Sound and picture length", "not_measured", "Sound and picture length were not both measured. A person reviews them before this is published."))
   } else if (Math.abs(probe.videoDurationMs - probe.audioDurationMs) <= VIDEO_QUALITY_POLICY.durationToleranceMs) {
     checks.push(check("duration", "Sound and picture length", "pass", "The voice and the picture end together."))
   } else {
@@ -96,7 +96,7 @@ export function probeChecks(project: VideoProject, probe: MediaProbe): QualityCh
   }
 
   if (typeof probe.blackFrameCount !== "number") {
-    checks.push(check("black-frames", "Black frames", "not_measured", "Black frames were not measured."))
+    checks.push(check("black-frames", "Black frames", "not_measured", "Black frames were not measured. A person reviews the picture before this is published."))
   } else if (probe.blackFrameCount > VIDEO_QUALITY_POLICY.maxBlackFrames) {
     checks.push(check("black-frames", "Black frames", "fail", "The file has a black frame."))
   } else {
@@ -104,7 +104,7 @@ export function probeChecks(project: VideoProject, probe: MediaProbe): QualityCh
   }
 
   if (typeof probe.frozenSeconds !== "number") {
-    checks.push(check("frozen", "Frozen frames", "not_measured", "Frozen frames were not measured."))
+    checks.push(check("frozen", "Frozen frames", "not_measured", "Frozen frames were not measured. A person reviews the picture before this is published."))
   } else if (probe.frozenSeconds > VIDEO_QUALITY_POLICY.maxFrozenSeconds) {
     checks.push(check("frozen", "Frozen frames", "fail", "The picture holds still longer than a blink."))
   } else {
@@ -116,17 +116,18 @@ export function probeChecks(project: VideoProject, probe: MediaProbe): QualityCh
 const RETRYABLE = new Set(["lip-sync", "duration", "black-frames", "frozen", "fps"])
 
 export function decide(checks: QualityCheck[], attempt: number): DeliveryDecision {
-  const reasons = checks
-    .filter((item) => item.state === "fail" || item.state === "not_measured")
-    .map((item) => item.detail)
-  const deliver = reasons.length === 0
-  const failedIds = checks.filter((item) => item.state === "fail").map((item) => item.id)
-  const measuredGap = checks.some((item) => item.state === "not_measured")
-  const retryable = !deliver
+  const failures = checks.filter((item) => item.state === "fail")
+  const unmeasured = checks.filter((item) => item.state === "not_measured")
+  const failedIds = failures.map((item) => item.id)
+  const retryable = failures.length > 0
+    && unmeasured.length === 0
     && attempt < VIDEO_QUALITY_POLICY.maxAttempts
     && failedIds.every((id) => RETRYABLE.has(id))
-    && !measuredGap
-  return { deliver, retryable, reasons, checks }
+  const review = failures.length === 0
+  const reasons = review
+    ? unmeasured.map((item) => item.detail)
+    : failures.map((item) => item.detail)
+  return { deliver: false, review, retryable, reasons, checks }
 }
 
 export function expectedDurationMs(project: VideoProject) {

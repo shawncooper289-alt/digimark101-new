@@ -2,10 +2,26 @@ import { NextResponse } from "next/server"
 import { omitBannedLine } from "@/lib/ava/banned-line"
 import { AVA_IDENTITY } from "@/lib/ava/identity"
 import { officeConfig, readOfficeOwner, supabaseKeyHeaders } from "@/lib/office-store"
+import { ffmpegAvailable, renderWithFfmpeg } from "../../../../../../lib/video/ffmpeg-render"
 import { handleVideoRequest } from "../../../../../../lib/video/handle"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+export const maxDuration = 300
+
+function callbackBase(request: Request) {
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || ""
+  const proto = request.headers.get("x-forwarded-proto") || "https"
+  return host ? `${proto}://${host}` : ""
+}
+
+async function film() {
+  const ready = await ffmpegAvailable()
+  return {
+    editorReady: async () => (ready.ok ? { ok: true as const } : { ok: false as const, reason: ready.reason }),
+    render: renderWithFfmpeg,
+  }
+}
 
 const tools = {
   omitBannedLine,
@@ -45,7 +61,7 @@ async function saveCampaign(ownerId: string, name: string, brief: string) {
 export async function GET() {
   const owner = await readOfficeOwner()
   if (!owner) return NextResponse.json({ error: "The owner office is closed." }, { status: 403 })
-  const result = await handleVideoRequest({ action: "capabilities", payload: {}, env: process.env, tools })
+  const result = await handleVideoRequest({ action: "capabilities", payload: {}, env: process.env, tools, app: "office" })
   return NextResponse.json(result.body, { status: result.status })
 }
 
@@ -54,7 +70,18 @@ export async function POST(request: Request) {
   if (!owner) return NextResponse.json({ error: "The owner office is closed." }, { status: 403 })
   const payload = await request.json().catch(() => null) as { action?: unknown } | null
   const action = typeof payload?.action === "string" ? payload.action : ""
-  const result = await handleVideoRequest({ action, payload, env: process.env, tools })
+  if (action === "sweep") return NextResponse.json({ error: "That action is not available here." }, { status: 403 })
+  const editing = await film()
+  const result = await handleVideoRequest({
+    action,
+    payload,
+    env: process.env,
+    tools,
+    app: "office",
+    ownerId: owner.id,
+    callbackBase: callbackBase(request),
+    ...editing,
+  })
   if (action !== "handoff" || result.status !== 200 || typeof result.body.caption !== "string") {
     return NextResponse.json(result.body, { status: result.status })
   }

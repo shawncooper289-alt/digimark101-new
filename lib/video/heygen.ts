@@ -1,82 +1,64 @@
 import { VIDEO_QUALITY_POLICY, type VideoResolution } from "./quality"
-import type { Scene, VideoProject } from "./types"
+import type { AspectRatio } from "./types"
 
-export type HeygenScene = {
-  type: "avatar_video"
-  input: {
-    type: "avatar"
-    avatar_id: string
-    script: string
-    voice_id: string
-    voice_settings: {
-      speed: number
-      locale: string
-      engine_settings: {
-        engine_type: "elevenlabs"
-        model: typeof VIDEO_QUALITY_POLICY.ttsModel
-        stability: number
-      }
-    }
-    engine: { type: typeof VIDEO_QUALITY_POLICY.avatarEngine }
-    motion_prompt: string
-    background: { type: "color"; color: string }
-  }
-}
+export const HEYGEN_ENGINES = ["heygen-avatar-6-turbo", "heygen-avatar-6"] as const
+export type HeygenEngine = (typeof HEYGEN_ENGINES)[number]
 
-export type HeygenRequest = {
-  type: "studio"
+export type HeygenAvatarRequest = {
+  type: "avatar"
   title: string
-  aspect_ratio: VideoProject["brief"]["aspect"]
+  avatar_id: string
+  audio_url: string
+  aspect_ratio: AspectRatio
   resolution: VideoResolution
-  caption: { file_format: "srt"; style: "default" }
-  scenes: HeygenScene[]
+  engine: { type: HeygenEngine }
+  motion_prompt: string
+  callback_url?: string
+  callback_id?: string
 }
 
-function motionPrompt(scene: Scene) {
-  return [
-    scene.transition,
-    scene.camera,
-    scene.lighting,
-    scene.visual,
-    "Same face as the Let's get started avatar. Smooth motion. Keep the picture moving. No black frame.",
-  ].join(" ")
+/**
+ * One Avatar 6 clip, driven by a public slice of the ElevenLabs master.
+ * The ElevenLabs voice id is never sent as HeyGen's voice_id.
+ */
+export function heygenAvatarRequest(input: {
+  title: string
+  avatarId: string
+  audioUrl: string
+  aspect: AspectRatio
+  engine: HeygenEngine
+  motionPrompt: string
+  callbackUrl?: string
+  callbackId?: string
+}): HeygenAvatarRequest | { error: string } {
+  if (!input.avatarId) return { error: "Ava's avatar id is not set." }
+  if (!input.audioUrl.startsWith("https://")) return { error: "HeyGen needs a public https address for the voice slice." }
+  if (!HEYGEN_ENGINES.includes(input.engine)) return { error: "That avatar engine is not an Avatar 6 engine." }
+  const body: HeygenAvatarRequest = {
+    type: "avatar",
+    title: input.title.slice(0, 120),
+    avatar_id: input.avatarId,
+    audio_url: input.audioUrl,
+    aspect_ratio: input.aspect,
+    resolution: "1080p",
+    engine: { type: input.engine },
+    motion_prompt: input.motionPrompt.slice(0, 500),
+  }
+  if (input.callbackUrl?.startsWith("https://")) {
+    body.callback_url = input.callbackUrl
+    if (input.callbackId) body.callback_id = input.callbackId.slice(0, 120)
+  }
+  return body
 }
 
-export function heygenBody(project: VideoProject, resolution: VideoResolution): HeygenRequest | { error: string } {
-  const talking = project.scenes.filter((scene) => scene.talking)
-  if (!talking.length) return { error: "This style has no talking scene to lip-sync." }
-  if (talking.length > VIDEO_QUALITY_POLICY.maxScenes) return { error: "That storyboard is longer than the render limit of 50 scenes." }
-  if (talking.some((scene) => !scene.avatarId || !scene.voiceId)) {
-    return { error: "Every talking scene needs the same avatar and the same voice." }
-  }
-  return {
-    type: "studio",
-    title: project.title.slice(0, 120),
-    aspect_ratio: project.brief.aspect,
-    resolution,
-    caption: { file_format: "srt", style: "default" },
-    scenes: talking.map((scene) => ({
-      type: "avatar_video",
-      input: {
-        type: "avatar",
-        avatar_id: scene.avatarId,
-        script: scene.spoken,
-        voice_id: scene.voiceId,
-        voice_settings: {
-          speed: 1,
-          locale: "en-US",
-          engine_settings: {
-            engine_type: "elevenlabs",
-            model: VIDEO_QUALITY_POLICY.ttsModel,
-            stability: 0.5,
-          },
-        },
-        engine: { type: VIDEO_QUALITY_POLICY.avatarEngine },
-        motion_prompt: motionPrompt(scene),
-        background: { type: "color", color: project.brief.brand.primary },
-      },
-    })),
-  }
+/** Prefer the configured engine when the look lists it. Otherwise take the first Avatar 6 engine the look allows. */
+export function pickHeygenEngine(preferred: string, supported: string[] | undefined): HeygenEngine | "" {
+  const want = preferred === "heygen-avatar-6" ? "heygen-avatar-6" : "heygen-avatar-6-turbo"
+  if (!supported || supported.length === 0) return want
+  if (supported.includes(want)) return want
+  if (supported.includes("heygen-avatar-6-turbo")) return "heygen-avatar-6-turbo"
+  if (supported.includes("heygen-avatar-6")) return "heygen-avatar-6"
+  return ""
 }
 
 export function heygenCreateUrl() {
@@ -85,6 +67,10 @@ export function heygenCreateUrl() {
 
 export function heygenStatusUrl(videoId: string) {
   return `https://api.heygen.com/v3/videos/${encodeURIComponent(videoId)}`
+}
+
+export function heygenLookUrl(lookId: string) {
+  return `https://api.heygen.com/v3/avatars/looks/${encodeURIComponent(lookId)}`
 }
 
 type UnknownRecord = Record<string, unknown>
@@ -111,44 +97,39 @@ function pickNumber(source: UnknownRecord | null, keys: string[]) {
   return undefined
 }
 
-/** Read a HeyGen create or status payload without assuming one nesting shape. */
+/** Read a HeyGen payload without inventing measurements the service did not send. */
 export function readHeygenPayload(payload: unknown) {
   const root = record(payload)
   const data = record(root?.data) || root
-  const videoId = pickString(data, ["video_id", "id"])
-  const status = pickString(data, ["status"]).toLowerCase()
-  const resolution = pickString(data, ["resolution"])
-  const resolutionNote = pickString(data, ["resolution_note", "resolutionNote"])
-  const width = pickNumber(data, ["width"])
-  const height = pickNumber(data, ["height"])
-  const fps = pickNumber(data, ["fps"])
+  const error = record(root?.error)
   const duration = pickNumber(data, ["duration", "duration_seconds"])
   const durationMs = pickNumber(data, ["video_duration_ms", "duration_ms", "videoDurationMs"])
-  const audioMs = pickNumber(data, ["audio_duration_ms", "audioDurationMs"])
-  const lip = pickNumber(data, ["lip_sync_offset_ms", "lipSyncOffsetMs"])
-  const black = pickNumber(data, ["black_frame_count", "blackFrameCount"])
-  const frozen = pickNumber(data, ["frozen_seconds", "frozenSeconds"])
-  const error = record(root?.error)
-  const errorMessage = pickString(error, ["message"]) || pickString(data, ["error", "failure_message"])
+  const engines = Array.isArray(data?.supported_api_engines)
+    ? data.supported_api_engines.filter((item): item is string => typeof item === "string")
+    : undefined
   return {
-    videoId,
-    status,
-    resolution,
-    resolutionNote,
-    width,
-    height,
-    fps: fps ?? (status ? VIDEO_QUALITY_POLICY.heygenAvatarFps : undefined),
+    videoId: pickString(data, ["video_id", "id"]),
+    status: pickString(data, ["status"]).toLowerCase(),
+    resolution: pickString(data, ["resolution"]),
+    resolutionNote: pickString(data, ["resolution_note", "resolutionNote"]),
+    width: pickNumber(data, ["width"]),
+    height: pickNumber(data, ["height"]),
+    fps: pickNumber(data, ["fps"]),
     videoDurationMs: durationMs ?? (typeof duration === "number" ? Math.round(duration * 1000) : undefined),
-    audioDurationMs: audioMs,
-    lipSyncOffsetMs: lip ?? null,
-    blackFrameCount: black,
-    frozenSeconds: frozen,
+    audioDurationMs: pickNumber(data, ["audio_duration_ms", "audioDurationMs"]),
+    lipSyncOffsetMs: pickNumber(data, ["lip_sync_offset_ms", "lipSyncOffsetMs"]),
+    blackFrameCount: pickNumber(data, ["black_frame_count", "blackFrameCount"]),
+    frozenSeconds: pickNumber(data, ["frozen_seconds", "frozenSeconds"]),
     videoUrl: pickString(data, ["video_url", "url", "download_url"]),
     subtitleUrl: pickString(data, ["subtitle_url", "caption_url"]),
-    errorMessage,
+    callbackId: pickString(data, ["callback_id", "callbackId"]),
+    supportedEngines: engines,
+    errorMessage: pickString(error, ["message"]) || pickString(data, ["error", "failure_message", "message"]),
   }
 }
 
 export function fourKRejected(message: string) {
   return /4k|2160|resolution/i.test(message) && /not|unsupported|unavailable|plan|upgrade|invalid/i.test(message)
 }
+
+export { VIDEO_QUALITY_POLICY }
