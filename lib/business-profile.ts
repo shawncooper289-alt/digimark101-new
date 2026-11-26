@@ -25,6 +25,8 @@ export const businessProfile = {
   /**
    * TODO(owner): https profile URLs you control (LinkedIn, YouTube, Google
    * Business Profile, Clutch, and so on). Leave the list empty until they exist.
+   * The same list can also be set with ORGANIZATION_SAME_AS (comma-separated
+   * https URLs). Do not invent a URL in either place.
    */
   sameAs: [] as string[],
 }
