@@ -1,21 +1,17 @@
 import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { ToolFailure } from "@/lib/ava/tools/failure"
 import type { ToolSpec } from "@/lib/ava/tools/registry"
+import { executeSurfaceTool } from "@/lib/ava/tools/surfaces"
 import { isWorkspaceId } from "@/lib/owner/access"
 import { stages } from "@/lib/platform/types"
+
+export { ToolFailure }
 
 export type ToolRow = { id: string; title: string; meta: string; stage?: string }
 
 type Row = Record<string, unknown>
-
-export class ToolFailure extends Error {
-  status: number
-  constructor(message: string, status = 400) {
-    super(message)
-    this.status = status
-  }
-}
 
 function text(row: Row, key: string) {
   const value = row[key]
@@ -485,6 +481,18 @@ export async function executeTool(supabase: SupabaseClient, spec: ToolSpec, owne
       const rows = data.map((row) => ({ id: text(row, "id"), title: text(row, "title"), meta: "Stored video" }))
       return { rows, summary: summaryOf(rows, "No stored videos in this workspace. This did not start a render.", "videos") }
     }
+    case "products.list":
+    case "products.create":
+    case "products.update":
+    case "products.delete":
+    case "products.publish":
+    case "offers.list":
+    case "offers.create":
+    case "offers.publish":
+    case "offers.unpublish":
+    case "leads.pricing_list":
+    case "leads.pricing_set":
+      return executeSurfaceTool(supabase, spec, ownerId, args)
     default:
       throw new ToolFailure("That tool is not available.")
   }

@@ -23,11 +23,15 @@ export function StoreBuyPanel({
   sdkSrc,
   sandbox,
   disabledReason,
+  endpoint = "/api/store/orders",
+  payload,
 }: {
   sku: string
   sdkSrc: string | null
   sandbox: boolean
   disabledReason?: string
+  endpoint?: string
+  payload?: Record<string, unknown>
 }) {
   const [ready, setReady] = useState(false)
   const [message, setMessage] = useState("")
@@ -45,7 +49,7 @@ export function StoreBuyPanel({
         const response = await fetch("/api/store/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sku }),
+          body: JSON.stringify({ sku, ...payload }),
         })
         const body = (await response.json()) as { paypalOrderId?: string; error?: string }
         if (!response.ok || !body.paypalOrderId) throw new Error(body.error || "Checkout did not start.")
@@ -82,7 +86,7 @@ export function StoreBuyPanel({
         // The button is already gone.
       }
     }
-  }, [disabledReason, ready, sdkSrc, sku])
+  }, [disabledReason, endpoint, payload, ready, sdkSrc, sku])
 
   return (
     <div className="mt-5">

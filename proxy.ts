@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
-import { storeRewritePath } from "@/lib/store/hosts"
+import { surfaceRewritePath } from "@/lib/store/hosts"
 import { supabasePublicConfig } from "@/lib/supabase/config"
 
 function requestHost(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url, 308)
   }
 
-  const rewritten = storeRewritePath(requestHost(request), request.nextUrl.pathname)
+  const rewritten = surfaceRewritePath(requestHost(request), request.nextUrl.pathname)
   const rewriteUrl = request.nextUrl.clone()
   if (rewritten) rewriteUrl.pathname = rewritten
   const pass = () => (rewritten ? NextResponse.rewrite(rewriteUrl) : NextResponse.next({ request }))
