@@ -1,4 +1,3 @@
-import { AvaOnPage } from "@/components/ava/ava-on-page"
 import { Footer } from "@/components/site/footer"
 import { Header } from "@/components/site/header"
 import { partnerLinks } from "@/lib/partners"
@@ -12,7 +11,6 @@ export default async function MarketingLayout({ children }: { children: React.Re
         {children}
       </main>
       <Footer partners={partners} />
-      <AvaOnPage />
     </>
   )
 }
