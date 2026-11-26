@@ -114,6 +114,36 @@ test("the player waits for a real url and never autoplays", () => {
   assert.match(studio, /Load the Meet Ava intro/)
 })
 
+test("the office video entries resolve and run their shared video modules", async () => {
+  const entries = [
+    ["avaskye-online/src/components/video-desk.tsx", "AVA_INTRO_BRIEF", "lib/video/ava-intro.ts"],
+    ["avaskye-online/src/app/api/office/video/route.ts", "handleVideoRequest", "lib/video/handle.ts"],
+  ]
+  for (const [file, name, expected] of entries) {
+    const source = ts.createSourceFile(file, fs.readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true)
+    const declaration = source.statements.find((statement) =>
+      ts.isImportDeclaration(statement) &&
+      statement.importClause?.namedBindings &&
+      ts.isNamedImports(statement.importClause.namedBindings) &&
+      statement.importClause.namedBindings.elements.some((element) => element.name.text === name),
+    )
+    assert.ok(declaration, `${file} must import ${name}`)
+    const resolved = ts.resolveModuleName(declaration.moduleSpecifier.text, path.resolve(file), {
+      moduleResolution: ts.ModuleResolutionKind.Bundler,
+    }, ts.sys).resolvedModule
+    assert.ok(resolved, `${file} cannot resolve ${declaration.moduleSpecifier.text}`)
+    assert.equal(path.resolve(resolved.resolvedFileName), path.resolve(expected))
+    const shared = load(resolved.resolvedFileName)
+    if (name === "AVA_INTRO_BRIEF") {
+      assert.equal(shared[name], intro.AVA_INTRO_BRIEF)
+    } else {
+      const result = await shared[name]({ action: "capabilities", payload: {}, env: {}, tools })
+      assert.equal(result.status, 200)
+      assert.ok(result.body)
+    }
+  }
+})
+
 test("the saved script and captions match the film", () => {
   const doc = fs.readFileSync("docs/ava-intro-video-script.md", "utf8")
   const captions = fs.readFileSync("docs/ava-intro-video-captions.vtt", "utf8")
