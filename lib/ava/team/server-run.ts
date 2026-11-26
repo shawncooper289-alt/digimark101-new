@@ -2,6 +2,7 @@ import "server-only"
 
 import { ToolFailure, executeTool } from "@/lib/ava/tools/effects"
 import { AVA_TOOLS, toolByApiName } from "@/lib/ava/tools/registry"
+import { specialistToolDefs } from "@/lib/ava/team/tool-defs"
 import { isTeamTool, releaseApprovedTool, runTeamTool } from "@/lib/ava/team/execute"
 import { runTeamAgent, type TeamRunResult } from "@/lib/ava/team/run"
 import { lookupTools } from "@/lib/ava/team/scope"
@@ -22,19 +23,7 @@ function toolsFor(allow: readonly string[]) {
 }
 
 async function chat(input: { system: string; user: string; tools: { name: string }[] }) {
-  const specs = lookup()
-  const defs = input.tools.flatMap((tool) => {
-    const spec = specs(tool.name)
-    if (!spec) return []
-    return [{
-      type: "function",
-      function: {
-        name: spec.apiName,
-        description: "Team tool. Stay inside this list.",
-        parameters: { type: "object", properties: { goal: { type: "string" }, topic: { type: "string" }, body: { type: "string" }, audience: { type: "string" }, url: { type: "string" }, platform: { type: "string" } } },
-      },
-    }]
-  })
+  const defs = specialistToolDefs(input.tools.map((tool) => tool.name))
   const result = await specialistChat({
     temperature: 0.3,
     maxTokens: 700,

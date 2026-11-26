@@ -88,6 +88,13 @@ export function memoryTeamStore(): TeamStore {
     async getApproval(ownerId, approvalId) {
       return approvals.find((item) => item.ownerId === ownerId && item.id === approvalId) ?? null
     },
+    async claimApproval(ownerId, approvalId, actorId, nowIso) {
+      const approval = approvals.find((item) => item.ownerId === ownerId && item.id === approvalId)
+      if (!approval || approval.status !== "pending" || approval.actorId !== actorId) return null
+      if (new Date(approval.expiresAt).getTime() <= new Date(nowIso).getTime()) return null
+      approval.status = "approved"
+      return approval
+    },
     async updateApproval(approvalId, patch) {
       const approval = approvals.find((item) => item.id === approvalId)
       if (!approval) return

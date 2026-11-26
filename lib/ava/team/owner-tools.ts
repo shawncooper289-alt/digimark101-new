@@ -11,6 +11,7 @@ import { monthStart, TeamMigrationNeeded } from "@/lib/ava/team/store"
 import { supabaseTeamStore } from "@/lib/ava/team/supabase-store"
 import { releaseApproval, startTeamRun } from "@/lib/ava/team/server-run"
 import type { ToolRow } from "@/lib/ava/tools/effects"
+import { createSupabaseAdmin } from "@/lib/supabase/admin"
 
 const OWNER_TOOLS = new Set(["team_dispatch", "team_status", "team_approve", "muse_brief", "team_reject"])
 
@@ -20,8 +21,11 @@ export async function handleOwnerTool(
   ownerId: string,
   args: Record<string, unknown>,
 ): Promise<{ summary: string; rows: ToolRow[] } | null> {
-  const store = supabaseTeamStore(supabase)
-  if (!store) return { summary: "The team desk needs the server key. Nothing was changed.", rows: [] }
+  // specialist_tasks grants insert only to the service role. The signed-in session cannot write that queue.
+  void supabase
+  const admin = createSupabaseAdmin()
+  const store = admin ? supabaseTeamStore(admin) : null
+  if (!admin || !store) return { summary: "The team desk needs the server key. Nothing was changed.", rows: [] }
   try {
     if (spec.apiName === "team_dispatch") {
       const slug = typeof args.slug === "string" ? args.slug : ""
@@ -32,7 +36,7 @@ export async function handleOwnerTool(
         slug,
         brief: args,
         idempotencyKey: typeof args.idempotencyKey === "string" ? args.idempotencyKey : undefined,
-        supabase,
+        supabase: admin,
         store,
       })
       return { summary: result.text, rows: result.runId ? [{ id: result.runId, title: slug, meta: result.status }] : [] }
@@ -62,7 +66,7 @@ export async function handleOwnerTool(
         ownerId,
         actorId: ownerId,
         approvalId: id,
-        execute: async (tool, params) => releaseApproval({ supabase, ownerId, tool, params }),
+        execute: async (tool, params) => releaseApproval({ supabase: admin, ownerId, tool, params }),
       })
       return { summary: decided.reason, rows: [] }
     }

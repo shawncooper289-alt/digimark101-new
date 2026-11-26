@@ -74,6 +74,9 @@ export async function runBoundedLoop(input: {
   let tokensIn = 0
   let tokensOut = 0
   let runTokens = input.budget.runTokens
+  let dayTokens = input.budget.dayTokens
+  let agentMonthMicro = input.budget.agentMonthMicro
+  let totalMonthMicro = input.budget.totalMonthMicro
   let text = ""
   let missing = false
   let stopped: string | null = null
@@ -84,12 +87,26 @@ export async function runBoundedLoop(input: {
     const user = [
       `Goal: ${input.brief.goal}`,
       input.brief.audience ? `Audience: ${input.brief.audience}` : "",
+      input.brief.brandVoice ? `Brand voice: ${input.brief.brandVoice}` : "",
+      input.brief.assets.length ? `Assets:\n${input.brief.assets.map((item) => `- ${item}`).join("\n")}` : "",
       input.brief.constraints ? `Constraints: ${input.brief.constraints}` : "",
+      input.brief.deadline ? `Deadline: ${input.brief.deadline}` : "",
+      input.brief.approvalNeeds ? `Approval needs: ${input.brief.approvalNeeds}` : "",
+      input.brief.successMetric ? `Success metric: ${input.brief.successMetric}` : "",
+      input.brief.notes ? `Notes: ${input.brief.notes}` : "",
       notes.length ? `Tool notes:\n${notes.join("\n")}` : "Use only the tools you were given.",
     ].filter(Boolean).join("\n")
     const nextTokens = estimateTokens(`${input.system}\n${user}`) + 800
     const nextMicro = estimateCostMicro(nextTokens, 0, input.rates)
-    const gate = decideBudget({ ...input.budget, runTokens, nextTokens, nextMicro })
+    const gate = decideBudget({
+      ...input.budget,
+      runTokens,
+      dayTokens,
+      agentMonthMicro,
+      totalMonthMicro,
+      nextTokens,
+      nextMicro,
+    })
     if (!gate.allow) {
       stopped = gate.reason
       break
@@ -103,6 +120,10 @@ export async function runBoundedLoop(input: {
     tokensIn += turned.tokensIn
     tokensOut += turned.tokensOut
     runTokens += turned.tokensIn + turned.tokensOut
+    dayTokens += turned.tokensIn + turned.tokensOut
+    const spentMicro = estimateCostMicro(turned.tokensIn, turned.tokensOut, input.rates)
+    agentMonthMicro += spentMicro
+    totalMonthMicro += spentMicro
     if (turned.text) text = turned.text
     if (!turned.toolCalls.length) break
     let progressed = false

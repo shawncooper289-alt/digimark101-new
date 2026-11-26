@@ -139,16 +139,23 @@ export function supabaseTeamStore(client: SupabaseClient | null = createSupabase
       }
     },
     async usageSince(ownerId, slug, dayStartIso, monthStartIso) {
-      const { data, error } = await db.from("agent_runs").select("agent_slug,tokens_in,tokens_out,cost_micro_usd,created_at").eq("owner_id", ownerId).gte("created_at", monthStartIso).limit(500)
-      fail(error)
+      const pageSize = 1000
+      let from = 0
       let dayTokens = 0
       let agentMonthMicro = 0
       let totalMonthMicro = 0
-      for (const row of data ?? []) {
-        const cost = Number(row.cost_micro_usd) || 0
-        totalMonthMicro += cost
-        if (row.agent_slug === slug) agentMonthMicro += cost
-        if (row.agent_slug === slug && text(row, "created_at") >= dayStartIso) dayTokens += (Number(row.tokens_in) || 0) + (Number(row.tokens_out) || 0)
+      for (;;) {
+        const { data, error } = await db.from("agent_runs").select("agent_slug,tokens_in,tokens_out,cost_micro_usd,created_at").eq("owner_id", ownerId).gte("created_at", monthStartIso).order("created_at", { ascending: true }).range(from, from + pageSize - 1)
+        fail(error)
+        const rows = data ?? []
+        for (const row of rows) {
+          const cost = Number(row.cost_micro_usd) || 0
+          totalMonthMicro += cost
+          if (row.agent_slug === slug) agentMonthMicro += cost
+          if (row.agent_slug === slug && text(row, "created_at") >= dayStartIso) dayTokens += (Number(row.tokens_in) || 0) + (Number(row.tokens_out) || 0)
+        }
+        if (rows.length < pageSize) break
+        from += pageSize
       }
       return { dayTokens, agentMonthMicro, totalMonthMicro }
     },
@@ -186,6 +193,11 @@ export function supabaseTeamStore(client: SupabaseClient | null = createSupabase
       fail(error)
       if (!data) return null
       return mapApproval(data)
+    },
+    async claimApproval(ownerId, id, actorId, nowIso) {
+      const { data, error } = await db.from("agent_approvals").update({ status: "approved", decided_at: nowIso }).eq("owner_id", ownerId).eq("id", id).eq("actor_id", actorId).eq("status", "pending").gt("expires_at", nowIso).select("*").maybeSingle()
+      fail(error)
+      return data ? mapApproval(data) : null
     },
     async updateApproval(id, patch) {
       const { error } = await db.from("agent_approvals").update({

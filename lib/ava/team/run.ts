@@ -241,8 +241,9 @@ export async function decideOwnerApproval(input: {
     return { ok: false, executed: false, reason: check.reason }
   }
   if (!approvedAction(row.tool)) return { ok: false, executed: false, reason: "That tool cannot be released from the inbox." }
-  await input.store.updateApproval(row.id, { status: "approved", decidedAt: now.toISOString() })
-  const outcome = await input.execute(row.tool, row.params)
+  const claimed = await input.store.claimApproval(input.ownerId, row.id, input.actorId, now.toISOString())
+  if (!claimed) return { ok: false, executed: false, reason: "That approval is already closed." }
+  const outcome = await input.execute(claimed.tool, claimed.params)
   return { ok: true, executed: true, reason: outcome.summary }
 }
 

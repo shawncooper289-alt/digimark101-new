@@ -89,6 +89,8 @@ export interface TeamStore {
   addArtifact(row: Omit<StoredArtifact, "id">): Promise<StoredArtifact>
   addApproval(row: Omit<StoredApproval, "id" | "status"> & { status?: ApprovalStatus }): Promise<StoredApproval>
   getApproval(ownerId: string, id: string): Promise<StoredApproval | null>
+  /** Marks one pending approval approved. A second caller gets null and must not run the tool. */
+  claimApproval(ownerId: string, id: string, actorId: string, nowIso: string): Promise<StoredApproval | null>
   updateApproval(id: string, patch: Partial<Pick<StoredApproval, "status">> & { decidedAt?: string }): Promise<void>
   listRuns(ownerId: string): Promise<StoredRun[]>
   listApprovals(ownerId: string): Promise<StoredApproval[]>

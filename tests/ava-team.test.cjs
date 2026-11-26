@@ -58,6 +58,7 @@ const traffic = load("lib/ava/team/providers.ts")
 const run = load("lib/ava/team/run.ts")
 const memory = load("lib/ava/team/memory-store.ts")
 const registry = load("lib/ava/tools/registry.ts")
+const toolDefs = load("lib/ava/team/tool-defs.ts")
 
 const lookup = scope.lookupTools(registry.AVA_TOOLS.map((tool) => ({ apiName: tool.apiName, name: tool.name, effect: tool.effect })))
 const quietChat = async () => ({ ok: true, text: "A draft with no numbers. Nothing was sent.", toolCalls: [], tokensIn: 20, tokensOut: 20 })
@@ -406,6 +407,89 @@ test("the Muse connector fails closed, and Meta contributor models are refused",
   }, null)
   assert.equal(meta.provider, "meta")
   assert.equal(meta.baseUrl, "https://api.meta.ai/v1")
+})
+
+test("a nurture send and a form use their own fields, not one shared schema", () => {
+  const defs = toolDefs.specialistToolDefs(profiles.teamProfile("nurture").tools)
+  const form = defs.find((tool) => tool.function.name === "forms_create")
+  const campaign = defs.find((tool) => tool.function.name === "campaigns_draft")
+  const send = defs.find((tool) => tool.function.name === "nurture_request_send")
+  assert.ok(form.function.parameters.required.includes("name"))
+  assert.ok(campaign.function.parameters.required.includes("name"))
+  assert.ok(send.function.parameters.properties.id)
+  assert.ok(send.function.parameters.properties.name)
+  assert.equal(defs.some((tool) => tool.function.name === "social_publish"), false)
+})
+
+test("the model sees the brief's voice, assets, deadline, and notes", async () => {
+  let user = ""
+  await loop.runBoundedLoop({
+    system: "draft",
+    brief: brief.parseBrief({
+      goal: "Write a note",
+      audience: "shop owners",
+      brandVoice: "plain and warm",
+      assets: ["logo.png"],
+      constraints: "no invented numbers",
+      deadline: "Friday",
+      approvalNeeds: "Shawn approves a send",
+      successMetric: "a draft he can edit",
+      notes: "use the pasted outline",
+    }),
+    allow: [],
+    sources: [],
+    lookup,
+    chat: async (input) => {
+      user = input.user
+      return { ok: true, text: "A draft with no numbers.", toolCalls: [], tokensIn: 5, tokensOut: 5 }
+    },
+    execute: async () => ({ summary: "ran" }),
+    budget: baseBudget(),
+    tools: [],
+  })
+  for (const line of ["shop owners", "plain and warm", "logo.png", "Friday", "Shawn approves a send", "a draft he can edit", "use the pasted outline"]) {
+    assert.equal(user.includes(line), true, line)
+  }
+})
+
+test("a later loop turn counts the tokens the earlier turn already spent", async () => {
+  let calls = 0
+  const result = await loop.runBoundedLoop({
+    system: "draft",
+    brief: brief.parseBrief({ goal: "Write a note" }),
+    allow: ["traffic_audit"],
+    sources: ["Write a note"],
+    lookup,
+    chat: async () => {
+      calls += 1
+      return { ok: true, text: "A draft.", toolCalls: [{ name: "traffic_audit", arguments: "{}" }], tokensIn: 3000, tokensOut: 3000 }
+    },
+    execute: async () => ({ summary: "Site checks only." }),
+    budget: baseBudget({ dayCap: 5000, perRunCap: 20000 }),
+    tools: [{ name: "traffic_audit" }],
+  })
+  assert.equal(calls, 1)
+  assert.match(result.stopped, /daily token cap/i)
+})
+
+test("only the first claim of an approval can run the tool", async () => {
+  const store = memory.memoryTeamStore()
+  const saved = await store.addApproval({
+    ownerId: "owner",
+    actorId: "owner",
+    runId: null,
+    tool: "indexnow_submit",
+    target: "https://www.digimark101.com/",
+    params: { url: "https://www.digimark101.com/" },
+    paramsHash: "hash",
+    effect: "outbound",
+    expiresAt: "2026-12-01T00:00:00Z",
+  })
+  const now = "2026-11-26T00:00:00.000Z"
+  const first = await store.claimApproval("owner", saved.id, "owner", now)
+  const second = await store.claimApproval("owner", saved.id, "owner", now)
+  assert.equal(Boolean(first), true)
+  assert.equal(second, null)
 })
 
 test("the playbook and the migration file are in the repo", () => {
