@@ -42,6 +42,7 @@ const groups = [
     label: "Workspace",
     items: [
       { href: "/studio/reports", label: "Reports" },
+      { href: "/studio/orders", label: "Store orders" },
       { href: "/studio/leads", label: "Leads" },
       { href: "/studio/files", label: "Files" },
       { href: "/studio/media", label: "Media" },
