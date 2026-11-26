@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState, type FormEvent, type ReactNode } from "react"
+import { BrandLogo } from "@/components/brand-logo"
 import { AvaDesk } from "@/components/ava-desk"
 import { AvaFloat } from "@/components/ava-float"
 import { OwnerAccountsButton } from "@/components/owner-accounts-button"
@@ -69,6 +70,7 @@ export function DeskShell({ children, founderEmails }: { children: ReactNode; fo
       <div className="relative min-h-dvh" onClick={() => setMenuOpen(true)}>
         <img src="/ava/desk-sitting.jpg" alt="Ava Skye at the night-city desk" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute left-5 top-5 z-10 rounded-xl bg-black/60 p-3 text-white"><BrandLogo /></div>
         <div className="relative z-10 flex min-h-dvh items-end justify-center pb-12">
           <p className="rounded-full bg-black/60 px-6 py-3 text-sm text-white backdrop-blur">Click to open Ava&apos;s Skye Studio</p>
         </div>
@@ -82,8 +84,8 @@ export function DeskShell({ children, founderEmails }: { children: ReactNode; fo
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-muted">Ava Skye</p>
-            <p className="text-sm">Ava&apos;s Skye Studio</p>
+            <Link href="/" aria-label="DigiMark101 office home"><BrandLogo /></Link>
+            <p className="mt-1 text-sm">Ava&apos;s Skye Studio</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <OwnerAccountsButton emails={founderEmails} />
