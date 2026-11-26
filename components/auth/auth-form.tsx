@@ -40,7 +40,7 @@ export function AuthForm({
     setPasswordError(nextPasswordError)
     if (nextEmailError || nextPasswordError) return
     if (!supabase) {
-      setError("Add the Supabase URL and anon key, then restart.")
+      setError("Sign-in is not available yet. You can still open the preview studio.")
       return
     }
     setPending(true)
@@ -54,8 +54,8 @@ export function AuthForm({
           })
       if (result.error) {
         setError(mode === "login"
-          ? "Sign-in failed. Check your email and password, or try again later."
-          : "Could not create your account. Please try again later.")
+          ? "Sign-in did not go through. Check your email and password, or try again in a minute."
+          : "Could not create your account right now. Please try again in a minute. If it keeps happening, write to the studio.")
         return
       }
       if (mode === "signup" && !result.data.session) {
@@ -65,7 +65,7 @@ export function AuthForm({
       const destination = nextPath.startsWith("/start") || nextPath.startsWith("/studio") ? nextPath : "/studio"
       window.location.assign(destination)
     } catch {
-      setError("Could not reach the sign-in service. Please try again.")
+      setError("Could not reach the sign-in service. Please try again in a minute.")
     } finally {
       setPending(false)
     }
@@ -82,7 +82,7 @@ export function AuthForm({
       </p>
       {supabase ? null : (
         <p className="mt-4 rounded-2xl bg-mist px-3 py-3 text-sm">
-          Supabase is not configured. You can still open the <Link className="underline" href="/studio">preview studio</Link>. It stays in this browser.
+          Sign-in is not configured yet. You can still open the <Link className="underline" href="/studio">preview studio</Link>. It stays in this browser.
         </p>
       )}
       <form onSubmit={onSubmit} noValidate className="mt-6 grid gap-3">

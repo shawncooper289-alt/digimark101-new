@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   const admin = createSupabaseAdmin()
-  if (!admin) return NextResponse.json({ error: "Beta signup is not configured yet." }, { status: 503 })
+  if (!admin) return NextResponse.json({ error: "Beta signup is not configured yet. Please try again later or write to the studio." }, { status: 503 })
 
   const { data: existing } = await admin
     .from("seats")
@@ -46,13 +46,19 @@ export async function POST(request: Request) {
       planKey: "monthly",
       sendInvite: false,
     })
-    if (!delivered.ok) return NextResponse.json({ error: "Could not reserve the beta seat." }, { status: 500 })
+    if (!delivered.ok) {
+      return NextResponse.json({
+        error: "We could not finish setting up your free beta seat right now. Please try again in a few minutes, or write to the studio. Nothing was charged.",
+      }, { status: 500 })
+    }
     await admin.from("seats").update({ beta_consent_at: new Date().toISOString(), is_beta: true }).eq("id", delivered.seatId)
   }
 
   const invited = await sendStudioInvite(email)
   if (!invited) {
-    return NextResponse.json({ error: "The seat is reserved, but the sign-in email did not send. Try again in a minute." }, { status: 502 })
+    return NextResponse.json({
+      error: "Your beta seat is reserved, but the sign-in email did not send. Check spam in a minute, or try the form again.",
+    }, { status: 502 })
   }
   return NextResponse.json({ ok: true })
 }

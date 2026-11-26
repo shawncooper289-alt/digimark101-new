@@ -11,12 +11,12 @@ export function HomeHero() {
         <div className="order-2 lg:order-1 lg:col-span-7">
           <div className="relative mb-4 h-14 w-14 overflow-hidden rounded-full border border-signal/40 lg:hidden">
             <Image
-              src="/media/ava-city.jpg"
+              src="/media/ava-public-portrait.jpg"
               alt="Ava Skye"
               fill
               sizes="56px"
               quality={70}
-              className="object-cover object-[center_16%]"
+              className="object-cover object-[center_20%]"
             />
           </div>
           <p className="home-kicker">{hero.eyebrow}</p>
@@ -55,12 +55,12 @@ export function HomeHero() {
         <div className="order-1 lg:order-2 lg:col-span-5">
           <div className="relative hidden aspect-[4/5] w-full overflow-hidden rounded-[1.4rem] border border-signal/40 lg:block">
             <Image
-              src="/media/ava-city.jpg"
-              alt="Ava Skye, the DigiMark101 setup guide, in a dark studio"
+              src="/media/ava-public-portrait.jpg"
+              alt="Ava Skye, the DigiMark101 setup guide"
               fill
               sizes="420px"
-              quality={70}
-              className="object-cover object-[center_16%]"
+              quality={80}
+              className="object-cover object-[center_18%]"
             />
           </div>
           <p className="mt-3 hidden text-sm text-ink-soft lg:block">Ava Skye, pronounced AY-vuh, your setup guide</p>
