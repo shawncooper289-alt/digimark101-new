@@ -1,0 +1,69 @@
+openapi: 3.0.3
+info:
+  title: DigiMark101 Muse connector
+  version: "1.0.0"
+  description: >
+    Read-mostly connector for Shawn's Muse agent. Muse has no inbound API.
+    This API lets a custom Meta connector read open briefs, submit a result,
+    and read public brand knowledge and stored KPIs. It does not publish,
+    send, spend, or contact anyone.
+servers:
+  - url: https://www.digimark101.com
+paths:
+  /api/connectors/muse/briefs:
+    get:
+      operationId: listOpenBriefs
+      summary: List open Muse briefs
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Open briefs for the configured owner
+  /api/connectors/muse/briefs/{id}/result:
+    post:
+      operationId: submitBriefResult
+      summary: Submit Muse's pasted result for review
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [result]
+              properties:
+                result:
+                  type: string
+      responses:
+        "200":
+          description: Review note. The result is not published.
+  /api/connectors/muse/brand:
+    get:
+      operationId: readBrand
+      summary: Read public brand knowledge
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Public site facts and voice rules. No client records.
+  /api/connectors/muse/kpis:
+    get:
+      operationId: readKpis
+      summary: Read stored traffic KPIs
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Stored measurements only. Missing sources are listed and not filled in.
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer

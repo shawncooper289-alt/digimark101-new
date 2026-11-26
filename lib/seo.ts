@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import { businessProfile, publicPostalAddress, publicSameAs } from "@/lib/business-profile"
+import { businessProfile, publicPostalAddress } from "@/lib/business-profile"
+import { sameAsFromEnv } from "@/lib/seo/same-as"
 import { services, site } from "@/lib/site"
 
 type PageMetaInput = {
@@ -65,7 +66,7 @@ function contactPoint() {
 }
 
 export function organizationJsonLd() {
-  const sameAs = publicSameAs()
+  const sameAs = sameAsFromEnv(process.env.ORGANIZATION_SAME_AS, businessProfile.sameAs)
   const address = publicPostalAddress()
   const organization: Record<string, unknown> = {
     "@type": "Organization",

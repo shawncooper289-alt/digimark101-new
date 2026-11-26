@@ -1,9 +1,23 @@
+import fs from "node:fs"
+import path from "node:path"
 import type { MetadataRoute } from "next"
 import { agencyPages } from "@/lib/agency-pages"
+import { pageLastModified } from "@/lib/seo/sitemap-dates"
 import { caseStudies, posts, services, site } from "@/lib/site"
 
+function mtime(file: string) {
+  try {
+    return fs.statSync(path.join(/* turbopackIgnore: true */ process.cwd(), file)).mtime
+  } catch {
+    return null
+  }
+}
+
+function dated(urlPath: string, contentDate?: string | null): Date | undefined {
+  return pageLastModified({ path: urlPath, contentDate, mtime })
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-11-18T00:00:00Z")
   const staticPaths = [
     "",
     "/agency",
@@ -22,27 +36,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ]
 
   return [
-    ...staticPaths.map((path) => ({
-      url: `${site.url}${path || "/"}`,
-      lastModified,
-      changeFrequency: path === "" || path === "/blog" ? ("weekly" as const) : ("monthly" as const),
-      priority: path === "" ? 1 : path === "/agency" || path === "/services" ? 0.9 : 0.7,
+    ...staticPaths.map((urlPath) => ({
+      url: `${site.url}${urlPath || "/"}`,
+      lastModified: dated(urlPath),
+      changeFrequency: urlPath === "" || urlPath === "/blog" ? ("weekly" as const) : ("monthly" as const),
+      priority: urlPath === "" ? 1 : urlPath === "/agency" || urlPath === "/services" ? 0.9 : 0.7,
     })),
     ...agencyPages.map((page) => ({
       url: `${site.url}${page.path}`,
-      lastModified,
+      lastModified: dated(page.path),
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
     ...services.map((service) => ({
       url: `${site.url}/services/${service.slug}`,
-      lastModified,
+      lastModified: dated(`/services/${service.slug}`),
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
     ...caseStudies.map((study) => ({
       url: `${site.url}/work/${study.slug}`,
-      lastModified,
+      lastModified: dated(`/work/${study.slug}`),
       changeFrequency: "monthly" as const,
       priority: 0.5,
     })),

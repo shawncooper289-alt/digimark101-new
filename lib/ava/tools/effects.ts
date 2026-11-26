@@ -485,7 +485,11 @@ export async function executeTool(supabase: SupabaseClient, spec: ToolSpec, owne
       const rows = data.map((row) => ({ id: text(row, "id"), title: text(row, "title"), meta: "Stored video" }))
       return { rows, summary: summaryOf(rows, "No stored videos in this workspace. This did not start a render.", "videos") }
     }
-    default:
+    default: {
+      const { handleOwnerTool } = await import("@/lib/ava/team/owner-tools")
+      const team = await handleOwnerTool(supabase, spec, ownerId, args)
+      if (team) return team
       throw new ToolFailure("That tool is not available.")
+    }
   }
 }
