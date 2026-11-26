@@ -5,8 +5,8 @@
  */
 
 export const hero = {
-  eyebrow: "Your marketing system, guided by Ava",
-  lead: "Own the workspace. Grow the business.",
+  eyebrow: "Your marketing workspace, guided by Ava",
+  lead: "Your Digital Dynasty starts here",
   accent: "Ava walks with you from first question to finished draft. Everything you create stays in your account.",
   lede:
     "Contacts, pipeline, drafts, files, and follow-ups live in one place. No more jumping between tools. You keep everything you build.",
@@ -279,8 +279,8 @@ export const reasons = [
     body: "Contacts, pipeline, calendar, email drafts, page plans, social drafts, files, and automations live in Studio. You can begin without renting a separate product for every job.",
   },
   {
-    title: "You keep the system",
-    body: "Memory stays on your workspace. A white-label backend under your own name is coming soon. Publishing, sending, and spending wait for your yes. That is what owning the marketing system means here.",
+    title: "You keep your work",
+    body: "Contacts, drafts, files, and memory stay on your account. A white-label backend under your own name is coming soon. Publishing, sending, and spending wait for your yes. That is what keeping your marketing workspace means here.",
   },
   {
     title: "The same door works for every stage",
@@ -288,7 +288,7 @@ export const reasons = [
   },
   {
     title: "The better choice is the one you can run",
-    body: "People shopping for an all-in-one tool often look at GoHighLevel. That platform publishes a long agency menu: pages, calling, texting, payments, courses, and more. DigiMark101 is built for the same ambition, one system you can grow a business on, with Ava setting it up beside you. Where a feature is still being connected, this page says so. A longer catalog is a weaker choice if it leaves you stuck before you start.",
+    body: "People shopping for an all-in-one tool often look at GoHighLevel. That platform publishes a long agency menu: pages, calling, texting, payments, courses, and more. DigiMark101 is built for the same ambition, one workspace you can grow a business on, with Ava setting it up beside you. Where a feature is still being connected, this page says so. A longer catalog is a weaker choice if it leaves you stuck before you start.",
   },
 ] as const
 
@@ -359,46 +359,21 @@ export const homeFaqs = [
   {
     question: "Who is it for?",
     answer:
-      "The homepage is written for a small business or solo operator in the United States with one offer. Beginners, creators, and agencies each have a path. Clients are remote. DigiMark101 does not pay you and does not guarantee income.",
-  },
-  {
-    question: "Who is Ava Skye?",
-    answer:
-      "Ava is the assistant on this site and inside Studio. She can explain the work, ask setup questions one at a time, fill forms, and draft a contact, a page, an email, a social post, or an automation. She saves it only after you say yes. She answers through OpenAI when that connection is on. If it is off, she says so and does not guess. She does not invent clients or results.",
-  },
-  {
-    question: "How do I make money with it?",
-    answer:
-      "You use it to choose an offer, keep a list of interested people, give them one next step, and follow up. Your customers pay you through the way you already get paid. DigiMark101 does not pay you and does not guarantee income. What you make depends on your offer, your effort, and the people you reach.",
-  },
-  {
-    question: "What do CRM, funnel, and pipeline mean?",
-    answer:
-      "A CRM is your contact list with a memory. A funnel is a page with one job, then a follow-up, then the offer. A pipeline is the path of a sale, from new to won. You can use Studio before those words feel comfortable. Ava can explain them again whenever you ask.",
-  },
-  {
-    question: "What should I try first?",
-    answer:
-      "Create an account, or join the beta if you want a free tester seat. Then talk to Ava or open Studio and add one contact. There is also a first-campaign path: answer five questions, and Studio fills a ready-made template for one page, one form, and three follow-up emails. You read it and approve it. Approving saves it. It does not publish a page or send email yet. The starter membership for that path is priced on the first-campaign page.",
-  },
-  {
-    question: "What is still being connected?",
-    answer:
-      "Email sending waits on an email provider. Phone and text are not connected. The visual page builder is a later phase, so a funnel record is not a published site. The inbox is notes, not your outside mailbox. Lead-list checkout is not connected, so a request stays pending. Calendar booking is inside Studio, not a public link for your customers yet. Posting to social networks and the white-label backend are coming soon.",
-  },
-  {
-    question: "Why is this a better choice than separate tools, or a platform like GoHighLevel?",
-    answer:
-      "Separate tools mean a login for contacts, another for email, another for pages, and another for reminders. DigiMark101 puts those jobs in Studio and adds Ava to fill the setup. GoHighLevel is a large all-in-one menu many agencies rent, including calling, texting, and payments. DigiMark101 is an all-in-one workspace for people who want that kind of system and also want a guide, plain language, and a clear line between what is live and what is still being built. This page compares capabilities. It does not invent prices.",
+      "The homepage is written for a small business or solo operator in the United States with one offer. Beginners, creators, and agencies can still start. Each path on the page goes to a page that already exists.",
   },
   {
     question: "Is the beta free?",
     answer:
-      "Yes. A beta seat is free. Use the email you check. We send a sign-in link, and there is no PayPal step on that form. If an invite code is required, the form says so. Feedback you send later stays with the owner. It is not posted on the public site.",
+      "Yes. A beta seat is free. Use the email you check. We send a sign-in link, and there is no PayPal step on that form. If an invite code is required, the form says so. Feedback you send later stays with the owner.",
   },
   {
-    question: "Do you show client results or guarantee income?",
+    question: "What does Ava do?",
     answer:
-      `${earningsDisclaimer} Work pages are labeled samples. A client story goes up only after a partner approves the facts. Nothing on this site is a promised sale, rank, or paycheck.`,
+      "She is the AI assistant. She asks one question at a time, fills the forms, and waits for your yes before she saves. She can talk or type. She does not invent clients, ranks, or revenue numbers.",
+  },
+  {
+    question: "Do I own the platform?",
+    answer:
+      "You keep everything you build in your account: contacts, drafts, files, and memory. A white-label backend under your own name is coming soon. Today your records stay private to your login. DigiMark101 is the platform; your workspace is yours.",
   },
 ] as const
